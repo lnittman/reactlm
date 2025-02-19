@@ -1,0 +1,35 @@
+{
+  "name": "react-llm",
+  "version": "0.1.0",
+  "description": "A floating chat interface for React apps powered by Gemini",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "react-llm": "./scripts/react-llm.js"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "lint": "biome check .",
+    "format": "biome format . --write"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.2.0",
+    "@preact/signals": "^1.2.2",
+    "@sqlite.org/sqlite-wasm": "3.49.1-build1",
+    "marked": "^11.0.0",
+    "preact": "^10.19.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.5.3",
+    "@types/node": "^20.11.5",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  }
+}
