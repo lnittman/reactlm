@@ -1,0 +1,411 @@
+---
+title: NPM Package Installation
+description: Install React LLM as an npm package for better integration and TypeScript support
+---
+
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+
+# NPM Package Installation
+
+Installing React LLM as an npm package gives you better integration, TypeScript support, and more control over the configuration.
+
+## Installation
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+<Tab value="npm">
+
+```bash
+npm install react-llm
+```
+
+</Tab>
+<Tab value="pnpm">
+
+```bash
+pnpm add react-llm
+```
+
+</Tab>
+<Tab value="yarn">
+
+```bash
+yarn add react-llm
+```
+
+</Tab>
+<Tab value="bun">
+
+```bash
+bun add react-llm
+```
+
+</Tab>
+</Tabs>
+
+## Basic Usage
+
+### React Provider Component
+
+Wrap your app with the `ReactLLMProvider`:
+
+```tsx
+import { ReactLLMProvider } from 'react-llm';
+
+function App() {
+  return (
+    <ReactLLMProvider
+      config={{
+        providers: {
+          openrouter: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY
+        }
+      }}
+    >
+      <YourApp />
+    </ReactLLMProvider>
+  );
+}
+
+export default App;
+```
+
+### Imperative API
+
+Initialize React LLM programmatically:
+
+```tsx
+import { initReactLLM } from 'react-llm';
+import { useEffect } from 'react';
+
+function App() {
+  useEffect(() => {
+    initReactLLM({
+      providers: {
+        openrouter: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY
+      }
+    });
+  }, []);
+
+  return <YourApp />;
+}
+```
+
+## TypeScript Configuration
+
+React LLM includes full TypeScript definitions. For the best experience, add these types to your project:
+
+```typescript
+// types/react-llm.d.ts
+declare module 'react-llm' {
+  export interface ReactLLMConfig {
+    providers: {
+      openrouter?: string;
+      openai?: string;
+      anthropic?: string;
+      google?: string;
+    };
+    preferredModel?: string;
+    ui?: {
+      position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+      theme?: 'light' | 'dark' | 'auto';
+      minimized?: boolean;
+    };
+    features?: {
+      componentSelection?: boolean;
+      liveEditing?: boolean;
+      persistentHistory?: boolean;
+    };
+  }
+
+  export function initReactLLM(config: ReactLLMConfig): Promise<void>;
+  export function ReactLLMProvider(props: {
+    config: ReactLLMConfig;
+    children: React.ReactNode;
+  }): JSX.Element;
+}
+```
+
+## Configuration Options
+
+<Tabs items={['Provider', 'Imperative', 'Advanced']}>
+<Tab value="Provider">
+
+```tsx
+import { ReactLLMProvider } from 'react-llm';
+
+function App() {
+  return (
+    <ReactLLMProvider
+      config={{
+        providers: {
+          openrouter: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY,
+          openai: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+        },
+        preferredModel: 'gpt-4o',
+        ui: {
+          position: 'bottom-right',
+          theme: 'auto'
+        }
+      }}
+    >
+      <MainApp />
+    </ReactLLMProvider>
+  );
+}
+```
+
+</Tab>
+<Tab value="Imperative">
+
+```tsx
+import { initReactLLM } from 'react-llm';
+
+async function setupReactLLM() {
+  await initReactLLM({
+    providers: {
+      openrouter: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY
+    },
+    features: {
+      componentSelection: true,
+      liveEditing: process.env.NODE_ENV === 'development',
+      persistentHistory: true
+    }
+  });
+}
+
+// Call during app initialization
+setupReactLLM();
+```
+
+</Tab>
+<Tab value="Advanced">
+
+```tsx
+import { ReactLLMProvider, type ReactLLMConfig } from 'react-llm';
+
+const config: ReactLLMConfig = {
+  providers: {
+    openrouter: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY
+  },
+  ui: {
+    position: 'bottom-right',
+    theme: 'auto',
+    minimized: false
+  },
+  features: {
+    componentSelection: true,
+    liveEditing: process.env.NODE_ENV === 'development',
+    persistentHistory: true
+  },
+  // Advanced options
+  debug: process.env.NODE_ENV === 'development',
+  contextWindow: 100000, // Token limit for context
+  temperature: 0.7,
+  customInstructions: 'You are helping with React development...',
+};
+
+function App() {
+  return (
+    <ReactLLMProvider config={config}>
+      <MainApp />
+    </ReactLLMProvider>
+  );
+}
+```
+
+</Tab>
+</Tabs>
+
+## Environment Variables
+
+Set up your environment variables securely:
+
+<Tabs items={['.env.local', '.env.example', 'Vercel', 'Netlify']}>
+<Tab value=".env.local">
+
+```bash
+# .env.local (Next.js, Create React App)
+NEXT_PUBLIC_OPENROUTER_API_KEY=sk-or-v1-...
+NEXT_PUBLIC_OPENAI_API_KEY=sk-...
+NEXT_PUBLIC_ANTHROPIC_API_KEY=sk-ant-...
+
+# For client-side usage, prefix with NEXT_PUBLIC_, REACT_APP_, or VITE_
+```
+
+</Tab>
+<Tab value=".env.example">
+
+```bash
+# .env.example - commit this to your repo
+NEXT_PUBLIC_OPENROUTER_API_KEY=your_openrouter_api_key_here
+NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key_here
+NEXT_PUBLIC_ANTHROPIC_API_KEY=your_anthropic_api_key_here
+```
+
+</Tab>
+<Tab value="Vercel">
+
+Add environment variables in your Vercel dashboard:
+
+1. Go to your project settings
+2. Navigate to "Environment Variables"
+3. Add each key with the appropriate value
+4. Make sure to check "Expose to client" for client-side variables
+
+</Tab>
+<Tab value="Netlify">
+
+Add environment variables in Netlify:
+
+1. Go to Site settings → Environment variables
+2. Add each key-value pair
+3. Redeploy your site for changes to take effect
+
+</Tab>
+</Tabs>
+
+## Framework-Specific Setup
+
+### Create React App
+
+```tsx
+// src/App.tsx
+import { ReactLLMProvider } from 'react-llm';
+
+function App() {
+  return (
+    <ReactLLMProvider
+      config={{
+        providers: {
+          openrouter: process.env.REACT_APP_OPENROUTER_API_KEY
+        }
+      }}
+    >
+      <div className="App">
+        {/* Your app content */}
+      </div>
+    </ReactLLMProvider>
+  );
+}
+
+export default App;
+```
+
+### Vite
+
+```tsx
+// src/main.tsx
+import { ReactLLMProvider } from 'react-llm';
+
+function App() {
+  return (
+    <ReactLLMProvider
+      config={{
+        providers: {
+          openrouter: import.meta.env.VITE_OPENROUTER_API_KEY
+        }
+      }}
+    >
+      <MainApp />
+    </ReactLLMProvider>
+  );
+}
+```
+
+## Bundle Size Optimization
+
+React LLM is designed to be lightweight, but you can optimize further:
+
+### Code Splitting
+
+```tsx
+import { lazy, Suspense } from 'react';
+
+const ReactLLMProvider = lazy(() => 
+  import('react-llm').then(module => ({ 
+    default: module.ReactLLMProvider 
+  }))
+);
+
+function App() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ReactLLMProvider config={config}>
+        <MainApp />
+      </ReactLLMProvider>
+    </Suspense>
+  );
+}
+```
+
+### Conditional Loading
+
+Only load React LLM in development:
+
+```tsx
+import { ReactLLMProvider } from 'react-llm';
+
+function App() {
+  const shouldLoadReactLLM = process.env.NODE_ENV === 'development';
+
+  if (shouldLoadReactLLM) {
+    return (
+      <ReactLLMProvider config={config}>
+        <MainApp />
+      </ReactLLMProvider>
+    );
+  }
+
+  return <MainApp />;
+}
+```
+
+## Troubleshooting
+
+### Module Not Found
+
+Ensure React LLM is properly installed:
+
+```bash
+npm ls react-llm
+```
+
+If not found, reinstall:
+
+```bash
+npm install react-llm
+```
+
+### TypeScript Errors
+
+If you're getting TypeScript errors, make sure you have the latest version:
+
+```bash
+npm install react-llm@latest
+```
+
+Add type declarations if needed:
+
+```typescript
+// types/global.d.ts
+declare module 'react-llm';
+```
+
+### Build Errors
+
+React LLM uses modern JavaScript features. Ensure your build tool supports:
+
+- ES2020+ syntax
+- Dynamic imports
+- Web Workers (for SQLite)
+
+<Callout type="info">
+**Peer Dependencies**: React LLM requires React 16.8+ and React DOM. These should be automatically installed with most React frameworks.
+</Callout>
+
+## Next Steps
+
+- [Next.js Plugin Setup](/docs/installation/next-js)
+- [Vite Plugin Setup](/docs/installation/vite)
+- [Configure API Keys](/docs/configuration/api-keys)
+- [Explore Features](/docs/features)

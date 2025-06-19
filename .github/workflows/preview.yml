@@ -1,0 +1,150 @@
+name: Preview Deployments
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Deploy marketing site preview
+        id: deploy-web
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID_WEB: ${{ secrets.VERCEL_PROJECT_ID_WEB }}
+        run: |
+          cd apps/web
+          PREVIEW_URL=$(pnpm dlx vercel --token $VERCEL_TOKEN --yes | tail -n 1)
+          echo "PREVIEW_URL_WEB=$PREVIEW_URL" >> $GITHUB_ENV
+          echo "::set-output name=url::$PREVIEW_URL"
+
+      - name: Deploy docs preview
+        id: deploy-docs
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID_DOCS: ${{ secrets.VERCEL_PROJECT_ID_DOCS }}
+        run: |
+          cd apps/docs
+          PREVIEW_URL=$(pnpm dlx vercel --token $VERCEL_TOKEN --yes | tail -n 1)
+          echo "PREVIEW_URL_DOCS=$PREVIEW_URL" >> $GITHUB_ENV
+          echo "::set-output name=url::$PREVIEW_URL"
+
+      - name: Upload CDN assets to staging
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: pnpm upload-cdn --env staging
+
+      - name: Comment PR with preview links
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const webUrl = process.env.PREVIEW_URL_WEB;
+            const docsUrl = process.env.PREVIEW_URL_DOCS;
+            
+            const comment = `
+            ## = Preview Deployments
+            
+            | App | Preview |
+            |-----|---------|
+            | Marketing Site | [${webUrl}](${webUrl}) |
+            | Documentation | [${docsUrl}](${docsUrl}) |
+            | CDN Assets | [react-llm.js (staging)](https://cdn-staging.react-llm.dev/react-llm.js) |
+            
+            ### Test Commands
+            \`\`\`html
+            <!-- Test with preview CDN -->
+            <script src="https://cdn-staging.react-llm.dev/react-llm.js"></script>
+            <script>
+              ReactLLM.init({
+                providers: { openrouter: 'your-api-key' },
+                mode: 'demo'
+              });
+            </script>
+            \`\`\`
+            
+            Preview will be automatically updated on new commits.
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  lighthouse:
+    name: Lighthouse Performance
+    runs-on: ubuntu-latest
+    needs: preview
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            ${{ env.PREVIEW_URL_WEB }}
+            ${{ env.PREVIEW_URL_DOCS }}
+          configPath: '.lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Comment Lighthouse results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = require('./lhci_reports/manifest.json');
+            let comment = '## ¡ Lighthouse Performance Report\n\n';
+            
+            results.forEach(result => {
+              const url = result.url;
+              const summary = result.summary;
+              
+              comment += `### ${url}\n`;
+              comment += `- Performance: ${summary.performance}\n`;
+              comment += `- Accessibility: ${summary.accessibility}\n`;
+              comment += `- Best Practices: ${summary['best-practices']}\n`;
+              comment += `- SEO: ${summary.seo}\n\n`;
+            });
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

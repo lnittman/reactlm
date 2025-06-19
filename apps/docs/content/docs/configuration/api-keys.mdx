@@ -1,0 +1,373 @@
+---
+title: API Key Configuration
+description: Set up your AI provider credentials securely
+---
+
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+
+# API Key Configuration
+
+React LLM supports multiple AI providers. You'll need API keys from one or more providers to use React LLM effectively.
+
+## Recommended: OpenRouter
+
+OpenRouter provides access to 100+ AI models through a single API key, making it the easiest way to get started with React LLM.
+
+### Getting an OpenRouter API Key
+
+1. Visit [OpenRouter.ai](https://openrouter.ai)
+2. Sign up for an account
+3. Go to the [API Keys](https://openrouter.ai/keys) section
+4. Create a new API key
+5. Copy your key (starts with `sk-or-v1-...`)
+
+### Using OpenRouter
+
+<Tabs items={['Script Tag', 'React Component', 'Environment Variable']}>
+<Tab value="Script Tag">
+
+```html
+<script>
+  ReactLLM.init({
+    providers: {
+      openrouter: 'sk-or-v1-your-api-key-here'
+    }
+  });
+</script>
+```
+
+</Tab>
+<Tab value="React Component">
+
+```tsx
+import { ReactLLMProvider } from 'react-llm';
+
+function App() {
+  return (
+    <ReactLLMProvider
+      config={{
+        providers: {
+          openrouter: 'sk-or-v1-your-api-key-here'
+        }
+      }}
+    >
+      <YourApp />
+    </ReactLLMProvider>
+  );
+}
+```
+
+</Tab>
+<Tab value="Environment Variable">
+
+```bash
+# .env.local
+NEXT_PUBLIC_OPENROUTER_API_KEY=sk-or-v1-your-api-key-here
+```
+
+```tsx
+import { ReactLLMProvider } from 'react-llm';
+
+function App() {
+  return (
+    <ReactLLMProvider
+      config={{
+        providers: {
+          openrouter: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY
+        }
+      }}
+    >
+      <YourApp />
+    </ReactLLMProvider>
+  );
+}
+```
+
+</Tab>
+</Tabs>
+
+## Direct Provider APIs
+
+You can also use direct API keys from individual providers:
+
+### OpenAI
+
+<Tabs items={['Get API Key', 'Configuration']}>
+<Tab value="Get API Key">
+
+1. Visit [OpenAI Platform](https://platform.openai.com)
+2. Go to [API Keys](https://platform.openai.com/api-keys)
+3. Create a new secret key
+4. Copy your key (starts with `sk-...`)
+
+</Tab>
+<Tab value="Configuration">
+
+```tsx
+ReactLLM.init({
+  providers: {
+    openai: 'sk-your-openai-key-here'
+  },
+  preferredModel: 'gpt-4o'
+});
+```
+
+**Available Models:**
+- `gpt-4o` (recommended)
+- `gpt-4-turbo`
+- `gpt-3.5-turbo`
+
+</Tab>
+</Tabs>
+
+### Anthropic Claude
+
+<Tabs items={['Get API Key', 'Configuration']}>
+<Tab value="Get API Key">
+
+1. Visit [Anthropic Console](https://console.anthropic.com)
+2. Go to [API Keys](https://console.anthropic.com/settings/keys)
+3. Create a new key
+4. Copy your key (starts with `sk-ant-...`)
+
+</Tab>
+<Tab value="Configuration">
+
+```tsx
+ReactLLM.init({
+  providers: {
+    anthropic: 'sk-ant-your-anthropic-key-here'
+  },
+  preferredModel: 'claude-3-5-sonnet-20241022'
+});
+```
+
+**Available Models:**
+- `claude-3-5-sonnet-20241022` (recommended)
+- `claude-3-opus-20240229`
+- `claude-3-haiku-20240307`
+
+</Tab>
+</Tabs>
+
+### Google Gemini
+
+<Tabs items={['Get API Key', 'Configuration']}>
+<Tab value="Get API Key">
+
+1. Visit [Google AI Studio](https://aistudio.google.com)
+2. Go to [API Keys](https://aistudio.google.com/app/apikey)
+3. Create a new API key
+4. Copy your key
+
+</Tab>
+<Tab value="Configuration">
+
+```tsx
+ReactLLM.init({
+  providers: {
+    google: 'your-google-api-key-here'
+  },
+  preferredModel: 'gemini-2.0-flash-exp'
+});
+```
+
+**Available Models:**
+- `gemini-2.0-flash-exp` (recommended)
+- `gemini-1.5-pro`
+- `gemini-1.5-flash`
+
+</Tab>
+</Tabs>
+
+## Multi-Provider Setup
+
+Use multiple providers for redundancy and model variety:
+
+```tsx
+ReactLLM.init({
+  providers: {
+    openrouter: 'sk-or-v1-...',
+    openai: 'sk-...',
+    anthropic: 'sk-ant-...',
+    google: 'your-google-key...'
+  },
+  preferredModel: 'anthropic/claude-3-5-sonnet',
+  fallbackModels: [
+    'openai/gpt-4o',
+    'google/gemini-2.0-flash-exp'
+  ]
+});
+```
+
+## Security Best Practices
+
+<Callout type="warning">
+**API Key Security**: Your API keys grant access to paid AI services. Keep them secure!
+</Callout>
+
+### Environment Variables
+
+Always use environment variables for API keys:
+
+<Tabs items={['Next.js', 'Vite', 'Create React App']}>
+<Tab value="Next.js">
+
+```bash
+# .env.local
+NEXT_PUBLIC_OPENROUTER_API_KEY=sk-or-v1-...
+NEXT_PUBLIC_OPENAI_API_KEY=sk-...
+NEXT_PUBLIC_ANTHROPIC_API_KEY=sk-ant-...
+```
+
+```tsx
+// Use in components
+const config = {
+  providers: {
+    openrouter: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY,
+    openai: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+    anthropic: process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY,
+  }
+};
+```
+
+</Tab>
+<Tab value="Vite">
+
+```bash
+# .env.local
+VITE_OPENROUTER_API_KEY=sk-or-v1-...
+VITE_OPENAI_API_KEY=sk-...
+VITE_ANTHROPIC_API_KEY=sk-ant-...
+```
+
+```tsx
+// Use in components
+const config = {
+  providers: {
+    openrouter: import.meta.env.VITE_OPENROUTER_API_KEY,
+    openai: import.meta.env.VITE_OPENAI_API_KEY,
+    anthropic: import.meta.env.VITE_ANTHROPIC_API_KEY,
+  }
+};
+```
+
+</Tab>
+<Tab value="Create React App">
+
+```bash
+# .env.local
+REACT_APP_OPENROUTER_API_KEY=sk-or-v1-...
+REACT_APP_OPENAI_API_KEY=sk-...
+REACT_APP_ANTHROPIC_API_KEY=sk-ant-...
+```
+
+```tsx
+// Use in components
+const config = {
+  providers: {
+    openrouter: process.env.REACT_APP_OPENROUTER_API_KEY,
+    openai: process.env.REACT_APP_OPENAI_API_KEY,
+    anthropic: process.env.REACT_APP_ANTHROPIC_API_KEY,
+  }
+};
+```
+
+</Tab>
+</Tabs>
+
+### Development vs Production
+
+Consider different approaches for development and production:
+
+```tsx
+const config = {
+  providers: process.env.NODE_ENV === 'development' 
+    ? {
+        // Development: Use your personal API keys
+        openrouter: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY
+      }
+    : {
+        // Production: Use a proxy endpoint
+        proxy: '/api/llm-proxy'
+      }
+};
+```
+
+### API Key Rotation
+
+Regularly rotate your API keys:
+
+1. Create a new API key
+2. Update your environment variables
+3. Delete the old key
+4. Redeploy your application
+
+## Rate Limits and Costs
+
+Each provider has different rate limits and pricing:
+
+### OpenRouter
+- **Rate Limits**: Varies by model
+- **Pricing**: Pay-per-token, competitive rates
+- **Benefits**: Access to 100+ models, automatic failover
+
+### OpenAI
+- **Rate Limits**: Tier-based (Tier 1: 3,500 RPM)
+- **Pricing**: $0.01-$0.06 per 1K tokens depending on model
+- **Benefits**: High-quality models, reliable service
+
+### Anthropic
+- **Rate Limits**: 5 requests/minute (free tier)
+- **Pricing**: $0.25-$15 per 1M tokens depending on model
+- **Benefits**: Advanced reasoning, long context windows
+
+### Google Gemini
+- **Rate Limits**: 15 RPM (free tier)
+- **Pricing**: Free tier available, then pay-per-token
+- **Benefits**: Multimodal capabilities, generous free tier
+
+## Troubleshooting
+
+### Invalid API Key
+
+```
+Error: Invalid API key provided
+```
+
+**Solutions:**
+1. Double-check your API key is correct
+2. Ensure the key has the right permissions
+3. Check if the key has expired
+4. Verify the key format matches the provider
+
+### Rate Limit Exceeded
+
+```
+Error: Rate limit exceeded
+```
+
+**Solutions:**
+1. Upgrade your API plan
+2. Implement request throttling
+3. Use multiple providers for load balancing
+4. Cache responses to reduce API calls
+
+### Insufficient Credits
+
+```
+Error: You have exceeded your usage quota
+```
+
+**Solutions:**
+1. Add credits to your account
+2. Set up billing alerts
+3. Implement usage monitoring
+4. Switch to a different provider temporarily
+
+## Next Steps
+
+- [Learn About AI Models](/docs/configuration/models)
+- [Configure Providers](/docs/configuration/providers)
+- [Advanced Settings](/docs/configuration/advanced)

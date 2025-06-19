@@ -1,17 +1,45 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { OpenRouterClient } from './openrouter'
+import { OpenRouterClient } from './openrouter-client'
 
 // Mock fetch globally
 const mockFetch = vi.fn()
 global.fetch = mockFetch
 
+// Mock localStorage
+const mockLocalStorage = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn()
+}
+Object.defineProperty(window, 'localStorage', {
+  value: mockLocalStorage
+})
+
 describe('OpenRouterClient', () => {
   let client: OpenRouterClient
   
   beforeEach(() => {
+    // Mock successful initialization
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        data: [
+          {
+            id: 'openai/gpt-4o',
+            name: 'GPT-4o',
+            provider: 'OpenAI',
+            context_length: 128000,
+            pricing: { prompt: '0.000005', completion: '0.000015' }
+          }
+        ]
+      })
+    })
+    
     client = new OpenRouterClient({
       apiKey: 'test-api-key',
-      appName: 'test-app'
+      siteUrl: 'https://test.com',
+      siteName: 'test-app'
     })
     vi.clearAllMocks()
   })

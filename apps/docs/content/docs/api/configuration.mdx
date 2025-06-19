@@ -1,0 +1,552 @@
+---
+title: Configuration API
+description: Complete reference for ReactLLM.init() configuration options
+---
+
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Badge } from '@/components/ui/badge';
+
+# Configuration API
+
+The `ReactLLM.init()` method accepts a configuration object that controls all aspects of React LLM's behavior. This page documents all available options.
+
+## Basic Usage
+
+```typescript
+ReactLLM.init({
+  providers: {
+    openrouter: 'sk-or-v1-your-api-key'
+  }
+});
+```
+
+## Complete Configuration
+
+```typescript
+interface ReactLLMConfig {
+  // Required: AI provider configuration
+  providers: ProviderConfig;
+  
+  // Optional: Model preferences
+  preferredModel?: string;
+  fallbackModels?: string[];
+  
+  // Optional: UI customization
+  ui?: UIConfig;
+  
+  // Optional: Feature toggles
+  features?: FeatureConfig;
+  
+  // Optional: Advanced settings
+  advanced?: AdvancedConfig;
+}
+```
+
+## Provider Configuration
+
+### ProviderConfig
+
+<div className="overflow-x-auto">
+  <table className="w-full text-sm">
+    <thead>
+      <tr className="border-b">
+        <th className="text-left p-2 font-medium">Property</th>
+        <th className="text-left p-2 font-medium">Type</th>
+        <th className="text-left p-2 font-medium">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="border-b">
+        <td className="p-2"><code>openrouter?</code></td>
+        <td className="p-2"><Badge variant="secondary">string</Badge></td>
+        <td className="p-2">OpenRouter API key (recommended for 100+ models)</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>openai?</code></td>
+        <td className="p-2"><Badge variant="secondary">string</Badge></td>
+        <td className="p-2">OpenAI API key</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>anthropic?</code></td>
+        <td className="p-2"><Badge variant="secondary">string</Badge></td>
+        <td className="p-2">Anthropic API key</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>google?</code></td>
+        <td className="p-2"><Badge variant="secondary">string</Badge></td>
+        <td className="p-2">Google AI API key</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>proxy?</code></td>
+        <td className="p-2"><Badge variant="secondary">string</Badge></td>
+        <td className="p-2">Custom proxy endpoint URL</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<Tabs items={['OpenRouter Only', 'Multi-Provider', 'Proxy Setup']}>
+<Tab value="OpenRouter Only">
+
+```typescript
+const config = {
+  providers: {
+    openrouter: 'sk-or-v1-your-api-key-here'
+  }
+};
+```
+
+**Benefits:**
+- Access to 100+ models through one API key
+- Automatic model routing and fallback
+- Competitive pricing across providers
+
+</Tab>
+<Tab value="Multi-Provider">
+
+```typescript
+const config = {
+  providers: {
+    openrouter: 'sk-or-v1-...',
+    openai: 'sk-...',
+    anthropic: 'sk-ant-...',
+    google: 'your-google-key'
+  },
+  preferredModel: 'anthropic/claude-3-5-sonnet',
+  fallbackModels: [
+    'openai/gpt-4o',
+    'google/gemini-2.0-flash-exp'
+  ]
+};
+```
+
+**Benefits:**
+- Direct access to provider APIs
+- Custom model preferences
+- Redundancy and failover
+
+</Tab>
+<Tab value="Proxy Setup">
+
+```typescript
+const config = {
+  providers: {
+    proxy: '/api/llm-proxy'
+  }
+};
+```
+
+**Benefits:**
+- Server-side API key management
+- Request logging and monitoring
+- Rate limiting and cost control
+
+</Tab>
+</Tabs>
+
+## Model Configuration
+
+### Model Selection
+
+```typescript
+interface ModelConfig {
+  preferredModel?: string;
+  fallbackModels?: string[];
+  temperature?: number;
+  maxTokens?: number;
+  contextWindow?: number;
+}
+```
+
+<div className="overflow-x-auto">
+  <table className="w-full text-sm">
+    <thead>
+      <tr className="border-b">
+        <th className="text-left p-2 font-medium">Property</th>
+        <th className="text-left p-2 font-medium">Type</th>
+        <th className="text-left p-2 font-medium">Default</th>
+        <th className="text-left p-2 font-medium">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="border-b">
+        <td className="p-2"><code>preferredModel</code></td>
+        <td className="p-2"><Badge variant="secondary">string</Badge></td>
+        <td className="p-2"><code>auto</code></td>
+        <td className="p-2">Primary model to use for conversations</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>fallbackModels</code></td>
+        <td className="p-2"><Badge variant="secondary">string[]</Badge></td>
+        <td className="p-2"><code>[]</code></td>
+        <td className="p-2">Models to try if primary model fails</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>temperature</code></td>
+        <td className="p-2"><Badge variant="secondary">number</Badge></td>
+        <td className="p-2"><code>0.7</code></td>
+        <td className="p-2">Creativity level (0.0 - 2.0)</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>maxTokens</code></td>
+        <td className="p-2"><Badge variant="secondary">number</Badge></td>
+        <td className="p-2"><code>4000</code></td>
+        <td className="p-2">Maximum response length</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>contextWindow</code></td>
+        <td className="p-2"><Badge variant="secondary">number</Badge></td>
+        <td className="p-2"><code>100000</code></td>
+        <td className="p-2">Maximum context length</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+### Popular Model IDs
+
+<Tabs items={['OpenRouter Format', 'Direct Provider']}>
+<Tab value="OpenRouter Format">
+
+```typescript
+// OpenRouter model IDs (provider/model format)
+const models = {
+  // OpenAI
+  'openai/gpt-4o': 'Latest GPT-4 Omni model',
+  'openai/gpt-4-turbo': 'GPT-4 Turbo',
+  'openai/gpt-3.5-turbo': 'GPT-3.5 Turbo',
+  
+  // Anthropic
+  'anthropic/claude-3-5-sonnet': 'Claude 3.5 Sonnet',
+  'anthropic/claude-3-opus': 'Claude 3 Opus',
+  'anthropic/claude-3-haiku': 'Claude 3 Haiku',
+  
+  // Google
+  'google/gemini-2.0-flash-exp': 'Gemini 2.0 Flash (Experimental)',
+  'google/gemini-1.5-pro': 'Gemini 1.5 Pro',
+  'google/gemini-1.5-flash': 'Gemini 1.5 Flash',
+  
+  // Meta
+  'meta-llama/llama-3.1-405b-instruct': 'Llama 3.1 405B',
+  'meta-llama/llama-3.1-70b-instruct': 'Llama 3.1 70B',
+  
+  // Mistral
+  'mistralai/mistral-large': 'Mistral Large',
+  'mistralai/mixtral-8x7b-instruct': 'Mixtral 8x7B'
+};
+```
+
+</Tab>
+<Tab value="Direct Provider">
+
+```typescript
+// Direct provider model IDs
+const directModels = {
+  // OpenAI (when using openai provider)
+  'gpt-4o': 'GPT-4 Omni',
+  'gpt-4-turbo': 'GPT-4 Turbo',
+  
+  // Anthropic (when using anthropic provider)
+  'claude-3-5-sonnet-20241022': 'Claude 3.5 Sonnet',
+  'claude-3-opus-20240229': 'Claude 3 Opus',
+  
+  // Google (when using google provider)
+  'gemini-2.0-flash-exp': 'Gemini 2.0 Flash',
+  'gemini-1.5-pro': 'Gemini 1.5 Pro'
+};
+```
+
+</Tab>
+</Tabs>
+
+## UI Configuration
+
+### UIConfig
+
+```typescript
+interface UIConfig {
+  position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+  theme?: 'light' | 'dark' | 'auto';
+  minimized?: boolean;
+  width?: number;
+  height?: number;
+  zIndex?: number;
+  hotkey?: string;
+}
+```
+
+<div className="overflow-x-auto">
+  <table className="w-full text-sm">
+    <thead>
+      <tr className="border-b">
+        <th className="text-left p-2 font-medium">Property</th>
+        <th className="text-left p-2 font-medium">Type</th>
+        <th className="text-left p-2 font-medium">Default</th>
+        <th className="text-left p-2 font-medium">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="border-b">
+        <td className="p-2"><code>position</code></td>
+        <td className="p-2"><Badge variant="secondary">string</Badge></td>
+        <td className="p-2"><code>bottom-right</code></td>
+        <td className="p-2">Chat interface position on screen</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>theme</code></td>
+        <td className="p-2"><Badge variant="secondary">string</Badge></td>
+        <td className="p-2"><code>auto</code></td>
+        <td className="p-2">UI theme preference</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>minimized</code></td>
+        <td className="p-2"><Badge variant="secondary">boolean</Badge></td>
+        <td className="p-2"><code>false</code></td>
+        <td className="p-2">Start in minimized state</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>width</code></td>
+        <td className="p-2"><Badge variant="secondary">number</Badge></td>
+        <td className="p-2"><code>400</code></td>
+        <td className="p-2">Chat interface width (pixels)</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>height</code></td>
+        <td className="p-2"><Badge variant="secondary">number</Badge></td>
+        <td className="p-2"><code>600</code></td>
+        <td className="p-2">Chat interface height (pixels)</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>zIndex</code></td>
+        <td className="p-2"><Badge variant="secondary">number</Badge></td>
+        <td className="p-2"><code>1000000</code></td>
+        <td className="p-2">CSS z-index for overlay</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>hotkey</code></td>
+        <td className="p-2"><Badge variant="secondary">string</Badge></td>
+        <td className="p-2"><code>cmd+k</code></td>
+        <td className="p-2">Keyboard shortcut to toggle</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+### Examples
+
+<Tabs items={['Basic UI', 'Custom Position', 'Advanced UI']}>
+<Tab value="Basic UI">
+
+```typescript
+const config = {
+  providers: { openrouter: 'sk-or-v1-...' },
+  ui: {
+    theme: 'dark',
+    position: 'bottom-left'
+  }
+};
+```
+
+</Tab>
+<Tab value="Custom Position">
+
+```typescript
+const config = {
+  providers: { openrouter: 'sk-or-v1-...' },
+  ui: {
+    position: 'top-right',
+    width: 500,
+    height: 700,
+    minimized: true
+  }
+};
+```
+
+</Tab>
+<Tab value="Advanced UI">
+
+```typescript
+const config = {
+  providers: { openrouter: 'sk-or-v1-...' },
+  ui: {
+    theme: 'auto',
+    position: 'bottom-right',
+    width: 450,
+    height: 650,
+    zIndex: 999999,
+    hotkey: 'ctrl+shift+l'
+  }
+};
+```
+
+</Tab>
+</Tabs>
+
+## Feature Configuration
+
+### FeatureConfig
+
+```typescript
+interface FeatureConfig {
+  componentSelection?: boolean;
+  liveEditing?: boolean;
+  persistentHistory?: boolean;
+  componentLibrary?: boolean;
+  contextAnalysis?: boolean;
+  performanceMetrics?: boolean;
+}
+```
+
+<div className="overflow-x-auto">
+  <table className="w-full text-sm">
+    <thead>
+      <tr className="border-b">
+        <th className="text-left p-2 font-medium">Feature</th>
+        <th className="text-left p-2 font-medium">Type</th>
+        <th className="text-left p-2 font-medium">Default</th>
+        <th className="text-left p-2 font-medium">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="border-b">
+        <td className="p-2"><code>componentSelection</code></td>
+        <td className="p-2"><Badge variant="secondary">boolean</Badge></td>
+        <td className="p-2"><code>true</code></td>
+        <td className="p-2">Enable visual component selection</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>liveEditing</code></td>
+        <td className="p-2"><Badge variant="secondary">boolean</Badge></td>
+        <td className="p-2"><code>auto</code></td>
+        <td className="p-2">Enable live code editing (dev mode only)</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>persistentHistory</code></td>
+        <td className="p-2"><Badge variant="secondary">boolean</Badge></td>
+        <td className="p-2"><code>true</code></td>
+        <td className="p-2">Save chat history locally</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>componentLibrary</code></td>
+        <td className="p-2"><Badge variant="secondary">boolean</Badge></td>
+        <td className="p-2"><code>true</code></td>
+        <td className="p-2">Enable component pattern saving</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>contextAnalysis</code></td>
+        <td className="p-2"><Badge variant="secondary">boolean</Badge></td>
+        <td className="p-2"><code>true</code></td>
+        <td className="p-2">Analyze component context and props</td>
+      </tr>
+      <tr className="border-b">
+        <td className="p-2"><code>performanceMetrics</code></td>
+        <td className="p-2"><Badge variant="secondary">boolean</Badge></td>
+        <td className="p-2"><code>false</code></td>
+        <td className="p-2">Collect render performance data</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+## Advanced Configuration
+
+### AdvancedConfig
+
+```typescript
+interface AdvancedConfig {
+  debug?: boolean;
+  logLevel?: 'silent' | 'error' | 'warn' | 'info' | 'debug';
+  customInstructions?: string;
+  contextWindow?: number;
+  retryAttempts?: number;
+  timeout?: number;
+  cache?: CacheConfig;
+}
+```
+
+<Callout type="info">
+**Development vs Production**: Many advanced features automatically adjust based on your environment. Live editing is only available in development mode for security.
+</Callout>
+
+## Complete Example
+
+Here's a comprehensive configuration example:
+
+```typescript
+const config: ReactLLMConfig = {
+  // Multi-provider setup with fallbacks
+  providers: {
+    openrouter: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY,
+    openai: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+    anthropic: process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY
+  },
+  
+  // Model preferences
+  preferredModel: 'anthropic/claude-3-5-sonnet',
+  fallbackModels: [
+    'openai/gpt-4o',
+    'google/gemini-2.0-flash-exp'
+  ],
+  temperature: 0.7,
+  maxTokens: 4000,
+  
+  // UI customization
+  ui: {
+    position: 'bottom-right',
+    theme: 'auto',
+    width: 450,
+    height: 600,
+    hotkey: 'cmd+k'
+  },
+  
+  // Feature configuration
+  features: {
+    componentSelection: true,
+    liveEditing: process.env.NODE_ENV === 'development',
+    persistentHistory: true,
+    componentLibrary: true,
+    contextAnalysis: true,
+    performanceMetrics: process.env.NODE_ENV === 'development'
+  },
+  
+  // Advanced settings
+  advanced: {
+    debug: process.env.NODE_ENV === 'development',
+    logLevel: 'info',
+    customInstructions: 'You are helping with React development...',
+    retryAttempts: 3,
+    timeout: 30000
+  }
+};
+
+// Initialize React LLM
+ReactLLM.init(config);
+```
+
+## Type Safety
+
+React LLM includes complete TypeScript definitions. Import types for better development experience:
+
+```typescript
+import type { 
+  ReactLLMConfig, 
+  ProviderConfig, 
+  UIConfig,
+  FeatureConfig 
+} from 'react-llm';
+
+const config: ReactLLMConfig = {
+  // TypeScript will provide autocomplete and validation
+  providers: {
+    openrouter: 'sk-or-v1-...'
+  }
+};
+```
+
+## Next Steps
+
+- [Learn about AI Models](/docs/configuration/models)
+- [Set up API Keys](/docs/configuration/api-keys)
+- [Explore Methods](/docs/api/methods)
+- [View Examples](/docs/examples)

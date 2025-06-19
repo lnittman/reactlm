@@ -1,0 +1,31 @@
+
+> react-llm@0.1.0 build /Users/nit/Developer/apps/_archive/react-llm/packages/react-llm
+> tsup
+
+CLI Building entry: {"react-llm":"src/index.ts"}
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.0
+CLI Using tsup config: /Users/nit/Developer/apps/_archive/react-llm/packages/react-llm/tsup.config.ts
+CLI Target: es2020
+CLI Cleaning output folder
+IIFE Build start
+✘ [ERROR] Unexpected "catch"
+
+    src/components/Toolbar.tsx:454:6:
+      454 │     } catch (error) {
+          ╵       ~~~~~
+
+IIFE Build failed
+Error: Build failed with 1 error:
+src/components/Toolbar.tsx:454:6: ERROR: Unexpected "catch"
+    at failureErrorWithLog (/Users/nit/Developer/apps/_archive/react-llm/node_modules/.pnpm/esbuild@0.25.5/node_modules/esbuild/lib/main.js:1463:15)
+    at /Users/nit/Developer/apps/_archive/react-llm/node_modules/.pnpm/esbuild@0.25.5/node_modules/esbuild/lib/main.js:924:25
+    at runOnEndCallbacks (/Users/nit/Developer/apps/_archive/react-llm/node_modules/.pnpm/esbuild@0.25.5/node_modules/esbuild/lib/main.js:1303:45)
+    at buildResponseToResult (/Users/nit/Developer/apps/_archive/react-llm/node_modules/.pnpm/esbuild@0.25.5/node_modules/esbuild/lib/main.js:922:7)
+    at /Users/nit/Developer/apps/_archive/react-llm/node_modules/.pnpm/esbuild@0.25.5/node_modules/esbuild/lib/main.js:949:16
+    at responseCallbacks.<computed> (/Users/nit/Developer/apps/_archive/react-llm/node_modules/.pnpm/esbuild@0.25.5/node_modules/esbuild/lib/main.js:601:9)
+    at handleIncomingPacket (/Users/nit/Developer/apps/_archive/react-llm/node_modules/.pnpm/esbuild@0.25.5/node_modules/esbuild/lib/main.js:656:12)
+    at Socket.readFromStdout (/Users/nit/Developer/apps/_archive/react-llm/node_modules/.pnpm/esbuild@0.25.5/node_modules/esbuild/lib/main.js:579:7)
+    at Socket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+ ELIFECYCLE  Command failed with exit code 1.

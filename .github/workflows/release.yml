@@ -10,41 +10,26 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-      id-token: write
+    timeout-minutes: 20
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          run_install: false
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version: 20
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -52,7 +37,10 @@ jobs:
       - name: Build packages
         run: pnpm build
 
-      - name: Create Release Pull Request or Publish
+      - name: Run tests
+        run: pnpm test
+
+      - name: Create Release PR or Publish
         id: changesets
         uses: changesets/action@v1
         with:
@@ -60,61 +48,34 @@ jobs:
           version: pnpm version
           commit: 'chore: release packages'
           title: 'chore: release packages'
-          createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Upload to CDN
         if: steps.changesets.outputs.published == 'true'
-        run: pnpm upload-cdn
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          CDN_BUCKET: ${{ secrets.CDN_BUCKET }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: pnpm upload-cdn
 
-      - name: Update browser extension
+      - name: Deploy Documentation
         if: steps.changesets.outputs.published == 'true'
-        run: |
-          cd packages/browser-extension
-          pnpm build
-          pnpm package:chrome
-          pnpm package:firefox
         env:
-          EXTENSION_KEY: ${{ secrets.EXTENSION_KEY }}
-
-      - name: Upload extension artifacts
-        if: steps.changesets.outputs.published == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: browser-extensions
-          path: |
-            packages/browser-extension/dist/*.zip
-          retention-days: 90
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          pnpm --filter @react-llm/docs build
+          pnpm dlx vercel --prod --token $VERCEL_TOKEN
 
       - name: Notify Discord
         if: steps.changesets.outputs.published == 'true'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "embeds": [{
-                "title": "🚀 New React LLM Release!",
-                "description": "Version ${{ steps.changesets.outputs.publishedPackages[0].version }} has been published to npm.",
-                "color": 3447003,
-                "fields": [
-                  {
-                    "name": "📦 Package",
-                    "value": "react-llm@${{ steps.changesets.outputs.publishedPackages[0].version }}",
-                    "inline": true
-                  },
-                  {
-                    "name": "🔗 Links",
-                    "value": "[npm](https://www.npmjs.com/package/react-llm) • [GitHub](https://github.com/${{ github.repository }}) • [Changelog](https://github.com/${{ github.repository }}/releases)",
-                    "inline": true
-                  }
-                ],
-                "timestamp": "${{ steps.changesets.outputs.publishedAt }}"
-              }]
-            }'
-        if: env.DISCORD_WEBHOOK_URL != ''
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"content\":\"🚀 New React LLM release published! Check it out at https://react-llm.dev\"}" \
+               $DISCORD_WEBHOOK

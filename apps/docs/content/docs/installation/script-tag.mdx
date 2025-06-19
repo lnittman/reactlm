@@ -1,0 +1,224 @@
+---
+title: Script Tag Installation
+description: Add React LLM to any website with a simple script tag
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+
+# Script Tag Installation
+
+The simplest way to add React LLM to any website is with a script tag. This method works with any HTML page, regardless of the framework or build system.
+
+## Basic Setup
+
+Add these two script tags to your HTML page:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Your Website</title>
+</head>
+<body>
+  <!-- Your existing content -->
+  
+  <!-- Add React LLM -->
+  <script src="https://unpkg.com/react-llm@latest/dist/react-llm.global.js"></script>
+  <script>
+    ReactLLM.init({
+      providers: {
+        openrouter: 'sk-or-v1-your-api-key-here'
+      }
+    });
+  </script>
+</body>
+</html>
+```
+
+<Callout type="info">
+**CDN Options**: You can also use `jsDelivr` or `cdnjs`:
+- jsDelivr: `https://cdn.jsdelivr.net/npm/react-llm@latest/dist/react-llm.global.js`
+- cdnjs: `https://cdnjs.cloudflare.com/ajax/libs/react-llm/latest/react-llm.global.js`
+</Callout>
+
+## Configuration Options
+
+<Tabs items={['Basic', 'Multi-Provider', 'Advanced']}>
+<Tab value="Basic">
+
+```html
+<script>
+  ReactLLM.init({
+    providers: {
+      openrouter: 'sk-or-v1-...'
+    }
+  });
+</script>
+```
+
+</Tab>
+<Tab value="Multi-Provider">
+
+```html
+<script>
+  ReactLLM.init({
+    providers: {
+      openrouter: 'sk-or-v1-...',
+      openai: 'sk-...',
+      anthropic: 'sk-ant-...'
+    },
+    preferredModel: 'anthropic/claude-3.5-sonnet'
+  });
+</script>
+```
+
+</Tab>
+<Tab value="Advanced">
+
+```html
+<script>
+  ReactLLM.init({
+    providers: {
+      openrouter: 'sk-or-v1-...'
+    },
+    ui: {
+      position: 'bottom-right', // 'bottom-left', 'top-right', 'top-left'
+      theme: 'dark', // 'light', 'dark', 'auto'
+      minimized: false
+    },
+    features: {
+      componentSelection: true,
+      liveEditing: false, // Only works in development
+      persistentHistory: true
+    }
+  });
+</script>
+```
+
+</Tab>
+</Tabs>
+
+## Environment Detection
+
+React LLM automatically detects your environment:
+
+- **Development**: Enables live editing features if running on localhost
+- **Production**: Read-only mode for component exploration
+
+## Version Pinning
+
+For production sites, pin to a specific version:
+
+```html
+<script src="https://unpkg.com/react-llm@0.1.0/dist/react-llm.global.js"></script>
+```
+
+## API Key Security
+
+<Callout type="warning">
+**Client-Side API Keys**: When using script tags, your API key will be visible in the browser. Consider these approaches:
+
+1. **Development Only**: Only enable React LLM in development environments
+2. **Proxy Server**: Route requests through your backend to keep keys secure
+3. **Environment Variables**: Use build-time replacement for the API key
+</Callout>
+
+### Secure Proxy Setup
+
+If you need React LLM in production, set up a proxy:
+
+```html
+<script>
+  ReactLLM.init({
+    apiEndpoint: '/api/llm-proxy', // Your backend endpoint
+    // No direct API keys needed
+  });
+</script>
+```
+
+Then create a backend endpoint that forwards requests to your chosen AI provider.
+
+## Framework Integration
+
+### React Applications
+
+If you're adding React LLM to an existing React app via script tag:
+
+```html
+<!-- Add to public/index.html -->
+<script src="https://unpkg.com/react-llm@latest/dist/react-llm.global.js"></script>
+<script>
+  // Wait for React to load
+  window.addEventListener('DOMContentLoaded', () => {
+    ReactLLM.init({
+      providers: { openrouter: 'sk-or-v1-...' }
+    });
+  });
+</script>
+```
+
+### Vue Applications
+
+```html
+<!-- Add to public/index.html -->
+<script src="https://unpkg.com/react-llm@latest/dist/react-llm.global.js"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    ReactLLM.init({
+      providers: { openrouter: 'sk-or-v1-...' }
+    });
+  });
+</script>
+```
+
+### Static Sites
+
+Perfect for static sites, documentation, or any HTML page:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Documentation</title>
+</head>
+<body>
+  <h1>Welcome to my docs</h1>
+  
+  <!-- React LLM will help visitors explore your site -->
+  <script src="https://unpkg.com/react-llm@latest/dist/react-llm.global.js"></script>
+  <script>
+    ReactLLM.init({
+      providers: { openrouter: 'sk-or-v1-...' },
+      ui: { position: 'bottom-left' }
+    });
+  </script>
+</body>
+</html>
+```
+
+## Troubleshooting
+
+### Script Not Loading
+
+1. Check your Content Security Policy (CSP)
+2. Verify network connectivity
+3. Try a different CDN
+
+### API Key Issues
+
+1. Verify your API key is valid
+2. Check API key permissions
+3. Ensure sufficient credits/quota
+
+### Component Selection Not Working
+
+1. Ensure you have React components on the page
+2. Check browser developer console for errors
+3. Try refreshing the page
+
+## Next Steps
+
+- [Configure API Keys](/docs/configuration/api-keys)
+- [Explore Features](/docs/features)
+- [Learn About Models](/docs/configuration/models)

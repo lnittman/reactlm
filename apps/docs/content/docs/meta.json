@@ -1,0 +1,252 @@
+{
+  "title": "Documentation",
+  "pages": [
+    {
+      "title": "Getting Started",
+      "url": "/docs"
+    },
+    {
+      "title": "Installation",
+      "type": "folder",
+      "index": "installation",
+      "pages": [
+        {
+          "title": "Script Tag",
+          "url": "/docs/installation/script-tag"
+        },
+        {
+          "title": "NPM Package", 
+          "url": "/docs/installation/npm-package"
+        },
+        {
+          "title": "Next.js Plugin",
+          "url": "/docs/installation/next-js"
+        },
+        {
+          "title": "Vite Plugin",
+          "url": "/docs/installation/vite"
+        },
+        {
+          "title": "Browser Extension",
+          "url": "/docs/installation/browser-extension"
+        }
+      ]
+    },
+    {
+      "title": "Configuration",
+      "type": "folder",
+      "pages": [
+        {
+          "title": "API Keys",
+          "url": "/docs/configuration/api-keys"
+        },
+        {
+          "title": "AI Models",
+          "url": "/docs/configuration/models"
+        },
+        {
+          "title": "Providers",
+          "url": "/docs/configuration/providers"
+        },
+        {
+          "title": "Advanced Settings",
+          "url": "/docs/configuration/advanced"
+        }
+      ]
+    },
+    {
+      "title": "Features",
+      "type": "folder",
+      "pages": [
+        {
+          "title": "Overview",
+          "url": "/docs/features"
+        },
+        {
+          "title": "Component Selection",
+          "url": "/docs/features/component-selection"
+        },
+        {
+          "title": "Multi-Model AI",
+          "url": "/docs/features/multi-model-ai"
+        },
+        {
+          "title": "Live Editing",
+          "url": "/docs/features/live-editing"
+        },
+        {
+          "title": "Component Library",
+          "url": "/docs/features/component-library"
+        },
+        {
+          "title": "Keyboard Shortcuts",
+          "url": "/docs/features/keyboard-shortcuts"
+        }
+      ]
+    },
+    {
+      "title": "Advanced",
+      "type": "folder",
+      "pages": [
+        {
+          "title": "Component Selection",
+          "url": "/docs/advanced/component-selection"
+        },
+        {
+          "title": "Prompt Engineering",
+          "url": "/docs/advanced/prompt-engineering"
+        },
+        {
+          "title": "Performance Optimization",
+          "url": "/docs/advanced/performance-optimization"
+        },
+        {
+          "title": "Custom Integrations",
+          "url": "/docs/advanced/custom-integrations"
+        },
+        {
+          "title": "Plugin Development",
+          "url": "/docs/advanced/plugin-development"
+        }
+      ]
+    },
+    {
+      "title": "Workflows",
+      "type": "folder",
+      "pages": [
+        {
+          "title": "Debugging",
+          "url": "/docs/workflows/debugging"
+        },
+        {
+          "title": "Refactoring",
+          "url": "/docs/workflows/refactoring"
+        },
+        {
+          "title": "Testing",
+          "url": "/docs/workflows/testing"
+        },
+        {
+          "title": "Design Systems",
+          "url": "/docs/workflows/design-systems"
+        },
+        {
+          "title": "Migration",
+          "url": "/docs/workflows/migration"
+        }
+      ]
+    },
+    {
+      "title": "Guides",
+      "type": "folder",
+      "pages": [
+        {
+          "title": "Development Workflow",
+          "url": "/docs/guides/development-workflow"
+        },
+        {
+          "title": "Production Exploration",
+          "url": "/docs/guides/production-exploration"
+        },
+        {
+          "title": "Team Collaboration",
+          "url": "/docs/guides/team-collaboration"
+        },
+        {
+          "title": "Best Practices",
+          "url": "/docs/guides/best-practices"
+        },
+        {
+          "title": "Security",
+          "url": "/docs/guides/security"
+        },
+        {
+          "title": "Troubleshooting",
+          "url": "/docs/guides/troubleshooting"
+        }
+      ]
+    },
+    {
+      "title": "Recipes",
+      "type": "folder",
+      "pages": [
+        {
+          "title": "Performance Recipes",
+          "url": "/docs/recipes/performance"
+        },
+        {
+          "title": "Component Patterns",
+          "url": "/docs/recipes/component-patterns"
+        },
+        {
+          "title": "State Management",
+          "url": "/docs/recipes/state-management"
+        },
+        {
+          "title": "Accessibility",
+          "url": "/docs/recipes/accessibility"
+        },
+        {
+          "title": "Testing Patterns",
+          "url": "/docs/recipes/testing-patterns"
+        }
+      ]
+    },
+    {
+      "title": "API Reference",
+      "type": "folder",
+      "pages": [
+        {
+          "title": "Configuration",
+          "url": "/docs/api/configuration"
+        },
+        {
+          "title": "Methods",
+          "url": "/docs/api/methods"
+        },
+        {
+          "title": "Events",
+          "url": "/docs/api/events"
+        },
+        {
+          "title": "Types",
+          "url": "/docs/api/types"
+        },
+        {
+          "title": "Providers",
+          "url": "/docs/api/providers"
+        },
+        {
+          "title": "Hooks",
+          "url": "/docs/api/hooks"
+        }
+      ]
+    },
+    {
+      "title": "Examples",
+      "type": "folder",
+      "pages": [
+        {
+          "title": "Basic Integration",
+          "url": "/docs/examples/basic-integration"
+        },
+        {
+          "title": "Custom UI",
+          "url": "/docs/examples/custom-ui"
+        },
+        {
+          "title": "Advanced Features",
+          "url": "/docs/examples/advanced-features"
+        },
+        {
+          "title": "Real-World Apps",
+          "url": "/docs/examples/real-world"
+        },
+        {
+          "title": "Community Examples",
+          "url": "/docs/examples/community-examples"
+        }
+      ]
+    }
+  ]
+}

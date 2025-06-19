@@ -1,0 +1,444 @@
+---
+title: React Component Prompt Engineering
+description: Advanced prompting techniques for AI-assisted React development
+---
+
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+
+# React Component Prompt Engineering
+
+Transform your AI interactions from basic queries to sophisticated development workflows. This guide covers advanced prompting techniques specifically designed for React component development.
+
+## Prompt Templates
+
+### Component Analysis Template
+
+```typescript
+// React LLM Prompt Templates
+const templates = {
+  componentAnalysis: `
+    Analyze the selected {{componentName}} component:
+    
+    1. Purpose & Responsibility
+    2. Props Interface (required vs optional)
+    3. State Management Patterns
+    4. Performance Characteristics
+    5. Potential Improvements
+    
+    Context: {{componentContext}}
+    Parent: {{parentComponent}}
+    Children: {{childComponents}}
+  `,
+  
+  refactoringSuggestion: `
+    Suggest refactoring for {{componentName}}:
+    
+    Current Issues:
+    - Render Count: {{renderCount}}
+    - Bundle Size: {{bundleSize}}
+    - Complexity Score: {{complexity}}
+    
+    Constraints:
+    - Maintain existing API
+    - Support React {{reactVersion}}
+    - Use {{stateLibrary}} for state
+  `
+};
+
+// Use templates with React LLM
+reactLLM.chat.useTemplate('componentAnalysis', {
+  componentName: 'ProductCard',
+  componentContext: await reactLLM.getContext()
+});
+```
+
+## Context-Aware Prompting
+
+### Automatic Context Injection
+
+```javascript
+// Configure automatic context for all prompts
+ReactLLM.configure({
+  prompts: {
+    autoContext: true,
+    contextDepth: 3, // Include 3 levels of parent components
+    includeProps: true,
+    includeState: true,
+    includeHooks: true,
+    includePerformance: true
+  }
+});
+
+// Now all prompts automatically include rich context
+reactLLM.chat("How can I optimize this component?");
+// AI receives: component code, props, state, render metrics, etc.
+```
+
+### Custom Context Builders
+
+```typescript
+// Build specialized context for different scenarios
+class ReactLLMContextBuilder {
+  // For performance optimization prompts
+  static performance(component: string) {
+    return {
+      metrics: reactLLM.getPerformanceMetrics(component),
+      renderTrace: reactLLM.getRenderTrace(component),
+      bundleImpact: reactLLM.getBundleImpact(component),
+      suggestions: reactLLM.getOptimizationHints(component)
+    };
+  }
+  
+  // For accessibility improvements
+  static accessibility(component: string) {
+    return {
+      aria: reactLLM.getAriaAttributes(component),
+      keyboardNav: reactLLM.getKeyboardHandlers(component),
+      screenReader: reactLLM.getScreenReaderIssues(component),
+      wcagLevel: reactLLM.getWCAGCompliance(component)
+    };
+  }
+  
+  // For testing scenarios
+  static testing(component: string) {
+    return {
+      props: reactLLM.getPropCombinations(component),
+      states: reactLLM.getStateScenarios(component),
+      edges: reactLLM.getEdgeCases(component),
+      coverage: reactLLM.getTestCoverage(component)
+    };
+  }
+}
+
+// Use specialized context
+const perfContext = ReactLLMContextBuilder.performance('ProductList');
+reactLLM.chat("Optimize this component for mobile devices", { 
+  context: perfContext 
+});
+```
+
+## Multi-Model Strategies
+
+### Model Selection by Task
+
+<div className="comparison-table">
+
+| Task | Recommended Model | Reasoning |
+|------|-------------------|-----------|
+| Code Generation | Claude 3.5 Sonnet | Best at maintaining code style and patterns |
+| Bug Detection | GPT-4o | Superior at identifying subtle issues |
+| Performance Analysis | Gemini 2.0 Flash | Fast analysis with good accuracy |
+| Documentation | Claude 3 Opus | Excellent at technical writing |
+| Quick Fixes | GPT-3.5 Turbo | Cost-effective for simple tasks |
+
+</div>
+
+```javascript
+// Automatic model selection based on task
+ReactLLM.configure({
+  modelStrategy: {
+    codeGeneration: 'claude-3.5-sonnet',
+    bugDetection: 'gpt-4o',
+    performance: 'gemini-2.0-flash',
+    documentation: 'claude-3-opus',
+    quickFix: 'gpt-3.5-turbo'
+  }
+});
+
+// React LLM automatically selects the best model
+reactLLM.generate("Create a custom hook for this logic"); // Uses Claude
+reactLLM.analyze("Find potential bugs"); // Uses GPT-4o
+```
+
+### Ensemble Prompting
+
+```javascript
+// Get multiple perspectives from different models
+const ensemble = await reactLLM.ensemble({
+  prompt: "How should I structure this component's state?",
+  models: ['claude-3.5-sonnet', 'gpt-4o', 'gemini-1.5-pro'],
+  strategy: 'consensus', // or 'best-of', 'debate'
+  combineMethod: 'weighted' // or 'vote', 'merge'
+});
+
+console.log(ensemble.consensus); // Agreed-upon approach
+console.log(ensemble.alternatives); // Different perspectives
+console.log(ensemble.confidence); // Confidence score
+```
+
+## Advanced Prompt Patterns
+
+### Chain-of-Thought for Complex Refactoring
+
+```javascript
+// Break down complex tasks into steps
+const refactoringChain = reactLLM.createChain({
+  steps: [
+    {
+      prompt: "Identify code smells in this component",
+      model: 'gpt-4o',
+      output: 'codeSmells'
+    },
+    {
+      prompt: "Suggest refactoring for: {{codeSmells}}",
+      model: 'claude-3.5-sonnet',
+      output: 'refactoringPlan'
+    },
+    {
+      prompt: "Generate refactored code following: {{refactoringPlan}}",
+      model: 'claude-3.5-sonnet',
+      output: 'refactoredCode'
+    },
+    {
+      prompt: "Write tests for: {{refactoredCode}}",
+      model: 'gpt-4o',
+      output: 'tests'
+    }
+  ]
+});
+
+const result = await refactoringChain.execute({
+  component: 'UserDashboard'
+});
+```
+
+### Iterative Refinement
+
+```javascript
+// Iteratively improve component design
+const refinementLoop = reactLLM.createRefinementLoop({
+  initialPrompt: "Create a data table component",
+  refinementCriteria: [
+    "Must be accessible (WCAG AA)",
+    "Should support virtualization",
+    "Must be under 50KB bundled",
+    "Should have TypeScript types"
+  ],
+  maxIterations: 5,
+  stopWhen: (result) => {
+    return result.meetsAllCriteria && result.score > 0.9;
+  }
+});
+
+const finalComponent = await refinementLoop.run();
+```
+
+## Prompt Optimization Techniques
+
+### A/B Testing Prompts
+
+```javascript
+// Test different prompt strategies
+const promptAB = reactLLM.createABTest({
+  variants: {
+    detailed: `
+      Analyze this component with focus on:
+      1. Performance bottlenecks
+      2. Unnecessary re-renders
+      3. Memory leaks
+      4. Bundle size impact
+    `,
+    concise: `
+      Find performance issues in this component.
+    `,
+    guided: `
+      Step 1: Check for unnecessary re-renders
+      Step 2: Analyze bundle size impact
+      Step 3: Identify memory leak risks
+      What did you find?
+    `
+  },
+  metrics: ['responseQuality', 'completeness', 'actionability'],
+  sampleSize: 20
+});
+
+const winner = await promptAB.run();
+console.log(`Best prompt variant: ${winner.variant}`);
+console.log(`Performance: ${winner.metrics}`);
+```
+
+### Dynamic Prompt Construction
+
+```javascript
+// Build prompts based on component characteristics
+class SmartPromptBuilder {
+  static build(component: ComponentInfo) {
+    let prompt = `Analyze the ${component.name} component.`;
+    
+    // Add context based on component type
+    if (component.isHOC) {
+      prompt += ` Note: This is a Higher-Order Component.`;
+    }
+    
+    if (component.usesHooks.length > 5) {
+      prompt += ` Focus on hook optimization and dependencies.`;
+    }
+    
+    if (component.renderCount > 100) {
+      prompt += ` Priority: Reduce excessive re-renders (currently ${component.renderCount}).`;
+    }
+    
+    if (component.hasAccessibilityIssues) {
+      prompt += ` Include accessibility improvements.`;
+    }
+    
+    return prompt;
+  }
+}
+```
+
+## Specialized Prompting Scenarios
+
+### Migration Assistance
+
+```javascript
+// Prompts for library/framework migrations
+const migrationPrompts = {
+  classToHooks: `
+    Convert this class component to use React Hooks:
+    - Preserve all functionality
+    - Use appropriate hooks (useState, useEffect, etc.)
+    - Maintain the same props interface
+    - Add proper TypeScript types
+    Current: {{classComponent}}
+  `,
+  
+  cssToStyledComponents: `
+    Migrate CSS to styled-components:
+    - Extract all styles from: {{cssFile}}
+    - Create styled components for: {{components}}
+    - Preserve all responsive behavior
+    - Maintain theme compatibility
+  `,
+  
+  reduxToZustand: `
+    Migrate from Redux to Zustand:
+    - Current Redux setup: {{reduxStore}}
+    - Maintain same state shape
+    - Convert actions to Zustand methods
+    - Preserve TypeScript types
+  `
+};
+```
+
+### Performance Optimization Prompts
+
+```javascript
+// Specialized performance prompts with metrics
+const performancePrompts = {
+  memoization: (metrics) => `
+    Component renders ${metrics.renderCount} times per minute.
+    Props: ${JSON.stringify(metrics.props)}
+    
+    Suggest memoization strategy:
+    1. Which props should be memoized?
+    2. Should we use React.memo, useMemo, or useCallback?
+    3. What's the expected performance improvement?
+  `,
+  
+  bundleSizeReduction: (analysis) => `
+    Current bundle impact: ${analysis.size}KB
+    Dependencies: ${analysis.deps.join(', ')}
+    
+    Reduce bundle size by:
+    1. Suggesting lighter alternatives
+    2. Implementing code splitting
+    3. Removing unused code
+    Target: Under ${analysis.target}KB
+  `,
+  
+  renderOptimization: (trace) => `
+    Render trace shows: ${trace.slowestPhase} taking ${trace.duration}ms
+    
+    Optimize by:
+    1. Identifying expensive computations
+    2. Suggesting concurrent features
+    3. Implementing virtualization if needed
+  `
+};
+```
+
+## Prompt Security & Safety
+
+### Input Sanitization
+
+```javascript
+// Sanitize component code before sending to AI
+ReactLLM.configure({
+  security: {
+    sanitize: true,
+    removeSecrets: true,
+    patterns: [
+      /api[_-]?key/i,
+      /password/i,
+      /secret/i,
+      /token/i
+    ],
+    customSanitizer: (code) => {
+      // Remove company-specific implementations
+      return code.replace(/CompanyName/g, 'Example');
+    }
+  }
+});
+```
+
+### Output Validation
+
+```javascript
+// Validate AI responses before applying
+const validator = reactLLM.createValidator({
+  rules: [
+    {
+      name: 'no-eval',
+      test: (code) => !code.includes('eval(')
+    },
+    {
+      name: 'valid-jsx',
+      test: (code) => reactLLM.validateJSX(code)
+    },
+    {
+      name: 'type-safe',
+      test: (code) => reactLLM.checkTypes(code)
+    }
+  ]
+});
+
+// Use with responses
+const response = await reactLLM.chat("Generate a form component");
+const validation = validator.validate(response);
+
+if (validation.passed) {
+  reactLLM.applyCode(response);
+} else {
+  console.warn('Invalid code generated:', validation.failures);
+}
+```
+
+## Measuring Prompt Effectiveness
+
+```javascript
+// Track prompt performance over time
+const analytics = reactLLM.analytics;
+
+// Log prompt metrics
+analytics.track('prompt', {
+  template: 'componentAnalysis',
+  model: 'claude-3.5-sonnet',
+  responseTime: 1234,
+  tokenCount: 567,
+  userSatisfaction: 5,
+  codeApplied: true,
+  errorRate: 0
+});
+
+// Get insights
+const insights = analytics.getInsights();
+console.log(`Most effective prompt: ${insights.topPrompt}`);
+console.log(`Best model for your codebase: ${insights.recommendedModel}`);
+console.log(`Average improvement: ${insights.avgImprovement}%`);
+```
+
+<Callout type="success">
+**Pro Tip**: Create a prompt library specific to your codebase. React LLM can learn from successful prompts and suggest improvements over time.
+</Callout>

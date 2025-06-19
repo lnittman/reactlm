@@ -1,0 +1,188 @@
+---
+title: Getting Started
+description: Learn how to integrate React LLM into your project in 30 seconds
+---
+
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+# Getting Started
+
+React LLM is a browser-native AI coding assistant that lets you chat with your React components and code directly in the browser. Get started in 30 seconds with any of these methods.
+
+<Callout>
+**New in v0.1.0**: Full OpenRouter integration with 100+ AI models including GPT-4, Claude 3.5 Sonnet, and Gemini 2.0 Flash!
+</Callout>
+
+## Quick Start
+
+The fastest way to get React LLM running is with a simple script tag:
+
+<Tabs items={['Script Tag', 'npm Install', 'Next.js Plugin']}>
+<Tab value="Script Tag">
+
+```html
+<!-- Add to any HTML page -->
+<script src="https://unpkg.com/react-llm/dist/react-llm.js"></script>
+<script>
+  ReactLLM.init({
+    providers: {
+      openrouter: 'sk-or-v1-...' // Your OpenRouter API key
+    }
+  });
+</script>
+```
+
+That's it! React LLM will appear as a floating chat interface on your page.
+
+</Tab>
+<Tab value="npm Install">
+
+```bash
+npm install react-llm
+# or
+pnpm add react-llm
+# or
+yarn add react-llm
+```
+
+Then in your React app:
+
+```tsx
+import { ReactLLMProvider } from 'react-llm';
+
+function App() {
+  return (
+    <ReactLLMProvider
+      config={{
+        providers: {
+          openrouter: 'sk-or-v1-...' // Your API key
+        }
+      }}
+    >
+      <YourApp />
+    </ReactLLMProvider>
+  );
+}
+```
+
+</Tab>
+<Tab value="Next.js Plugin">
+
+Install the Next.js plugin for enhanced development features:
+
+```bash
+npm install react-llm @react-llm/next
+```
+
+Add to your `next.config.js`:
+
+```javascript
+const { withReactLLM } = require('@react-llm/next');
+
+module.exports = withReactLLM({
+  // your existing Next.js config
+  reactLLM: {
+    enableHotReload: true,
+    fileAccess: true, // Enable live code editing
+  }
+});
+```
+
+</Tab>
+</Tabs>
+
+## What You Get
+
+After setup, you'll have access to:
+
+- **🎯 Visual Component Selection**: Click on any React component to inspect it
+- **💬 AI Chat Interface**: Chat with GPT-4, Claude, Gemini, and 100+ other models
+- **✏️ Live Code Editing**: Make changes to your code through AI chat (development mode)
+- **🔍 Component Discovery**: Explore component props, state, and relationships
+- **📚 Pattern Library**: Save and organize interesting component patterns
+- **🚀 Zero Configuration**: Works out of the box with any React application
+
+## Core Features
+
+<Steps>
+<Step>
+### Component Selection
+Click on any React component on your page to select it. React LLM uses advanced fiber traversal to understand your component structure.
+</Step>
+
+<Step>
+### Multi-Model AI Chat
+Ask questions about your components using any of 100+ AI models:
+- **OpenAI**: GPT-4o, GPT-4 Turbo, GPT-3.5
+- **Anthropic**: Claude 3.5 Sonnet, Claude 3 Opus
+- **Google**: Gemini 2.0 Flash, Gemini 1.5 Pro
+- **And many more** via OpenRouter
+</Step>
+
+<Step>
+### Live Code Editing
+In development mode, React LLM can make actual changes to your code files through the File System Access API, with instant hot module replacement.
+</Step>
+</Steps>
+
+## Development vs Production
+
+React LLM adapts to your environment:
+
+### Development Mode
+- Full file system access for live editing
+- Hot module replacement integration
+- Source map analysis
+- Advanced debugging tools
+
+### Production Mode
+- Read-only component exploration
+- Sandboxed execution
+- Component pattern discovery
+- Learning and documentation
+
+## Next Steps
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+  <div className="border rounded-lg p-4">
+    <h3 className="font-semibold mb-2">📦 Installation</h3>
+    <p className="text-sm text-muted-foreground mb-3">
+      Detailed setup guides for every framework and environment.
+    </p>
+    <a href="/docs/installation" className="text-primary text-sm hover:underline">
+      Installation guides →
+    </a>
+  </div>
+  
+  <div className="border rounded-lg p-4">
+    <h3 className="font-semibold mb-2">🔑 API Keys</h3>
+    <p className="text-sm text-muted-foreground mb-3">
+      Set up your AI provider credentials securely.
+    </p>
+    <a href="/docs/configuration/api-keys" className="text-primary text-sm hover:underline">
+      API key setup →
+    </a>
+  </div>
+  
+  <div className="border rounded-lg p-4">
+    <h3 className="font-semibold mb-2">⚡ Features</h3>
+    <p className="text-sm text-muted-foreground mb-3">
+      Explore all the powerful features React LLM offers.
+    </p>
+    <a href="/docs/features" className="text-primary text-sm hover:underline">
+      Feature overview →
+    </a>
+  </div>
+  
+  <div className="border rounded-lg p-4">
+    <h3 className="font-semibold mb-2">🔧 API Reference</h3>
+    <p className="text-sm text-muted-foreground mb-3">
+      Complete TypeScript definitions and examples.
+    </p>
+    <a href="/docs/api" className="text-primary text-sm hover:underline">
+      API documentation →
+    </a>
+  </div>
+</div>

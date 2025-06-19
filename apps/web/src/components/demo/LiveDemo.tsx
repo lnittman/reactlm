@@ -1,54 +1,23 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { DEMO_COMPONENTS } from './DemoContent'
+import { DemoControls } from './DemoControls'
+import { DemoChat } from './DemoChat'
+import { DemoMobile } from './DemoMobile'
+import { DemoMetrics } from './DemoMetrics'
+import { ApiKeyConfig } from './ApiKeyConfig'
+import { DemoTour, useDemoTour } from './DemoTour'
+import { demoSimulation } from '@/lib/demo-simulation'
+import { reactLLMApi, initializeDemoApi } from '@/lib/demo-api'
 
 function DemoSkeleton() {
   return (
-    <div className="h-full w-full bg-muted/20 animate-pulse rounded-lg flex items-center justify-center">
+    <div className="h-full w-full bg-gray-100 animate-pulse rounded-lg flex items-center justify-center">
       <div className="text-center space-y-4">
-        <div className="w-16 h-16 bg-muted rounded-full mx-auto animate-spin border-2 border-transparent border-t-primary" />
-        <p className="text-muted-foreground text-sm">Loading interactive demo...</p>
-      </div>
-    </div>
-  )
-}
-
-function MockComponent({ name, isSelected, onClick }: { 
-  name: string
-  isSelected: boolean
-  onClick: () => void 
-}) {
-  return (
-    <div 
-      className={`
-        p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
-        ${isSelected 
-          ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20' 
-          : 'border-border bg-card hover:border-border/60 hover:bg-accent'
-        }
-      `}
-      onClick={onClick}
-    >
-      <div className="text-sm font-mono text-foreground/80 mb-2">{name}</div>
-      <div className="space-y-2">
-        <div className="h-2 bg-muted rounded w-3/4" />
-        <div className="h-2 bg-muted rounded w-1/2" />
-      </div>
-    </div>
-  )
-}
-
-function ChatMessage({ message, isUser }: { message: string, isUser: boolean }) {
-  return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3`}>
-      <div className={`
-        max-w-xs px-3 py-2 rounded-lg text-sm
-        ${isUser 
-          ? 'bg-primary text-primary-foreground' 
-          : 'bg-muted text-foreground border border-border'
-        }
-      `}>
-        {message}
+        <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto animate-spin border-2 border-transparent border-t-blue-600" />
+        <p className="text-gray-600 text-sm">Loading interactive demo...</p>
       </div>
     </div>
   )
@@ -56,108 +25,228 @@ function ChatMessage({ message, isUser }: { message: string, isUser: boolean }) 
 
 export function LiveDemo() {
   const [isLoaded, setIsLoaded] = useState(false)
-  const [selectedComponent, setSelectedComponent] = useState<string | null>(null)
-  const [messages, setMessages] = useState<Array<{ message: string, isUser: boolean }>>([])
-  const [currentModel, setCurrentModel] = useState('gpt-4')
+  const [demoState, setDemoState] = useState(demoSimulation.getState())
+  const [isMobile, setIsMobile] = useState(false)
+  const [showMetrics, setShowMetrics] = useState(false)
+  const [showApiConfig, setShowApiConfig] = useState(false)
+  const [apiMode, setApiMode] = useState<'simulation' | 'real'>('simulation')
+  const [interactedComponents, setInteractedComponents] = useState(new Set<string>())
+  const { showTour, completeTour, skipTour, restartTour } = useDemoTour()
 
+  // Update state when simulation changes
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setIsLoaded(true)
-      setMessages([
-        { message: "👋 Hi! Click any component to select it, then chat with me to modify it.", isUser: false }
-      ])
-    }, 2000)
+    const interval = setInterval(() => {
+      setDemoState(demoSimulation.getState())
+    }, 100)
 
-    return () => clearTimeout(timer)
+    return () => clearInterval(interval)
   }, [])
 
-  const handleComponentSelect = (componentName: string) => {
-    setSelectedComponent(componentName)
-    setMessages(prev => [...prev, 
-      { message: `Selected ${componentName}`, isUser: false },
-      { message: "What would you like me to help you with?", isUser: false }
-    ])
+  // Check for mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Track component interactions
+  useEffect(() => {
+    if (demoState.selectedComponent) {
+      setInteractedComponents(prev => new Set([...prev, demoState.selectedComponent!]))
+    }
+  }, [demoState.selectedComponent])
+
+  useEffect(() => {
+    // Initialize demo API
+    const initDemo = async () => {
+      await initializeDemoApi()
+      setApiMode(reactLLMApi.isSimulationMode() ? 'simulation' : 'real')
+      
+      // Simulate loading
+      setTimeout(() => {
+        setIsLoaded(true)
+      }, 2000)
+    }
+    
+    initDemo()
+  }, [])
+
+  const handleComponentSelect = (componentId: string) => {
+    demoSimulation.selectComponent(componentId)
   }
 
-  const models = [
-    { id: 'gpt-4', name: 'GPT-4', provider: 'OpenAI' },
-    { id: 'claude-3', name: 'Claude 3', provider: 'Anthropic' },
-    { id: 'gemini-pro', name: 'Gemini Pro', provider: 'Google' },
-  ]
+  const handleComponentHover = (componentId: string | null) => {
+    demoSimulation.highlightComponent(componentId)
+  }
+
+  const handleModelChange = (modelId: string) => {
+    demoSimulation.changeModel(modelId)
+  }
+
+  const handleQuickAction = (actionId: string) => {
+    demoSimulation.processQuickAction(actionId)
+  }
+
+  const handleChatMessage = (message: string) => {
+    demoSimulation.processChatMessage(message)
+  }
+
+  const handleReset = () => {
+    demoSimulation.reset()
+    setInteractedComponents(new Set())
+  }
+
+  const handleApiConfigUpdate = async () => {
+    await initializeDemoApi()
+    setApiMode(reactLLMApi.isSimulationMode() ? 'simulation' : 'real')
+  }
+
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <div className="relative rounded-xl overflow-hidden bg-white border border-gray-200 shadow-2xl h-[80vh] max-h-[600px]">
+        {!isLoaded ? (
+          <DemoSkeleton />
+        ) : (
+          <DemoMobile
+            demoState={demoState}
+            onComponentSelect={handleComponentSelect}
+            onComponentHover={handleComponentHover}
+            onModelChange={handleModelChange}
+            onQuickAction={handleQuickAction}
+            onChatMessage={handleChatMessage}
+            onReset={handleReset}
+          />
+        )}
+      </div>
+    )
+  }
 
   return (
-    <div className="relative rounded-xl overflow-hidden bg-card/50 backdrop-blur border border-border shadow-2xl">
+    <div className="relative rounded-xl overflow-hidden bg-white/50 backdrop-blur border border-gray-200 shadow-2xl">
       {/* Demo viewport */}
       <div className="aspect-video relative">
         {/* Fake browser chrome */}
-        <div className="absolute top-0 inset-x-0 h-10 bg-background/80 flex items-center px-4 gap-2 border-b border-border">
-          <div className="flex gap-1.5">
+        <div className="absolute top-0 inset-x-0 h-12 bg-gray-50/90 flex items-center px-6 gap-4 border-b border-gray-200">
+          <div className="flex gap-2">
             <div className="w-3 h-3 rounded-full bg-red-500/80" />
             <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
             <div className="w-3 h-3 rounded-full bg-green-500/80" />
           </div>
-          <div className="flex-1 text-center text-xs text-muted-foreground font-mono">
-            localhost:3000
+          <div className="flex-1 text-center text-sm text-gray-600 font-mono">
+            localhost:3000 - React LLM Demo
           </div>
-          {/* Model Selector */}
-          <select 
-            value={currentModel}
-            onChange={(e) => setCurrentModel(e.target.value)}
-            className="text-xs bg-muted text-foreground border border-input rounded px-2 py-1"
-          >
-            {models.map((model) => (
-              <option key={model.id} value={model.id} className="bg-background">
-                {model.name}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 text-xs">
+              <div className={`w-2 h-2 rounded-full ${apiMode === 'simulation' ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
+              <span className="text-gray-600">{apiMode === 'simulation' ? 'Demo Mode' : 'Live API'}</span>
+            </div>
+            <button
+              onClick={() => setShowApiConfig(true)}
+              className="text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1 rounded-md transition-colors"
+            >
+              Configure API
+            </button>
+            <button
+              onClick={restartTour}
+              className="text-xs bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md transition-colors"
+            >
+              Help
+            </button>
+            <button
+              onClick={() => setShowMetrics(!showMetrics)}
+              className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-md transition-colors"
+            >
+              {showMetrics ? 'Hide' : 'Show'} Metrics
+            </button>
+            <button
+              onClick={handleReset}
+              className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md transition-colors"
+            >
+              Reset Demo
+            </button>
+          </div>
         </div>
         
         {/* Demo container */}
-        <div className="pt-10 h-full p-4">
+        <div className="pt-12 h-full">
           {!isLoaded ? (
             <DemoSkeleton />
           ) : (
-            <div className="grid grid-cols-2 gap-4 h-full">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full p-4">
               {/* Left: Mock App */}
-              <div className="space-y-3 overflow-y-auto">
-                <h3 className="text-sm font-semibold text-foreground/80 mb-3">Components</h3>
-                <MockComponent 
-                  name="<Header />" 
-                  isSelected={selectedComponent === 'Header'}
-                  onClick={() => handleComponentSelect('Header')}
-                />
-                <MockComponent 
-                  name="<Button />" 
-                  isSelected={selectedComponent === 'Button'}
-                  onClick={() => handleComponentSelect('Button')}
-                />
-                <MockComponent 
-                  name="<Card />" 
-                  isSelected={selectedComponent === 'Card'}
-                  onClick={() => handleComponentSelect('Card')}
-                />
+              <div className="lg:col-span-2 bg-gray-50 rounded-lg p-6 overflow-y-auto">
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Interactive Components</h3>
+                  <p className="text-sm text-gray-600">Click any component to select it for AI modifications</p>
+                </div>
+                
+                <div className="space-y-6">
+                  {DEMO_COMPONENTS.map((component) => {
+                    const Component = component.component
+                    return (
+                      <motion.div
+                        key={component.id}
+                        onHoverStart={() => handleComponentHover(component.id)}
+                        onHoverEnd={() => handleComponentHover(null)}
+                        className="relative"
+                      >
+                        <div className="mb-2">
+                          <div className="text-sm font-mono text-gray-500">
+                            &lt;{component.name} /&gt;
+                          </div>
+                        </div>
+                        <Component
+                          name={component.name}
+                          type={component.type}
+                          isSelected={demoState.selectedComponent === component.id}
+                          isHighlighted={demoState.highlightedComponent === component.id}
+                          onClick={() => handleComponentSelect(component.id)}
+                          code={component.code}
+                        />
+                      </motion.div>
+                    )
+                  })}
+                </div>
               </div>
               
-              {/* Right: Chat */}
-              <div className="flex flex-col h-full">
-                <div className="flex-1 overflow-y-auto p-2 space-y-2">
-                  {messages.map((msg, i) => (
-                    <ChatMessage key={i} message={msg.message} isUser={msg.isUser} />
-                  ))}
-                </div>
-                <div className="border-t border-border pt-2">
-                  <div className="flex gap-2">
-                    <input 
-                      type="text"
-                      placeholder="Ask me to modify the component..."
-                      className="flex-1 bg-background border border-input rounded px-2 py-1 text-xs text-foreground placeholder:text-muted-foreground"
-                      disabled
+              {/* Right: Controls and Chat */}
+              <div className="flex flex-col h-full space-y-4">
+                {/* Metrics */}
+                {showMetrics && (
+                  <div className="flex-shrink-0">
+                    <DemoMetrics
+                      selectedModel={demoState.currentModel}
+                      messagesCount={demoState.messages.length}
+                      componentsInteracted={interactedComponents.size}
+                      isVisible={showMetrics}
                     />
-                    <button className="px-3 py-1 bg-primary text-primary-foreground rounded text-xs font-medium">
-                      Send
-                    </button>
+                  </div>
+                )}
+                
+                {/* Controls */}
+                <div className="flex-shrink-0">
+                  <DemoControls
+                    selectedModel={demoState.currentModel}
+                    onModelChange={handleModelChange}
+                    onQuickAction={handleQuickAction}
+                    isLoading={demoState.isLoading}
+                  />
+                </div>
+                
+                {/* Chat */}
+                <div className="flex-1 min-h-0">
+                  <div className="h-full border border-gray-200 rounded-lg overflow-hidden">
+                    <DemoChat
+                      messages={demoState.messages}
+                      isLoading={demoState.isLoading}
+                      onSendMessage={handleChatMessage}
+                      currentModel={demoState.currentModel}
+                    />
                   </div>
                 </div>
               </div>
@@ -166,11 +255,39 @@ export function LiveDemo() {
         </div>
         
         {/* Overlay instructions */}
-        <div className="absolute bottom-4 left-4 right-4 bg-background/80 backdrop-blur rounded-lg p-3 border border-border">
-          <p className="text-sm text-foreground/80 text-center">
-            🎯 Click any component to select • 🤖 Choose AI model • 💬 Chat to modify code
-          </p>
+        <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur rounded-lg p-4 border border-gray-200 shadow-lg">
+          <div className="text-center">
+            <p className="text-sm text-gray-700 font-medium mb-2">
+              🎯 Interactive React LLM Demo
+            </p>
+            <p className="text-xs text-gray-600">
+              Click components → Choose AI model → Use quick actions or chat to modify code
+            </p>
+            {demoState.selectedComponent && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-2 text-xs text-blue-600 font-medium"
+              >
+                Selected: {demoState.selectedComponent} • Ready for modifications!
+              </motion.div>
+            )}
+          </div>
         </div>
+
+        {/* API Configuration Modal */}
+        <ApiKeyConfig
+          isOpen={showApiConfig}
+          onClose={() => setShowApiConfig(false)}
+          onConfigUpdate={handleApiConfigUpdate}
+        />
+
+        {/* Demo Tour */}
+        <DemoTour
+          isVisible={showTour}
+          onComplete={completeTour}
+          onSkip={skipTour}
+        />
       </div>
     </div>
   )

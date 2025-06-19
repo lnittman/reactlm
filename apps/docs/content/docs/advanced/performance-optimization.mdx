@@ -1,0 +1,490 @@
+---
+title: Performance Optimization with AI
+description: Use AI to identify and fix React performance bottlenecks
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Steps, Step } from 'fumadocs-ui/components/steps';
+
+# Performance Optimization with AI
+
+React LLM provides advanced performance analysis and optimization capabilities powered by AI. Learn how to identify bottlenecks, optimize renders, and improve your application's performance metrics.
+
+## Real-Time Performance Monitoring
+
+### Performance Dashboard
+
+```javascript
+// Enable the performance dashboard
+ReactLLM.performance.enable({
+  dashboard: true,
+  position: 'bottom-right',
+  metrics: ['fps', 'renderTime', 'componentCount', 'memoryUsage'],
+  threshold: {
+    fps: 55,
+    renderTime: 16,
+    memoryDelta: 50 // MB
+  }
+});
+
+// Get real-time metrics
+const metrics = ReactLLM.performance.getCurrentMetrics();
+console.log(`FPS: ${metrics.fps}`);
+console.log(`Active Components: ${metrics.activeComponents}`);
+console.log(`Memory Usage: ${metrics.memory.used}MB`);
+```
+
+### Component-Level Profiling
+
+```javascript
+// Profile specific components
+const profiler = ReactLLM.performance.profileComponent('ProductList');
+
+// Start profiling
+profiler.start();
+
+// ... user interactions ...
+
+// Get results
+const profile = profiler.stop();
+console.log(profile);
+/*
+{
+  component: 'ProductList',
+  renders: 47,
+  averageRenderTime: 23.5,
+  slowestRender: 145.2,
+  props: {
+    changes: 12,
+    costly: ['items', 'filters']
+  },
+  recommendations: [
+    'Memoize expensive computations',
+    'Implement virtualization for large lists',
+    'Use React.memo with custom comparison'
+  ]
+}
+*/
+```
+
+## AI-Powered Performance Analysis
+
+### Automatic Bottleneck Detection
+
+```javascript
+// Run comprehensive performance analysis
+const analysis = await ReactLLM.performance.analyze({
+  duration: 30000, // 30 seconds
+  interactions: true, // Record user interactions
+  deepAnalysis: true
+});
+
+// AI identifies issues
+console.log(analysis.bottlenecks);
+/*
+[
+  {
+    component: 'ProductGrid',
+    issue: 'Unnecessary re-renders',
+    impact: 'high',
+    renderCount: 234,
+    suggestion: 'Parent component updating too frequently',
+    fix: 'Use React.memo or useMemo for expensive children'
+  },
+  {
+    component: 'SearchFilter',
+    issue: 'Expensive computation in render',
+    impact: 'medium',
+    timeSpent: '45% of render time',
+    suggestion: 'Move filterProducts() to useMemo',
+    codeExample: '...'
+  }
+]
+*/
+```
+
+### Render Optimization Suggestions
+
+```javascript
+// Get AI-powered optimization suggestions
+const optimizations = await ReactLLM.suggest.optimizations({
+  component: 'ProductList',
+  context: 'e-commerce catalog with 1000+ items'
+});
+
+// AI provides specific solutions
+optimizations.forEach(opt => {
+  console.log(`\n${opt.title}`);
+  console.log(`Impact: ${opt.impact} (${opt.estimatedImprovement})`);
+  console.log(`Implementation:\n${opt.code}`);
+});
+
+/*
+Example output:
+
+Implement Virtual Scrolling
+Impact: High (80% reduction in render time)
+Implementation:
+import { FixedSizeList } from 'react-window';
+
+const VirtualProductList = ({ products }) => {
+  const Row = ({ index, style }) => (
+    <div style={style}>
+      <ProductCard product={products[index]} />
+    </div>
+  );
+  
+  return (
+    <FixedSizeList
+      height={600}
+      itemCount={products.length}
+      itemSize={120}
+      width="100%"
+    >
+      {Row}
+    </FixedSizeList>
+  );
+};
+*/
+```
+
+## Advanced Optimization Patterns
+
+### Memoization Strategy
+
+```javascript
+// AI analyzes and suggests memoization
+const memoAnalysis = await ReactLLM.analyze.memoization('Dashboard');
+
+// Get specific recommendations
+console.log(memoAnalysis.report);
+/*
+{
+  shouldMemoize: {
+    components: ['ChartWidget', 'DataTable', 'StatCard'],
+    reason: 'Expensive render with stable props'
+  },
+  shouldNotMemoize: {
+    components: ['LoadingSpinner', 'Badge'],
+    reason: 'Cheap to render, props change frequently'
+  },
+  customComparison: {
+    'UserList': {
+      reason: 'Deep object props',
+      code: `
+React.memo(UserList, (prevProps, nextProps) => {
+  return prevProps.users.length === nextProps.users.length &&
+         prevProps.filter === nextProps.filter;
+});`
+    }
+  }
+}
+*/
+
+// Apply memoization automatically
+await ReactLLM.apply.memoization(memoAnalysis.recommendations);
+```
+
+### Bundle Size Optimization
+
+```javascript
+// Analyze component bundle impact
+const bundleAnalysis = await ReactLLM.analyze.bundle({
+  component: 'Dashboard',
+  includeDependencies: true
+});
+
+console.log(bundleAnalysis.summary);
+/*
+{
+  totalSize: '234KB',
+  breakdown: {
+    component: '12KB',
+    dependencies: {
+      'chart.js': '89KB',
+      'moment': '67KB',
+      'lodash': '45KB'
+    }
+  },
+  suggestions: [
+    {
+      action: 'Replace moment with date-fns',
+      savings: '54KB',
+      effort: 'medium'
+    },
+    {
+      action: 'Import only needed lodash functions',
+      savings: '38KB',
+      effort: 'low'
+    }
+  ]
+}
+*/
+
+// Generate optimized imports
+const optimizedCode = await ReactLLM.optimize.imports('Dashboard');
+```
+
+## Performance Patterns & Anti-Patterns
+
+### Pattern Recognition
+
+```javascript
+// Detect performance anti-patterns
+const antiPatterns = await ReactLLM.detect.antiPatterns();
+
+antiPatterns.forEach(pattern => {
+  console.log(`\nAnti-pattern: ${pattern.name}`);
+  console.log(`Location: ${pattern.file}:${pattern.line}`);
+  console.log(`Issue: ${pattern.description}`);
+  console.log(`Fix:\n${pattern.solution}`);
+});
+
+/*
+Example detections:
+
+Anti-pattern: Index as key in dynamic list
+Location: ProductList.tsx:45
+Issue: Using index as key causes unnecessary re-renders
+Fix:
+- items.map((item, index) => <Item key={index} />)
++ items.map((item) => <Item key={item.id} />)
+
+Anti-pattern: Inline object creation
+Location: UserProfile.tsx:23
+Issue: Creating new object on every render
+Fix:
+- <Avatar style={{ width: 50, height: 50 }} />
++ const avatarStyle = useMemo(() => ({ width: 50, height: 50 }), []);
++ <Avatar style={avatarStyle} />
+*/
+```
+
+### Performance Recipes
+
+<div className="feature-grid">
+  <div className="feature-card">
+    <div className="feature-card-icon">⚡</div>
+    <h3 className="feature-card-title">lazy loading recipe</h3>
+    <p className="feature-card-description">
+      Automatic code splitting and lazy loading for better initial load
+    </p>
+  </div>
+  
+  <div className="feature-card">
+    <div className="feature-card-icon">🔄</div>
+    <h3 className="feature-card-title">render batch recipe</h3>
+    <p className="feature-card-description">
+      Batch multiple state updates to reduce render cycles
+    </p>
+  </div>
+  
+  <div className="feature-card">
+    <div className="feature-card-icon">📊</div>
+    <h3 className="feature-card-title">virtualization recipe</h3>
+    <p className="feature-card-description">
+      Implement windowing for large lists and grids
+    </p>
+  </div>
+  
+  <div className="feature-card">
+    <div className="feature-card-icon">🧠</div>
+    <h3 className="feature-card-title">memo strategy recipe</h3>
+    <p className="feature-card-description">
+      Intelligent memoization based on render patterns
+    </p>
+  </div>
+</div>
+
+```javascript
+// Apply performance recipes
+const recipe = await ReactLLM.recipes.get('lazy-loading');
+await recipe.apply({
+  routes: ['Dashboard', 'Analytics', 'Settings'],
+  threshold: '50KB'
+});
+
+// Or use the recipe builder
+const customRecipe = ReactLLM.recipes.create({
+  name: 'optimize-data-table',
+  steps: [
+    'analyze-render-patterns',
+    'implement-virtualization',
+    'add-memoization',
+    'optimize-callbacks'
+  ]
+});
+
+await customRecipe.run('DataTable');
+```
+
+## Concurrent Features Integration
+
+### Suspense & Transitions
+
+```javascript
+// AI helps implement React 18 concurrent features
+const concurrentUpgrade = await ReactLLM.modernize.concurrent({
+  component: 'SearchResults',
+  features: ['suspense', 'transitions', 'useDeferredValue']
+});
+
+console.log(concurrentUpgrade.code);
+/*
+import { Suspense, startTransition, useDeferredValue } from 'react';
+
+function SearchResults({ query }) {
+  const deferredQuery = useDeferredValue(query);
+  
+  return (
+    <Suspense fallback={<SearchSkeleton />}>
+      <Results query={deferredQuery} />
+    </Suspense>
+  );
+}
+
+function Results({ query }) {
+  const [results, setResults] = useState([]);
+  
+  const updateResults = (newQuery) => {
+    startTransition(() => {
+      setResults(searchProducts(newQuery));
+    });
+  };
+  
+  // ... rest of component
+}
+*/
+```
+
+## Performance Testing Integration
+
+### Automated Performance Tests
+
+```javascript
+// Generate performance tests
+const perfTests = await ReactLLM.generate.performanceTests({
+  component: 'ProductGrid',
+  scenarios: ['initial-load', 'search', 'filter', 'pagination']
+});
+
+// Example generated test
+console.log(perfTests.tests[0]);
+/*
+import { render, waitFor } from '@testing-library/react';
+import { measureRender } from 'react-performance-testing';
+
+describe('ProductGrid Performance', () => {
+  it('should render 1000 items in under 100ms', async () => {
+    const products = generateProducts(1000);
+    
+    const { renderTime } = await measureRender(
+      <ProductGrid products={products} />
+    );
+    
+    expect(renderTime).toBeLessThan(100);
+  });
+  
+  it('should not re-render when irrelevant props change', async () => {
+    const { rerender, renderCount } = await measureRender(
+      <ProductGrid products={products} page={1} />
+    );
+    
+    rerender(<ProductGrid products={products} page={1} unrelatedProp="new" />);
+    
+    expect(renderCount).toBe(1);
+  });
+});
+*/
+```
+
+### Performance Budgets
+
+```javascript
+// Set and monitor performance budgets
+ReactLLM.performance.setBudget({
+  'ProductList': {
+    initialRender: 50, // ms
+    reRender: 16,
+    memoryDelta: 5, // MB
+    bundleSize: 30 // KB
+  }
+});
+
+// Monitor budget violations
+ReactLLM.performance.onBudgetExceeded((violation) => {
+  console.error(`Performance budget exceeded!`);
+  console.error(`Component: ${violation.component}`);
+  console.error(`Metric: ${violation.metric}`);
+  console.error(`Limit: ${violation.limit}, Actual: ${violation.actual}`);
+  
+  // Get AI suggestions for fixing it
+  ReactLLM.suggest.fixViolation(violation);
+});
+```
+
+## Real-World Optimization Examples
+
+### E-commerce Product List
+
+<Steps>
+<Step>
+### Initial Analysis
+```javascript
+const analysis = await ReactLLM.analyze.performance('ProductList');
+// Identifies: 500ms render time, 200 unnecessary re-renders
+```
+</Step>
+
+<Step>
+### Apply Optimizations
+```javascript
+await ReactLLM.optimize.apply([
+  'virtual-scrolling',
+  'image-lazy-loading',
+  'memoize-filters',
+  'debounce-search'
+]);
+```
+</Step>
+
+<Step>
+### Verify Improvements
+```javascript
+const after = await ReactLLM.analyze.performance('ProductList');
+// Result: 50ms render time, 5 re-renders (90% improvement)
+```
+</Step>
+</Steps>
+
+### Dashboard with Real-time Data
+
+```javascript
+// Optimize real-time dashboard
+const realtimeOptimization = await ReactLLM.optimize.realtime({
+  component: 'TradingDashboard',
+  updateFrequency: '100ms',
+  dataPoints: 10000
+});
+
+// AI suggests:
+// 1. Use Web Workers for data processing
+// 2. Implement request animation frame batching
+// 3. Add selective component updates
+// 4. Use React 18 concurrent features
+
+// Apply suggestions
+await realtimeOptimization.implement();
+```
+
+## Performance Monitoring Best Practices
+
+1. **Continuous Monitoring**: Set up performance tracking in CI/CD
+2. **User-Centric Metrics**: Focus on INP, FID, and CLS
+3. **Progressive Enhancement**: Optimize for low-end devices first
+4. **Context-Aware**: Different optimizations for mobile vs desktop
+5. **Measure Impact**: Always verify optimizations improve real metrics
+
+<Callout type="success">
+**Achievement Unlocked**: You now have AI-powered performance optimization at your fingertips. Your React apps will never be slow again!
+</Callout>

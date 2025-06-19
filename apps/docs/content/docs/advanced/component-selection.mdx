@@ -1,0 +1,394 @@
+---
+title: Advanced Component Selection
+description: Master component selection techniques for complex React applications
+---
+
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Steps, Step } from 'fumadocs-ui/components/steps';
+
+# Advanced Component Selection
+
+Component selection in React LLM goes beyond simple clicking. Master these advanced techniques to work with complex component hierarchies, dynamic rendering, and performance-optimized applications.
+
+## Selection Strategies
+
+### Keyboard Shortcuts
+
+<div className="terminal">
+<span className="terminal-prompt">$</span> <span className="terminal-command"># Component Selection Shortcuts</span>
+<div className="terminal-output">
+⌘ + Click     → Select parent component
+⌥ + Click     → Select all siblings
+⇧ + Click     → Multi-select components
+⌘ + ⇧ + C    → Toggle selection mode
+⌘ + ⇧ + I    → Inspect selected component
+</div>
+</div>
+
+### Programmatic Selection
+
+```typescript
+// Access React LLM's selection API
+const reactLLM = window.ReactLLM;
+
+// Select by component name
+reactLLM.select({ 
+  name: 'ProductCard',
+  nth: 2 // Select the 2nd ProductCard instance
+});
+
+// Select by props
+reactLLM.select({
+  props: { 
+    isActive: true,
+    category: 'electronics' 
+  }
+});
+
+// Select by fiber node predicate
+reactLLM.selectWhere((fiber) => {
+  return fiber.memoizedProps?.className?.includes('featured');
+});
+
+// Batch selection for analysis
+const components = reactLLM.selectAll({
+  name: /^(Button|Link|Card)$/,
+  hasProps: ['onClick', 'href']
+});
+```
+
+## Working with Complex Hierarchies
+
+### Portal & Suspense Boundaries
+
+<Callout type="info">
+React LLM automatically traverses React Portals and Suspense boundaries, maintaining component relationships across DOM boundaries.
+</Callout>
+
+```tsx
+// Example: Selecting components across portals
+function App() {
+  return (
+    <>
+      <div id="main">
+        <ProductList />
+      </div>
+      {/* Modal rendered in portal */}
+      <Portal target="#modal-root">
+        <ProductDetail /> {/* Still selectable! */}
+      </Portal>
+    </>
+  );
+}
+
+// React LLM maintains the relationship
+reactLLM.getComponentTree('ProductDetail'); 
+// Returns: App → Portal → ProductDetail
+```
+
+### Dynamic & Lazy-Loaded Components
+
+```javascript
+// Configure selection for dynamic imports
+ReactLLM.configure({
+  selection: {
+    waitForLazy: true,
+    lazyTimeout: 5000,
+    onLazyLoad: (component) => {
+      console.log('Lazy component loaded:', component);
+    }
+  }
+});
+
+// Custom lazy component detection
+reactLLM.addLazyDetector({
+  pattern: /^Lazy/,
+  loader: async (fiber) => {
+    // Custom loading logic
+    await fiber._owner?.pendingProps?.children?.type?._payload;
+    return fiber;
+  }
+});
+```
+
+## Performance Optimization
+
+### Virtualized List Selection
+
+Working with virtualized lists requires special handling:
+
+```typescript
+// React LLM's virtualization adapter
+import { VirtualAdapter } from 'react-llm/adapters';
+
+// Configure for react-window
+const virtualAdapter = new VirtualAdapter({
+  library: 'react-window',
+  onScroll: true,
+  preloadRadius: 5
+});
+
+ReactLLM.use(virtualAdapter);
+
+// Now select items in virtualized lists
+reactLLM.selectVirtual({
+  listComponent: 'FixedSizeList',
+  itemIndex: 150,
+  scrollIntoView: true
+});
+```
+
+### Selection Performance Metrics
+
+<div className="api-table">
+
+| Metric | Description | Target |
+|--------|-------------|--------|
+| `selectionTime` | Time to identify component | < 16ms |
+| `fiberTraversalDepth` | Depth of React tree traversed | < 100 |
+| `renderCycles` | Re-renders triggered by selection | 0 |
+| `memoryDelta` | Memory increase during selection | < 1MB |
+
+</div>
+
+Monitor selection performance:
+
+```javascript
+// Enable performance monitoring
+ReactLLM.debug.performance = true;
+
+// Get metrics after selection
+const metrics = reactLLM.getSelectionMetrics();
+console.table(metrics);
+/*
+┌─────────────────────┬────────┐
+│ selectionTime       │ 12.3ms │
+│ fiberTraversalDepth │ 47     │
+│ renderCycles        │ 0      │
+│ memoryDelta         │ 0.2MB  │
+└─────────────────────┴────────┘
+*/
+```
+
+## Advanced Selection Patterns
+
+### Component Ancestry Analysis
+
+```typescript
+// Get full component ancestry
+const ancestry = reactLLM.getAncestry('ProductCard');
+// Returns: ['App', 'Layout', 'ProductGrid', 'ProductCard']
+
+// Find common ancestor of multiple components
+const commonAncestor = reactLLM.findCommonAncestor([
+  'ProductCard',
+  'AddToCartButton',
+  'PriceDisplay'
+]);
+
+// Analyze component relationships
+const relationship = reactLLM.analyzeRelationship(
+  'ProductCard',
+  'AddToCartButton'
+);
+// Returns: { type: 'parent-child', depth: 2 }
+```
+
+### Context & Hook Detection
+
+```javascript
+// Select components using specific contexts
+reactLLM.selectByContext('ThemeContext', {
+  value: { mode: 'dark' }
+});
+
+// Select components with specific hooks
+reactLLM.selectByHooks({
+  uses: ['useState', 'useEffect'],
+  customHooks: ['useProductData']
+});
+
+// Analyze hook dependencies
+const hookAnalysis = reactLLM.analyzeHooks('ProductCard');
+/*
+{
+  useState: [
+    { value: false, setter: 'setIsHovered' },
+    { value: 0, setter: 'setQuantity' }
+  ],
+  useEffect: [
+    { deps: ['productId'], cleanup: true }
+  ],
+  customHooks: {
+    useProductData: { returns: 'product', deps: ['id'] }
+  }
+}
+*/
+```
+
+### Smart Selection Filters
+
+Create reusable selection filters:
+
+```typescript
+// Define custom filters
+const filters = {
+  // Select only visible components
+  visible: (fiber) => {
+    const dom = fiber.stateNode;
+    if (!dom) return true;
+    const rect = dom.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  },
+  
+  // Select components with errors
+  hasError: (fiber) => {
+    return fiber._debugHookTypes?.includes('useErrorBoundary');
+  },
+  
+  // Select performance bottlenecks
+  slowRender: (fiber) => {
+    const renderTime = fiber.actualDuration;
+    return renderTime > 16; // Over one frame
+  }
+};
+
+// Apply filters
+reactLLM.select({
+  name: 'ProductCard',
+  filters: [filters.visible, filters.slowRender]
+});
+```
+
+## Multi-Component Operations
+
+### Batch Analysis
+
+```javascript
+// Analyze multiple components at once
+const analysis = reactLLM.batchAnalyze({
+  components: ['Header', 'Sidebar', 'MainContent'],
+  metrics: ['renderCount', 'propTypes', 'stateShape']
+});
+
+// Compare component implementations
+const comparison = reactLLM.compare(
+  'OldProductCard',
+  'NewProductCard',
+  {
+    props: true,
+    hooks: true,
+    performance: true,
+    accessibility: true
+  }
+);
+```
+
+### Component Grouping
+
+```javascript
+// Group related components
+reactLLM.createGroup('ProductComponents', {
+  patterns: [/^Product/, 'AddToCart', 'PriceDisplay'],
+  persist: true
+});
+
+// Operate on groups
+reactLLM.groups.ProductComponents.analyze();
+reactLLM.groups.ProductComponents.exportPatterns();
+```
+
+## Integration Examples
+
+### With Redux DevTools
+
+```javascript
+// Sync selection with Redux DevTools
+ReactLLM.integrate('redux-devtools', {
+  onSelect: (component) => {
+    // Highlight related Redux state
+    window.__REDUX_DEVTOOLS_EXTENSION__.send(
+      'COMPONENT_SELECTED',
+      { component, state: component.props }
+    );
+  }
+});
+```
+
+### With React DevTools
+
+```javascript
+// Enhanced React DevTools integration
+ReactLLM.enhance('react-devtools', {
+  showCustomData: true,
+  injectPanel: true,
+  syncSelection: 'bidirectional'
+});
+```
+
+## Troubleshooting Selection Issues
+
+<Steps>
+<Step>
+### Component Not Selectable
+
+```javascript
+// Debug why a component can't be selected
+const debug = reactLLM.debugSelection('MyComponent');
+console.log(debug);
+/*
+{
+  found: false,
+  reason: 'Component is wrapped in HOC',
+  suggestion: 'Use deep selection mode',
+  alternativeSelectors: [
+    'Connect(MyComponent)',
+    'withRouter(MyComponent)'
+  ]
+}
+*/
+```
+</Step>
+
+<Step>
+### Selection Lag
+
+```javascript
+// Optimize selection for large apps
+ReactLLM.optimize({
+  selection: {
+    debounceMs: 150,
+    batchUpdates: true,
+    useWorker: true,
+    cacheSelectors: true
+  }
+});
+```
+</Step>
+
+<Step>
+### Memory Leaks
+
+```javascript
+// Clean up selection references
+reactLLM.cleanup({
+  clearCache: true,
+  removeListeners: true,
+  resetFilters: true
+});
+```
+</Step>
+</Steps>
+
+## Best Practices
+
+1. **Use Semantic Selectors**: Prefer selecting by component name and props over DOM attributes
+2. **Cache Complex Selections**: Store frequently used selection patterns
+3. **Monitor Performance**: Enable metrics in development to catch selection bottlenecks
+4. **Handle Edge Cases**: Always account for loading states, error boundaries, and dynamic content
+5. **Document Patterns**: Save and share successful selection strategies with your team
+
+<Callout type="success">
+**Pro Tip**: Create a `react-llm.config.js` file in your project root to define reusable selection patterns and filters that your entire team can use.
+</Callout>

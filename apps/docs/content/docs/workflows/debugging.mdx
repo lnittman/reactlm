@@ -1,0 +1,552 @@
+---
+title: AI-Powered Debugging Workflows
+description: Debug React components faster with AI assistance
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+
+# AI-Powered Debugging Workflows
+
+Stop console.logging your way to solutions. React LLM provides intelligent debugging capabilities that understand your component context and can identify issues before they become problems.
+
+## Intelligent Error Analysis
+
+### Automatic Error Detection
+
+```javascript
+// Enable automatic error detection
+ReactLLM.debug.enableAutoDetection({
+  catchErrors: true,
+  analyzeWarnings: true,
+  trackPropTypes: true,
+  monitorPerformance: true,
+  submitToAI: true
+});
+
+// React LLM automatically catches and analyzes errors
+window.addEventListener('error', (event) => {
+  // React LLM intercepts and provides analysis
+  console.log(event.reactLLMAnalysis);
+  /*
+  {
+    error: "Cannot read property 'map' of undefined",
+    component: 'ProductList',
+    line: 45,
+    likely_cause: 'products prop is undefined',
+    suggestions: [
+      'Add default props: ProductList.defaultProps = { products: [] }',
+      'Add null check: products?.map(...) or products && products.map(...)',
+      'Validate props with PropTypes or TypeScript'
+    ],
+    similar_issues: [
+      { timestamp: '2024-01-10', resolution: 'Added loading state' }
+    ]
+  }
+  */
+});
+```
+
+### Smart Console Enhancement
+
+```javascript
+// Enhance console with AI insights
+ReactLLM.debug.enhanceConsole();
+
+// Now console.log provides rich information
+console.log(myComponent);
+/*
+Standard output + React LLM additions:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Component: ProductCard
+Props: { id: 123, name: "...", price: 29.99 }
+State: { isHovered: false, quantity: 1 }
+Renders: 3 (last: 145ms ago)
+Performance: ✅ Good (12ms avg)
+Warnings: ⚠️  Missing 'key' prop in parent list
+Parent: ProductGrid
+Children: [Image, Title, Price, AddToCart]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+*/
+```
+
+## Advanced Debugging Techniques
+
+### Time Travel Debugging
+
+```javascript
+// Enable component state time travel
+const timeMachine = ReactLLM.debug.createTimeMachine('ShoppingCart');
+
+// Record state changes
+timeMachine.record();
+
+// ... user interactions ...
+
+// Debug state evolution
+const timeline = timeMachine.getTimeline();
+timeline.forEach((snapshot, index) => {
+  console.log(`State at T${index}:`, snapshot.state);
+  console.log('Trigger:', snapshot.trigger);
+  console.log('Props diff:', snapshot.propChanges);
+});
+
+// Jump to any point in time
+timeMachine.jumpTo(5);
+
+// AI analyzes the timeline
+const analysis = await timeMachine.analyze();
+console.log(analysis.insights);
+/*
+[
+  "State mutation detected at T3 - items array modified directly",
+  "Unnecessary re-render at T7 - props didn't change",
+  "Memory leak risk - event listener added at T2 never removed"
+]
+*/
+```
+
+### Prop Flow Tracing
+
+```javascript
+// Trace how props flow through your app
+const propTracer = ReactLLM.debug.traceProp('userId');
+
+// Start tracing
+propTracer.start();
+
+// See the complete flow
+const flow = propTracer.getFlow();
+console.log(flow.visualize());
+/*
+App (userId: 123)
+  └─> Dashboard (userId: 123)
+      ├─> UserHeader (userId: 123)
+      │   └─> Avatar (userId: 123) ✅
+      └─> UserStats (userId: undefined) ❌ BROKEN HERE
+          └─> StatsChart (userId: undefined) ❌
+          
+Issue: UserStats doesn't pass userId to children
+Fix: Add userId to UserStats props destructuring
+*/
+```
+
+## Debugging Patterns
+
+### The "Why Did This Render?" Pattern
+
+```javascript
+// Track why components re-render
+ReactLLM.debug.whyDidYouRender({
+  component: 'ExpensiveComponent',
+  trackHooks: true,
+  trackProps: true,
+  trackState: true
+});
+
+// Get detailed render reasons
+/*
+ExpensiveComponent re-rendered because:
+1. Prop 'data' changed (reference equality failed)
+   - Old: Array(100) [memory: 0x1234]
+   - New: Array(100) [memory: 0x5678]
+   - Content is identical - consider memoization
+   
+2. Hook 'useEffect' dependency changed
+   - Dependency: 'filters'
+   - Should this be in the dependency array?
+   
+3. Parent re-rendered (ProductList)
+   - Consider React.memo if props rarely change
+*/
+```
+
+### The "State Debugging" Pattern
+
+```javascript
+// Debug complex state issues
+const stateDebugger = ReactLLM.debug.state({
+  component: 'CheckoutForm',
+  track: ['formData', 'validation', 'submission']
+});
+
+// Monitor state changes with AI insights
+stateDebugger.onChange((change) => {
+  console.log('State change:', change);
+  console.log('AI Analysis:', change.analysis);
+  /*
+  {
+    field: 'formData.creditCard',
+    oldValue: '1234',
+    newValue: '1234 5678',
+    analysis: {
+      concern: 'Storing sensitive data in state',
+      suggestion: 'Consider using secure input handling',
+      security_risk: 'high'
+    }
+  }
+  */
+});
+```
+
+## Hook Debugging
+
+### Custom Hook Inspector
+
+```javascript
+// Debug custom hooks
+const hookInspector = ReactLLM.debug.inspectHook('useProductData');
+
+// Get hook usage analysis
+const usage = hookInspector.analyze();
+console.log(usage);
+/*
+{
+  hook: 'useProductData',
+  usages: 12,
+  components: ['ProductCard', 'ProductDetail', 'CartItem'],
+  issues: [
+    {
+      component: 'ProductCard',
+      issue: 'Missing dependency: productId',
+      line: 23
+    },
+    {
+      component: 'CartItem',
+      issue: 'Infinite loop - effect depends on object',
+      line: 45,
+      fix: 'Use useMemo or useCallback'
+    }
+  ],
+  performance: {
+    avgExecutionTime: 23,
+    rerunFrequency: 'high',
+    suggestion: 'Add caching layer'
+  }
+}
+*/
+```
+
+### Effect Dependency Analysis
+
+```javascript
+// Analyze useEffect dependencies
+const effectAnalyzer = ReactLLM.debug.analyzeEffects('UserDashboard');
+
+effectAnalyzer.report();
+/*
+useEffect Analysis for UserDashboard:
+
+Effect #1 (line 34):
+  Dependencies: [userId, filters]
+  Missing: userData (used inside effect)
+  Unnecessary: filters (never used)
+  Suggestion: Fix dependencies to prevent bugs
+
+Effect #2 (line 56):
+  Dependencies: []
+  Analysis: Cleanup function missing
+  Risk: Memory leak - event listener not removed
+  Fix: 
+    return () => {
+      window.removeEventListener('resize', handler);
+    };
+*/
+```
+
+## Async Debugging
+
+### Promise & Async State Tracking
+
+```javascript
+// Debug async operations
+const asyncDebugger = ReactLLM.debug.async('DataFetcher');
+
+// Track all promises
+asyncDebugger.on('promise', (info) => {
+  console.log(`Promise ${info.id}: ${info.status}`);
+  console.log(`Duration: ${info.duration}ms`);
+  
+  if (info.status === 'rejected') {
+    console.log('AI suggestion:', info.suggestion);
+    // "Add try-catch block and user-friendly error state"
+  }
+});
+
+// Detect common async issues
+const issues = asyncDebugger.detectIssues();
+/*
+[
+  {
+    type: 'race-condition',
+    description: 'Multiple fetches can complete out of order',
+    location: 'useEffect at line 45',
+    fix: 'Use AbortController or a ref to track latest request'
+  },
+  {
+    type: 'missing-loading-state',
+    description: 'No loading indicator during fetch',
+    impact: 'Poor user experience',
+    fix: 'Add loading state: const [loading, setLoading] = useState(false)'
+  }
+]
+*/
+```
+
+## Network & API Debugging
+
+### Request Interceptor
+
+```javascript
+// Debug API calls made by components
+ReactLLM.debug.network({
+  interceptRequests: true,
+  analyzeResponses: true,
+  trackComponent: true
+});
+
+// See which component triggered which request
+/*
+[GET] /api/products
+  Component: ProductList
+  Props: { category: 'electronics', page: 1 }
+  Response Time: 234ms
+  Size: 45KB
+  
+  AI Analysis:
+  - Consider pagination (response is large)
+  - Add caching (same request made 3 times)
+  - Implement optimistic updates
+*/
+```
+
+### GraphQL Debugging
+
+```javascript
+// Special GraphQL debugging support
+const gqlDebugger = ReactLLM.debug.graphql();
+
+gqlDebugger.on('query', (info) => {
+  console.log('Query Analysis:', info.analysis);
+  /*
+  {
+    query: 'GetProducts',
+    component: 'ProductGrid',
+    issues: [
+      'Over-fetching: requesting 15 unused fields',
+      'N+1 query pattern detected in reviews'
+    ],
+    optimization: 'Use fragment to request only needed fields',
+    estimatedSavings: '67% reduction in payload size'
+  }
+  */
+});
+```
+
+## Visual Debugging Tools
+
+### Component Tree Visualizer
+
+```javascript
+// Visualize component relationships
+ReactLLM.debug.visualize({
+  root: 'App',
+  highlight: ['ProductList', 'CartIcon'],
+  showProps: true,
+  showState: true,
+  interactive: true
+});
+
+// Opens interactive tree view with:
+// - Component hierarchy
+// - Prop flow visualization  
+// - Re-render highlighting
+// - Performance metrics
+// - Click to inspect
+```
+
+### Render Heatmap
+
+```javascript
+// Show render frequency heatmap
+ReactLLM.debug.heatmap({
+  duration: 60000, // 1 minute
+  onComplete: (map) => {
+    map.show(); // Visual heatmap overlay
+    
+    // Get insights
+    console.log(map.insights);
+    /*
+    Hot spots detected:
+    1. CartIcon - 847 renders (excessive)
+    2. ProductCard:3 - 234 renders (high)
+    3. SearchBar - 156 renders (moderate)
+    
+    Suggested optimizations...
+    */
+  }
+});
+```
+
+## Debugging Workflows
+
+### The "Bug Hunt" Workflow
+
+<Tabs items={['1. Reproduce', '2. Isolate', '3. Analyze', '4. Fix']}>
+<Tab value="1. Reproduce">
+```javascript
+// Start bug recording
+const bugHunt = ReactLLM.debug.startHunt({
+  description: "Cart total showing wrong amount"
+});
+
+// Reproduce the issue
+bugHunt.recordSteps([
+  'Add product to cart',
+  'Change quantity',
+  'Apply discount code'
+]);
+
+// Capture the bug state
+bugHunt.capture();
+```
+</Tab>
+
+<Tab value="2. Isolate">
+```javascript
+// AI helps isolate the issue
+const isolation = await bugHunt.isolate();
+
+console.log(isolation.summary);
+/*
+Bug isolated to: CartTotal component
+Triggered by: Discount calculation
+Related components: [DiscountCode, CartItem]
+State at bug: { items: [...], discount: 0.2, total: NaN }
+*/
+```
+</Tab>
+
+<Tab value="3. Analyze">
+```javascript
+// Deep analysis with AI
+const analysis = await bugHunt.analyze();
+
+console.log(analysis.rootCause);
+/*
+Root cause: Type coercion issue
+Location: CartTotal.jsx:34
+Code: total = items.reduce((sum, item) => sum + item.price * item.quantity, 0) - discount;
+Issue: 'discount' is a string "20" not number 20
+When: After applying discount code
+*/
+```
+</Tab>
+
+<Tab value="4. Fix">
+```javascript
+// AI suggests fixes
+const fixes = await bugHunt.suggestFixes();
+
+// Apply the fix
+await fixes[0].apply();
+/*
+Applied fix:
+- total = items.reduce(...) - discount;
++ total = items.reduce(...) - Number(discount);
+
+Also added:
+- Input validation
+- Type checking
+- Unit test
+*/
+```
+</Tab>
+</Tabs>
+
+### The "Performance Hunt" Workflow
+
+```javascript
+// Create performance debugging session
+const perfHunt = ReactLLM.debug.performanceHunt({
+  target: 'ProductList',
+  issue: 'Sluggish scrolling on mobile'
+});
+
+// Run automated analysis
+const results = await perfHunt.run();
+
+// Get actionable insights
+console.log(results.topIssues);
+/*
+1. Images not lazy loaded (Impact: High)
+   - 50 images loading immediately
+   - Fix: Implement intersection observer
+   
+2. Expensive filter calculation in render (Impact: High)
+   - Recalculating on every scroll
+   - Fix: Move to useMemo
+   
+3. Event handlers recreated each render (Impact: Medium)
+   - 50 new functions per render
+   - Fix: Use useCallback
+*/
+
+// Apply fixes automatically
+await perfHunt.applyFixes(['lazy-images', 'memoize-filters']);
+```
+
+## Debug Output Formatting
+
+### Custom Debug Formatters
+
+```javascript
+// Create beautiful debug output
+ReactLLM.debug.format.register({
+  name: 'component-tree',
+  format: (component) => {
+    return `
+╭─ ${component.name} ${component.mounted ? '🟢' : '🔴'}
+├─ Props: ${JSON.stringify(component.props, null, 2)}
+├─ State: ${JSON.stringify(component.state, null, 2)}
+├─ Renders: ${component.renderCount}
+├─ Time: ${component.totalRenderTime}ms
+╰─ Children: ${component.children.length}
+    `;
+  }
+});
+
+// Use custom formatter
+console.debug(myComponent); // Shows formatted output
+```
+
+## Integration with Dev Tools
+
+### Browser DevTools Extension
+
+```javascript
+// Enhanced React DevTools integration
+ReactLLM.debug.enhanceDevTools({
+  showAIInsights: true,
+  addCustomPanels: ['Performance', 'Debug', 'AI Chat'],
+  syncWithProfiler: true
+});
+```
+
+### VS Code Integration
+
+```javascript
+// Connect to VS Code for debugging
+ReactLLM.debug.connectToVSCode({
+  port: 9229,
+  features: [
+    'breakpoint-suggestions',
+    'inline-performance-hints',
+    'ai-powered-autocomplete'
+  ]
+});
+```
+
+<Callout type="success">
+**Debug Like a Pro**: With AI-powered debugging, you'll find and fix issues 10x faster. No more guessing - let AI guide you to the solution!
+</Callout>

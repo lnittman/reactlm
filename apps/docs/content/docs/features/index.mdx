@@ -1,0 +1,282 @@
+---
+title: Features Overview
+description: Explore all the powerful features that React LLM offers for AI-powered React development
+---
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { 
+  MousePointerClick, 
+  Brain, 
+  Code, 
+  Library, 
+  Keyboard, 
+  Zap,
+  Eye,
+  FileText,
+  Users,
+  Shield
+} from 'lucide-react';
+
+# Features Overview
+
+React LLM is packed with powerful features designed to enhance your React development workflow. Whether you're exploring existing components or building new ones, React LLM provides the tools you need.
+
+## Core Features
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
+  <Card>
+    <CardHeader>
+      <MousePointerClick className="h-8 w-8 text-blue-500 mb-2" />
+      <CardTitle>Visual Component Selection</CardTitle>
+      <CardDescription>
+        Click on any React component to inspect its structure, props, and state
+      </CardDescription>
+    </CardHeader>
+    <CardContent>
+      <ul className="text-sm space-y-1 text-muted-foreground">
+        <li>• Fiber tree traversal for accurate detection</li>
+        <li>• Canvas-based overlay highlighting</li>
+        <li>• Props, state, and context inspection</li>
+        <li>• Parent/child relationship mapping</li>
+      </ul>
+      <div className="mt-3">
+        <Badge variant="secondary">Production Safe</Badge>
+        <Badge variant="secondary" className="ml-2">Zero Config</Badge>
+      </div>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <Brain className="h-8 w-8 text-purple-500 mb-2" />
+      <CardTitle>Multi-Model AI Chat</CardTitle>
+      <CardDescription>
+        Chat with 100+ AI models including GPT-4, Claude, and Gemini
+      </CardDescription>
+    </CardHeader>
+    <CardContent>
+      <ul className="text-sm space-y-1 text-muted-foreground">
+        <li>• OpenRouter integration (100+ models)</li>
+        <li>• Direct provider support (OpenAI, Anthropic, Google)</li>
+        <li>• Automatic model fallback</li>
+        <li>• Context-aware conversations</li>
+      </ul>
+      <div className="mt-3">
+        <Badge variant="secondary">Multi-Provider</Badge>
+        <Badge variant="secondary" className="ml-2">Smart Fallback</Badge>
+      </div>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <Code className="h-8 w-8 text-green-500 mb-2" />
+      <CardTitle>Live Code Editing</CardTitle>
+      <CardDescription>
+        Make real changes to your code through AI conversations in development mode
+      </CardDescription>
+    </CardHeader>
+    <CardContent>
+      <ul className="text-sm space-y-1 text-muted-foreground">
+        <li>• File System Access API integration</li>
+        <li>• Hot module replacement support</li>
+        <li>• Source map analysis</li>
+        <li>• Development mode only</li>
+      </ul>
+      <div className="mt-3">
+        <Badge variant="secondary">Dev Mode</Badge>
+        <Badge variant="secondary" className="ml-2">HMR Support</Badge>
+      </div>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <Library className="h-8 w-8 text-orange-500 mb-2" />
+      <CardTitle>Component Library</CardTitle>
+      <CardDescription>
+        Save and organize interesting component patterns for future reference
+      </CardDescription>
+    </CardHeader>
+    <CardContent>
+      <ul className="text-sm space-y-1 text-muted-foreground">
+        <li>• Pattern extraction and saving</li>
+        <li>• Tag-based organization</li>
+        <li>• Cross-site collection</li>
+        <li>• Export to different frameworks</li>
+      </ul>
+      <div className="mt-3">
+        <Badge variant="secondary">Cross-Site</Badge>
+        <Badge variant="secondary" className="ml-2">Exportable</Badge>
+      </div>
+    </CardContent>
+  </Card>
+</div>
+
+## Advanced Features
+
+### 🔍 Component Analysis
+- **Performance Metrics**: Render times, re-render frequency
+- **Dependency Tracking**: State and prop dependencies
+- **Hook Analysis**: Custom hook usage and effects
+- **Context Usage**: Context providers and consumers
+
+### 💾 Persistent Storage
+- **SQLite WASM**: Local database with OPFS persistence
+- **Chat History**: All conversations saved locally
+- **Component Library**: Organized pattern storage
+- **Cross-Session**: Data persists between browser sessions
+
+### 🎨 Visual Interface
+- **Shadow DOM**: Complete style isolation
+- **Dark/Light Themes**: Automatic or manual theme switching
+- **Responsive Design**: Works on all screen sizes
+- **Keyboard Shortcuts**: Efficient navigation and control
+
+### 🔒 Security & Privacy
+- **Local Processing**: All data stays in your browser
+- **No Tracking**: Zero analytics or external tracking
+- **Secure Storage**: Encrypted API key storage
+- **Sandboxed Execution**: Safe component exploration
+
+## Framework Integration
+
+<div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-8">
+  <Card>
+    <CardHeader>
+      <CardTitle>Next.js Plugin</CardTitle>
+      <CardDescription>Enhanced development experience</CardDescription>
+    </CardHeader>
+    <CardContent className="text-sm">
+      <ul className="space-y-1 text-muted-foreground">
+        <li>• Hot reload integration</li>
+        <li>• Build-time optimization</li>
+        <li>• Dev/prod mode detection</li>
+      </ul>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <CardTitle>Vite Plugin</CardTitle>
+      <CardDescription>Fast development with Vite</CardDescription>
+    </CardHeader>
+    <CardContent className="text-sm">
+      <ul className="space-y-1 text-muted-foreground">
+        <li>• HMR support</li>
+        <li>• Tree shaking optimization</li>
+        <li>• Development server integration</li>
+      </ul>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <CardTitle>Browser Extension</CardTitle>
+      <CardDescription>Explore any website's components</CardDescription>
+    </CardHeader>
+    <CardContent className="text-sm">
+      <ul className="space-y-1 text-muted-foreground">
+        <li>• Universal compatibility</li>
+        <li>• One-click activation</li>
+        <li>• Permission-based access</li>
+      </ul>
+    </CardContent>
+  </Card>
+</div>
+
+## Use Cases
+
+### Development Workflow
+- **Component Debugging**: Understand why components behave unexpectedly
+- **Code Generation**: Generate new components through AI conversation
+- **Refactoring**: Get suggestions for improving existing code
+- **Documentation**: Generate component documentation automatically
+
+### Learning & Exploration
+- **Pattern Discovery**: Learn from well-built components on any website
+- **Best Practices**: Get AI suggestions for React best practices
+- **Framework Learning**: Understand different React patterns and approaches
+- **Code Review**: Get AI feedback on your component implementations
+
+### Team Collaboration
+- **Knowledge Sharing**: Save and share interesting component patterns
+- **Onboarding**: Help new team members understand the codebase
+- **Standards**: Establish and maintain coding standards
+- **Documentation**: Generate and maintain component documentation
+
+## Performance Considerations
+
+React LLM is designed to be lightweight and performant:
+
+### Bundle Size
+- **Core Library**: ~50KB gzipped
+- **Tree Shaking**: Only include used features
+- **Code Splitting**: Load components on demand
+- **CDN Delivery**: Fast global distribution
+
+### Runtime Performance
+- **Shadow DOM**: Zero impact on host page styles
+- **Web Workers**: Offload heavy processing
+- **Efficient Rendering**: Optimized component highlighting
+- **Memory Management**: Automatic cleanup and garbage collection
+
+### Development Impact
+- **Hot Reload Compatible**: Works seamlessly with HMR
+- **Build Time**: Zero impact on build performance
+- **Development Only**: Can be completely removed in production
+- **Conditional Loading**: Load only when needed
+
+## Browser Compatibility
+
+React LLM requires modern browser features:
+
+### Required APIs
+- **Web Workers**: For SQLite and background processing
+- **Shadow DOM**: For style isolation
+- **WASM**: For SQLite database
+- **OPFS**: For persistent storage
+- **File System Access**: For live editing (development)
+
+### Supported Browsers
+- **Chrome/Edge**: 120+ (full support)
+- **Firefox**: 125+ (full support)
+- **Safari**: 18+ (full support)
+- **Arc, Brave, Opera**: Latest versions
+
+## Getting Started
+
+Ready to explore these features? Start with our installation guide:
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+  <Card>
+    <CardHeader>
+      <CardTitle>Quick Start</CardTitle>
+      <CardDescription>Get running in 30 seconds</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <a 
+        href="/docs/installation/script-tag" 
+        className="text-primary hover:underline text-sm font-medium"
+      >
+        Script tag installation →
+      </a>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <CardTitle>Full Integration</CardTitle>
+      <CardDescription>Complete setup with TypeScript</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <a 
+        href="/docs/installation/npm-package" 
+        className="text-primary hover:underline text-sm font-medium"
+      >
+        NPM package installation →
+      </a>
+    </CardContent>
+  </Card>
+</div>

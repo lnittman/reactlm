@@ -1,0 +1,275 @@
+// Real API integration for React LLM demo
+// This will replace the simulation when actual React LLM is integrated
+
+export interface ApiConfig {
+  openRouterKey?: string
+  anthropicKey?: string
+  openaiKey?: string
+  googleKey?: string
+  simulationMode?: boolean
+}
+
+export interface ComponentAnalysis {
+  id: string
+  name: string
+  props: Record<string, unknown>
+  state: Record<string, unknown>
+  code: string
+  dependencies: string[]
+  accessibility: {
+    score: number
+    issues: string[]
+    suggestions: string[]
+  }
+  performance: {
+    renderCount: number
+    memoryUsage: number
+    suggestions: string[]
+  }
+}
+
+export interface CodeModification {
+  before: string
+  after: string
+  language: string
+  explanation: string
+  reasoning: string
+  warnings?: string[]
+}
+
+export interface ApiResponse {
+  message: string
+  codeChanges?: CodeModification[]
+  suggestions?: string[]
+  analysis?: ComponentAnalysis
+  metadata: {
+    model: string
+    tokensUsed: number
+    responseTime: number
+    cost: number
+  }
+}
+
+class ReactLLMApi {
+  private config: ApiConfig
+  private isInitialized = false
+
+  constructor(config: ApiConfig = {}) {
+    this.config = { simulationMode: true, ...config }
+  }
+
+  async initialize(): Promise<boolean> {
+    if (this.config.simulationMode) {
+      this.isInitialized = true
+      return true
+    }
+
+    try {
+      // Check if React LLM script is available
+      const reactLLM = (window as unknown as { ReactLLM?: { init: (config: unknown) => Promise<void> } }).ReactLLM
+      if (reactLLM) {
+        await reactLLM.init({
+          providers: {
+            openrouter: this.config.openRouterKey,
+            anthropic: this.config.anthropicKey,
+            openai: this.config.openaiKey,
+            google: this.config.googleKey
+          },
+          mode: 'production' // Read-only mode for demo
+        })
+        this.isInitialized = true
+        return true
+      }
+      
+      // Fallback to simulation if React LLM not available
+      this.config.simulationMode = true
+      this.isInitialized = true
+      return true
+    } catch (error) {
+      console.warn('React LLM initialization failed, using simulation mode:', error)
+      this.config.simulationMode = true
+      this.isInitialized = true
+      return true
+    }
+  }
+
+  async analyzeComponent(componentId: string): Promise<ComponentAnalysis> {
+    if (!this.isInitialized) {
+      throw new Error('API not initialized')
+    }
+
+    if (this.config.simulationMode) {
+      // Return simulated component analysis
+      return {
+        id: componentId,
+        name: componentId,
+        props: { className: 'example-class', children: 'Example content' },
+        state: {},
+        code: `function ${componentId}() {\n  return <div>Example component</div>\n}`,
+        dependencies: ['react'],
+        accessibility: {
+          score: 85,
+          issues: ['Missing aria-label', 'Low color contrast'],
+          suggestions: ['Add semantic HTML', 'Improve keyboard navigation']
+        },
+        performance: {
+          renderCount: 3,
+          memoryUsage: 1.2,
+          suggestions: ['Use React.memo for optimization', 'Reduce re-renders']
+        }
+      }
+    }
+
+    try {
+      // Real React LLM component analysis
+      const reactLLM = (window as unknown as { ReactLLM?: { analyzeComponent: (id: string) => Promise<ComponentAnalysis> } }).ReactLLM
+      if (!reactLLM) throw new Error('ReactLLM not available')
+      const analysis = await reactLLM.analyzeComponent(componentId)
+      return analysis
+    } catch (error) {
+      throw new Error(`Component analysis failed: ${error}`)
+    }
+  }
+
+  async modifyComponent(
+    componentId: string, 
+    instruction: string, 
+    model: string = 'gpt-4o'
+  ): Promise<ApiResponse> {
+    if (!this.isInitialized) {
+      throw new Error('API not initialized')
+    }
+
+    const startTime = Date.now()
+
+    if (this.config.simulationMode) {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000))
+      
+      // Return simulated response
+      return {
+        message: `I've modified the ${componentId} component based on your request: "${instruction}". Here are the changes I made:`,
+        codeChanges: [{
+          before: `<div className="old-class">Original content</div>`,
+          after: `<div className="new-class enhanced">Updated content with improvements</div>`,
+          language: 'tsx',
+          explanation: 'Updated styling and added enhancement classes',
+          reasoning: 'These changes improve the visual design and user experience'
+        }],
+        suggestions: [
+          'Consider adding loading states',
+          'Add error boundaries for better error handling',
+          'Implement responsive design breakpoints'
+        ],
+        metadata: {
+          model,
+          tokensUsed: 150 + Math.floor(Math.random() * 100),
+          responseTime: Date.now() - startTime,
+          cost: 0.001 + Math.random() * 0.01
+        }
+      }
+    }
+
+    try {
+      // Real React LLM API call
+      const reactLLM = (window as unknown as { ReactLLM?: { chat: (config: unknown) => Promise<unknown> } }).ReactLLM
+      if (!reactLLM) throw new Error('ReactLLM not available')
+      const response = await reactLLM.chat({
+        message: instruction,
+        context: {
+          componentId,
+          selectedComponent: componentId
+        },
+        model
+      })
+      
+      const apiResponse = response as { content: string; codeChanges?: CodeModification[]; suggestions?: string[]; tokensUsed?: number; cost?: number }
+      return {
+        message: apiResponse.content,
+        codeChanges: apiResponse.codeChanges,
+        suggestions: apiResponse.suggestions,
+        metadata: {
+          model,
+          tokensUsed: apiResponse.tokensUsed || 0,
+          responseTime: Date.now() - startTime,
+          cost: apiResponse.cost || 0
+        }
+      }
+    } catch (error) {
+      throw new Error(`Component modification failed: ${error}`)
+    }
+  }
+
+  async getAvailableModels(): Promise<string[]> {
+    if (this.config.simulationMode) {
+      return [
+        'gpt-4o',
+        'gpt-4-turbo',
+        'claude-3-5-sonnet',
+        'claude-3-opus',
+        'gemini-2-flash',
+        'gemini-1.5-pro',
+        'llama-3-70b'
+      ]
+    }
+
+    try {
+      const reactLLM = (window as unknown as { ReactLLM?: { getAvailableModels: () => Promise<string[]> } }).ReactLLM
+      if (!reactLLM) throw new Error('ReactLLM not available')
+      return await reactLLM.getAvailableModels()
+    } catch (error) {
+      console.warn('Failed to get available models:', error)
+      return ['gpt-4o'] // Fallback
+    }
+  }
+
+  isSimulationMode(): boolean {
+    return this.config.simulationMode
+  }
+
+  updateConfig(newConfig: Partial<ApiConfig>): void {
+    this.config = { ...this.config, ...newConfig }
+  }
+}
+
+// Export singleton instance
+export const reactLLMApi = new ReactLLMApi()
+
+// Environment variable detection for API keys
+export function detectApiKeys(): Partial<ApiConfig> {
+  const config: Partial<ApiConfig> = {}
+  
+  // Check for environment variables (development)
+  if (typeof process !== 'undefined' && process.env) {
+    config.openRouterKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY
+    config.anthropicKey = process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY
+    config.openaiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY
+    config.googleKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
+  }
+  
+  // Check localStorage for demo keys
+  if (typeof window !== 'undefined') {
+    const storedKeys = localStorage.getItem('react-llm-demo-keys')
+    if (storedKeys) {
+      try {
+        const parsed = JSON.parse(storedKeys)
+        Object.assign(config, parsed)
+      } catch (error) {
+        console.warn('Failed to parse stored API keys:', error)
+      }
+    }
+  }
+  
+  // Determine if we should use simulation mode
+  const hasAnyKey = Object.values(config).some(key => key && key.length > 0)
+  config.simulationMode = !hasAnyKey
+  
+  return config
+}
+
+// Initialize API with detected configuration
+export function initializeDemoApi(): Promise<boolean> {
+  const config = detectApiKeys()
+  reactLLMApi.updateConfig(config)
+  return reactLLMApi.initialize()
+}
