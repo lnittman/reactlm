@@ -1,4 +1,4 @@
-import { OpenRouterClient, Model, Message, ChatOptions } from './openrouter';
+import { OpenRouterClient, Model, Message, ChatOptions } from './openrouter-client';
 
 export interface LLMProvider {
   id: string;
@@ -54,6 +54,19 @@ export class LLMHub {
       });
       
       this.clients.set(providerId, client);
+      
+      // Wait for client to be ready
+      if (!client.isReady()) {
+        await new Promise((resolve, reject) => {
+          client.once('ready', resolve);
+          client.once('error', reject);
+          
+          // Add timeout
+          setTimeout(() => {
+            reject(new Error('OpenRouter client initialization timeout'));
+          }, 10000);
+        });
+      }
       
       try {
         // Fetch latest models

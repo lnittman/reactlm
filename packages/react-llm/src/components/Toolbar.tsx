@@ -1,12 +1,42 @@
 /** @jsx h */
 import { h, Fragment } from 'preact';
 import { useSignal, effect } from '@preact/signals';
-import { sendMessageToGemini, type StructuredResponse } from '../gemini/gemini';
 import { marked } from 'marked';
 import { initDB, createChatSession, createMessage, getChatSessions, getMessagesForChatSession, deleteChatSession } from '../db/database';
 import { styles } from './Toolbar.styles';
+import { LLMHub } from '../llm/providers';
+import { ModelSelector } from './ModelSelector';
+import type { Message } from '../llm/openrouter';
 
-interface Message {
+// Legacy support for Gemini response format
+interface StructuredResponse {
+  markdown: string;
+  chatTitle?: string;
+  relevantFiles: RelevantFile[];
+  documentationLinks: DocumentationLink[];
+  suggestedQueries?: string[];
+  projectInfo?: {
+    name: string;
+    type: string;
+    mainTechnologies: string[];
+    description: string;
+  };
+}
+
+interface RelevantFile {
+  path: string;
+  reason: string;
+  type: 'core' | 'config' | 'component' | 'util' | 'test' | 'other';
+  snippet?: string;
+}
+
+interface DocumentationLink {
+  url: string;
+  title: string;
+  description: string;
+}
+
+interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   structuredResponse?: StructuredResponse;
@@ -22,7 +52,7 @@ interface ProjectInfo {
 interface ChatSession {
   id: string;
   title: string;
-  messages: Message[];
+  messages: ChatMessage[];
   projectInfo?: ProjectInfo;
 }
 
@@ -44,7 +74,11 @@ function getInitialResponse(): StructuredResponse {
   };
 }
 
-export function Toolbar() {
+interface Props {
+  hub: LLMHub;
+}
+
+export function Toolbar({ hub }: Props) {
   const isInitializing = useSignal(true);
   const isVisible = useSignal(false);
   const isMinimized = useSignal(false);
@@ -56,6 +90,9 @@ export function Toolbar() {
   const projectInfo = useSignal<ProjectInfo | null>(null);
   const hasInitialChat = useSignal(false);
   const isLoadingMessages = useSignal(false);
+  const isStreamingResponse = useSignal(false);
+  const streamingContent = useSignal('');
+  const showModelSelector = useSignal(false);
 
   // Initialize database and load chat sessions
   effect(() => {
@@ -98,8 +135,8 @@ export function Toolbar() {
               console.warn('Failed to parse structured response:', e);
             }
           }
-        } else {
-          // No existing chats, get initial response from Gemini
+        } else if (hub.isInitialized()) {
+          // No existing chats, create initial welcome message
           const initialResponse = getInitialResponse();
           if (initialResponse.projectInfo) {
             projectInfo.value = initialResponse.projectInfo;
@@ -107,25 +144,37 @@ export function Toolbar() {
           
           // Create initial chat in database
           const newId = String(Date.now());
-          await createChatSession(newId, 'New Chat');
+          await createChatSession(newId, 'Welcome');
           
           // Create initial message
+          const welcomeMessage = `Welcome to React LLM! I'm ready to help you with your React codebase.
+
+I'm currently using **${hub.getActiveModel()}** - you can change models anytime using the 🤖 button.
+
+What would you like to explore?`;
+          
           await createMessage(
             String(Date.now()),
             newId,
             'assistant',
-            initialResponse.markdown,
-            JSON.stringify(initialResponse)
+            welcomeMessage,
+            JSON.stringify({
+              ...initialResponse,
+              markdown: welcomeMessage
+            })
           );
           
           // Update state
           const chat: ChatSession = {
             id: newId,
-            title: 'New Chat',
+            title: 'Welcome',
             messages: [{
               role: 'assistant',
-              content: initialResponse.markdown,
-              structuredResponse: initialResponse
+              content: welcomeMessage,
+              structuredResponse: {
+                ...initialResponse,
+                markdown: welcomeMessage
+              }
             }],
             projectInfo: initialResponse.projectInfo
           };
@@ -187,7 +236,30 @@ export function Toolbar() {
       // Create chat session in database
       await createChatSession(newId, 'New Chat');
       
-      const response = await sendMessageToGemini('Analyze this codebase and provide a structured response.');
+      // Get initial analysis from LLM
+      let response: StructuredResponse;
+      try {
+        const llmResponse = await hub.completeChat([
+          { role: 'user', content: 'Please provide a helpful introduction and overview of how I can assist with this React codebase.' }
+        ]);
+        
+        response = {
+          markdown: llmResponse.content,
+          chatTitle: extractTitleFromResponse(llmResponse.content),
+          relevantFiles: [],
+          documentationLinks: [],
+          suggestedQueries: extractSuggestionsFromResponse(llmResponse.content)
+        };
+      } catch (error) {
+        console.error('Failed to get LLM response:', error);
+        response = {
+          markdown: 'Hello! I\'m ready to help you with your React codebase.',
+          chatTitle: 'New Chat',
+          relevantFiles: [],
+          documentationLinks: [],
+          suggestedQueries: ['How does this work?', 'Can you explain this pattern?']
+        };
+      }
       
       // Create initial message in database
       await createMessage(
@@ -293,34 +365,92 @@ export function Toolbar() {
       
       isInitializing.value = true;
 
-      // Get response from Gemini
-      const response = await sendMessageToGemini(userMessage, isNewChat);
+      // Get response from LLM Hub with streaming
+      isStreamingResponse.value = true;
+      streamingContent.value = '';
       
-      // Save assistant message to database
-      const assistantMessageId = String(Date.now() + 1);
-      await createMessage(
-        assistantMessageId,
-        chat.id,
-        'assistant',
-        response.markdown,
-        JSON.stringify(response)
-      );
+      const llmMessages: Message[] = [
+        ...chat.messages.map(m => ({ role: m.role, content: m.content })),
+        { role: 'user', content: userMessage }
+      ];
       
-      // Update UI
-      const newMessages = [...updatedMessages, { 
-        role: 'assistant', 
-        content: response.markdown,
-        structuredResponse: response
-      }];
+      let fullResponse = '';
       
-      chatSessions.value = chatSessions.value.map(c => 
-        c.id === activeChatId.value ? {
-          ...c,
-          title: isNewChat && response.chatTitle ? response.chatTitle : c.title,
-          messages: newMessages,
-          projectInfo: isNewChat ? response.projectInfo : c.projectInfo
-        } : c
-      );
+      try {
+        for await (const chunk of hub.chat(llmMessages)) {
+          fullResponse += chunk;
+          streamingContent.value = fullResponse;
+          
+          // Update UI with streaming content
+          const streamingMessage: ChatMessage = {
+            role: 'assistant',
+            content: fullResponse
+          };
+          
+          chatSessions.value = chatSessions.value.map(c => 
+            c.id === activeChatId.value ? {
+              ...c,
+              messages: [...updatedMessages, streamingMessage]
+            } : c
+          );
+        }
+        
+        // Create structured response from the full response
+        const response: StructuredResponse = {
+          markdown: fullResponse,
+          chatTitle: isNewChat ? extractTitleFromResponse(fullResponse) : undefined,
+          relevantFiles: [],
+          documentationLinks: [],
+          suggestedQueries: extractSuggestionsFromResponse(fullResponse)
+        };
+      
+        // Save assistant message to database
+        const assistantMessageId = String(Date.now() + 1);
+        await createMessage(
+          assistantMessageId,
+          chat.id,
+          'assistant',
+          fullResponse,
+          JSON.stringify(response)
+        );
+        
+        // Update UI with final response
+        const newMessages = [...updatedMessages, { 
+          role: 'assistant' as const, 
+          content: fullResponse,
+          structuredResponse: response
+        }];
+        
+        chatSessions.value = chatSessions.value.map(c => 
+          c.id === activeChatId.value ? {
+            ...c,
+            title: isNewChat && response.chatTitle ? response.chatTitle : c.title,
+            messages: newMessages,
+            projectInfo: isNewChat ? response.projectInfo : c.projectInfo
+          } : c
+        );
+      } catch (streamError) {
+        console.error('Streaming error:', streamError);
+        
+        // Fallback to simple response if streaming fails
+        const errorResponse = 'I apologize, but I encountered an issue processing your request. Please try again.';
+        const assistantMessageId = String(Date.now() + 1);
+        await createMessage(
+          assistantMessageId,
+          chat.id,
+          'assistant',
+          errorResponse
+        );
+        
+        chatSessions.value = chatSessions.value.map(c => 
+          c.id === activeChatId.value ? {
+            ...c,
+            messages: [...updatedMessages, { 
+              role: 'assistant' as const, 
+              content: errorResponse
+            }]
+          } : c
+        );
     } catch (error) {
       console.error('Failed to get response:', error);
       
@@ -344,10 +474,44 @@ export function Toolbar() {
       );
     } finally {
       isInitializing.value = false;
+      isStreamingResponse.value = false;
+      streamingContent.value = '';
     }
   };
 
-  const renderMessage = (msg: Message) => {
+  const extractTitleFromResponse = (response: string): string => {
+    // Simple title extraction from response content
+    const lines = response.split('\n');
+    const firstLine = lines[0]?.replace(/^#+\s*/, '').trim();
+    return firstLine && firstLine.length < 100 ? firstLine : 'New Chat';
+  };
+  
+  const extractSuggestionsFromResponse = (response: string): string[] => {
+    // Simple suggestion extraction - look for questions or bullet points
+    const suggestions: string[] = [];
+    const lines = response.split('\n');
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('- ') && trimmed.endsWith('?')) {
+        suggestions.push(trimmed.slice(2));
+      } else if (trimmed.match(/^\d+\./)) {
+        const question = trimmed.replace(/^\d+\.\s*/, '');
+        if (question.endsWith('?')) {
+          suggestions.push(question);
+        }
+      }
+    }
+    
+    return suggestions.slice(0, 3); // Limit to 3 suggestions
+  };
+  
+  const handleModelChange = (provider: string, model: string) => {
+    hub.setActiveModel(provider, model);
+    showModelSelector.value = false;
+  };
+
+  const renderMessage = (msg: ChatMessage) => {
     if (msg.role === 'user') {
       return <div className="message user-message">{msg.content}</div>;
     }

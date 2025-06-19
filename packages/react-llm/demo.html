@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React LLM Demo - OpenRouter Integration</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .demo-section {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .code-block {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            border-left: 3px solid #00ff88;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+        }
+        .status.error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+        }
+        .status.warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+        }
+        button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #00cc6b;
+        }
+        button:disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+        }
+        .models-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #1e1e1e;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .model-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+            font-size: 12px;
+        }
+        .model-item:last-child {
+            border-bottom: none;
+        }
+        .model-name {
+            font-weight: 600;
+            color: #00ff88;
+        }
+        .model-details {
+            color: #888;
+            font-size: 11px;
+        }
+        input {
+            background: #1e1e1e;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            width: 300px;
+            margin: 5px;
+        }
+        input:focus {
+            border-color: #00ff88;
+            outline: none;
+        }
+        .test-output {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo h1 {
+            background: linear-gradient(45deg, #00ff88, #0088ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            margin: 0;
+        }
+        .logo p {
+            color: #888;
+            margin: 5px 0 0 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🤖 React LLM</h1>
+            <p>OpenRouter Multi-Model Integration Demo</p>
+        </div>
+
+        <div class="demo-section">
+            <h2>🚀 Quick Start</h2>
+            <p>Enter your OpenRouter API key to test the multi-model integration:</p>
+            
+            <div>
+                <input type="password" id="apiKey" placeholder="Enter OpenRouter API key (sk-or-...)">
+                <button onclick="initializeReactLLM()">Initialize React LLM</button>
+            </div>
+            
+            <div id="initStatus" class="status warning">
+                ⚠️ Enter your OpenRouter API key to begin
+            </div>
+
+            <div class="code-block">
+ReactLLM.init({
+  providers: {
+    openrouter: 'your-api-key-here'
+  },
+  mode: 'development',
+  siteUrl: window.location.href
+});
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🤖 Model Management</h2>
+            <button onclick="fetchModels()" id="fetchModelsBtn" disabled>Fetch Available Models</button>
+            <button onclick="showRecommended()" id="recommendedBtn" disabled>Show Recommended Models</button>
+            <button onclick="testStreaming()" id="streamingBtn" disabled>Test Streaming Chat</button>
+            
+            <div id="modelsOutput" class="test-output" style="display:none;">
+                <div>Loading models...</div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>💬 Chat Testing</h2>
+            <div>
+                <input type="text" id="testMessage" placeholder="Enter a test message..." style="width: 400px;">
+                <button onclick="sendTestMessage()" id="sendBtn" disabled>Send Message</button>
+            </div>
+            
+            <div id="chatOutput" class="test-output" style="display:none;">
+                <div>Chat output will appear here...</div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>📊 Debug Information</h2>
+            <button onclick="showDebugInfo()" id="debugBtn" disabled>Show Debug Info</button>
+            
+            <div id="debugOutput" class="test-output" style="display:none;">
+                <div>Debug information will appear here...</div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🧪 Integration Tests</h2>
+            <p>These tests verify the OpenRouter integration is working correctly:</p>
+            <button onclick="runAllTests()" id="testBtn" disabled>Run All Tests</button>
+            
+            <div id="testResults" class="test-output" style="display:none;">
+                <div>Test results will appear here...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load React LLM (in production this would be from CDN) -->
+    <script src="./dist/react-llm.global.js"></script>
+
+    <script>
+        let hub = null;
+        let testResults = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            console.log(`[${timestamp}] ${prefix} ${message}`);
+            return `[${timestamp}] ${prefix} ${message}`;
+        }
+
+        async function initializeReactLLM() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const statusEl = document.getElementById('initStatus');
+            
+            if (!apiKey) {
+                statusEl.innerHTML = '❌ Please enter a valid OpenRouter API key';
+                statusEl.className = 'status error';
+                return;
+            }
+
+            if (!apiKey.startsWith('sk-or-')) {
+                statusEl.innerHTML = '⚠️ API key should start with "sk-or-" for OpenRouter';
+                statusEl.className = 'status warning';
+            }
+
+            try {
+                statusEl.innerHTML = '⏳ Initializing React LLM...';
+                statusEl.className = 'status warning';
+
+                // Initialize React LLM
+                await ReactLLM.init({
+                    providers: {
+                        openrouter: apiKey
+                    },
+                    mode: 'development',
+                    siteUrl: window.location.href,
+                    siteName: 'React LLM Demo'
+                });
+
+                // Get reference to hub for testing
+                hub = window.ReactLLM.hub;
+
+                statusEl.innerHTML = '✅ React LLM initialized successfully!';
+                statusEl.className = 'status success';
+
+                // Enable demo buttons
+                document.getElementById('fetchModelsBtn').disabled = false;
+                document.getElementById('recommendedBtn').disabled = false;
+                document.getElementById('streamingBtn').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+                document.getElementById('debugBtn').disabled = false;
+                document.getElementById('testBtn').disabled = false;
+
+                log('React LLM initialized successfully', 'success');
+
+            } catch (error) {
+                statusEl.innerHTML = `❌ Initialization failed: ${error.message}`;
+                statusEl.className = 'status error';
+                log(`Initialization failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function fetchModels() {
+            const outputEl = document.getElementById('modelsOutput');
+            outputEl.style.display = 'block';
+            
+            try {
+                outputEl.innerHTML = '<div>🔄 Fetching models from OpenRouter...</div>';
+                
+                const client = hub.getClient('openrouter');
+                const models = await client.getLatestModels();
+                
+                let html = `<div><strong>✅ Found ${models.length} models:</strong></div><div class="models-list">`;
+                
+                models.slice(0, 20).forEach(model => {
+                    html += `
+                        <div class="model-item">
+                            <div class="model-name">${model.name}</div>
+                            <div class="model-details">
+                                ${model.id} | ${model.provider} | 
+                                Context: ${model.contextLength.toLocaleString()} | 
+                                Price: $${(model.pricing.prompt * 1000).toFixed(3)}/1K tokens
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div><div><em>Showing first 20 of ${models.length} models</em></div>`;
+                outputEl.innerHTML = html;
+                
+                log(`Fetched ${models.length} models successfully`, 'success');
+                
+            } catch (error) {
+                outputEl.innerHTML = `<div>❌ Error fetching models: ${error.message}</div>`;
+                log(`Error fetching models: ${error.message}`, 'error');
+            }
+        }
+
+        async function showRecommended() {
+            const outputEl = document.getElementById('modelsOutput');
+            outputEl.style.display = 'block';
+            
+            try {
+                const recommended = hub.getRecommendedModels();
+                
+                let html = `<div><strong>⭐ Recommended Models (${recommended.length}):</strong></div><div class="models-list">`;
+                
+                recommended.forEach(model => {
+                    html += `
+                        <div class="model-item">
+                            <div class="model-name">⭐ ${model.name}</div>
+                            <div class="model-details">
+                                ${model.id} | ${model.provider} | 
+                                Context: ${model.contextLength.toLocaleString()} | 
+                                Price: $${(model.pricing.prompt * 1000).toFixed(3)}/1K tokens
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                outputEl.innerHTML = html;
+                
+                log(`Showing ${recommended.length} recommended models`, 'success');
+                
+            } catch (error) {
+                outputEl.innerHTML = `<div>❌ Error getting recommendations: ${error.message}</div>`;
+                log(`Error getting recommendations: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStreaming() {
+            const outputEl = document.getElementById('modelsOutput');
+            outputEl.style.display = 'block';
+            
+            try {
+                outputEl.innerHTML = '<div>🔄 Testing streaming response...</div>';
+                
+                const messages = [
+                    { role: 'user', content: 'Count from 1 to 5, one number per line.' }
+                ];
+                
+                let response = '';
+                const startTime = Date.now();
+                
+                for await (const chunk of hub.chat(messages)) {
+                    response += chunk;
+                    outputEl.innerHTML = `
+                        <div><strong>🔄 Streaming Response:</strong></div>
+                        <div style="border: 1px solid #333; padding: 10px; margin: 10px 0; white-space: pre-wrap;">${response}</div>
+                        <div><em>Streaming... (${Date.now() - startTime}ms)</em></div>
+                    `;
+                }
+                
+                const duration = Date.now() - startTime;
+                outputEl.innerHTML = `
+                    <div><strong>✅ Streaming Test Complete!</strong></div>
+                    <div style="border: 1px solid #00ff88; padding: 10px; margin: 10px 0; white-space: pre-wrap;">${response}</div>
+                    <div><em>Duration: ${duration}ms | Length: ${response.length} chars</em></div>
+                `;
+                
+                log(`Streaming test completed in ${duration}ms`, 'success');
+                
+            } catch (error) {
+                outputEl.innerHTML = `<div>❌ Streaming test failed: ${error.message}</div>`;
+                log(`Streaming test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function sendTestMessage() {
+            const message = document.getElementById('testMessage').value.trim();
+            const outputEl = document.getElementById('chatOutput');
+            
+            if (!message) {
+                alert('Please enter a test message');
+                return;
+            }
+            
+            outputEl.style.display = 'block';
+            
+            try {
+                outputEl.innerHTML = '<div>🔄 Sending message...</div>';
+                
+                const startTime = Date.now();
+                const response = await hub.completeChat([
+                    { role: 'user', content: message }
+                ]);
+                
+                const duration = Date.now() - startTime;
+                
+                outputEl.innerHTML = `
+                    <div><strong>💬 User:</strong> ${message}</div>
+                    <div style="margin: 10px 0; padding: 10px; border-left: 3px solid #00ff88;">
+                        <strong>🤖 Assistant:</strong><br>
+                        ${response.content}
+                    </div>
+                    <div><em>Response time: ${duration}ms | Model: ${hub.getActiveModel()}</em></div>
+                `;
+                
+                log(`Message sent and received in ${duration}ms`, 'success');
+                
+            } catch (error) {
+                outputEl.innerHTML = `<div>❌ Chat test failed: ${error.message}</div>`;
+                log(`Chat test failed: ${error.message}`, 'error');
+            }
+        }
+
+        function showDebugInfo() {
+            const outputEl = document.getElementById('debugOutput');
+            outputEl.style.display = 'block';
+            
+            try {
+                const debugInfo = {
+                    isInitialized: hub.isInitialized(),
+                    activeProvider: hub.getActiveProvider(),
+                    activeModel: hub.getActiveModel(),
+                    availableProviders: hub.getAvailableProviders(),
+                    totalModels: hub.getAllModels().length,
+                    recommendedModels: hub.getRecommendedModels().length,
+                    browserInfo: {
+                        userAgent: navigator.userAgent,
+                        localStorage: typeof localStorage !== 'undefined',
+                        fetch: typeof fetch !== 'undefined'
+                    }
+                };
+                
+                outputEl.innerHTML = `
+                    <div><strong>🔍 Debug Information:</strong></div>
+                    <pre>${JSON.stringify(debugInfo, null, 2)}</pre>
+                `;
+                
+                log('Debug information displayed', 'success');
+                
+            } catch (error) {
+                outputEl.innerHTML = `<div>❌ Error getting debug info: ${error.message}</div>`;
+                log(`Error getting debug info: ${error.message}`, 'error');
+            }
+        }
+
+        async function runAllTests() {
+            const outputEl = document.getElementById('testResults');
+            outputEl.style.display = 'block';
+            testResults = [];
+            
+            outputEl.innerHTML = '<div>🧪 Running integration tests...</div>';
+            
+            // Test 1: Hub initialization
+            try {
+                const isInit = hub.isInitialized();
+                testResults.push({
+                    name: 'Hub Initialization',
+                    passed: isInit,
+                    message: isInit ? 'Hub is properly initialized' : 'Hub not initialized'
+                });
+            } catch (error) {
+                testResults.push({
+                    name: 'Hub Initialization',
+                    passed: false,
+                    message: `Error: ${error.message}`
+                });
+            }
+            
+            // Test 2: Model fetching
+            try {
+                const models = hub.getAllModels();
+                const passed = models.length > 0;
+                testResults.push({
+                    name: 'Model Fetching',
+                    passed: passed,
+                    message: passed ? `Found ${models.length} models` : 'No models available'
+                });
+            } catch (error) {
+                testResults.push({
+                    name: 'Model Fetching',
+                    passed: false,
+                    message: `Error: ${error.message}`
+                });
+            }
+            
+            // Test 3: Recommendations
+            try {
+                const recommended = hub.getRecommendedModels();
+                const passed = recommended.length > 0;
+                testResults.push({
+                    name: 'Model Recommendations',
+                    passed: passed,
+                    message: passed ? `Found ${recommended.length} recommended models` : 'No recommendations available'
+                });
+            } catch (error) {
+                testResults.push({
+                    name: 'Model Recommendations',
+                    passed: false,
+                    message: `Error: ${error.message}`
+                });
+            }
+            
+            // Test 4: Active model
+            try {
+                const activeModel = hub.getActiveModel();
+                const passed = activeModel !== null;
+                testResults.push({
+                    name: 'Active Model Selection',
+                    passed: passed,
+                    message: passed ? `Active model: ${activeModel}` : 'No active model selected'
+                });
+            } catch (error) {
+                testResults.push({
+                    name: 'Active Model Selection',
+                    passed: false,
+                    message: `Error: ${error.message}`
+                });
+            }
+            
+            // Test 5: Simple completion
+            try {
+                const response = await hub.completeChat([
+                    { role: 'user', content: 'Say "Hello from React LLM test!"' }
+                ]);
+                const passed = response && response.content && response.content.length > 0;
+                testResults.push({
+                    name: 'Chat Completion',
+                    passed: passed,
+                    message: passed ? `Received response: "${response.content.substring(0, 50)}..."` : 'No response received'
+                });
+            } catch (error) {
+                testResults.push({
+                    name: 'Chat Completion',
+                    passed: false,
+                    message: `Error: ${error.message}`
+                });
+            }
+            
+            // Display results
+            const passed = testResults.filter(t => t.passed).length;
+            const total = testResults.length;
+            
+            let html = `
+                <div><strong>🧪 Test Results: ${passed}/${total} passed</strong></div>
+                <div style="margin: 10px 0;">
+            `;
+            
+            testResults.forEach(test => {
+                const icon = test.passed ? '✅' : '❌';
+                html += `
+                    <div style="margin: 5px 0; padding: 5px; background: ${test.passed ? 'rgba(0,255,136,0.1)' : 'rgba(255,68,68,0.1)'};">
+                        ${icon} <strong>${test.name}:</strong> ${test.message}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            outputEl.innerHTML = html;
+            
+            log(`Tests completed: ${passed}/${total} passed`, passed === total ? 'success' : 'error');
+        }
+
+        // Show initial status
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Demo page loaded', 'info');
+        });
+    </script>
+</body>
+</html>
