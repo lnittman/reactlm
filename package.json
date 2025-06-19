@@ -1,35 +1,38 @@
 {
-  "name": "react-llm",
-  "version": "0.1.0",
-  "description": "A floating chat interface for React apps powered by Gemini",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "bin": {
-    "react-llm": "./scripts/react-llm.js"
+  "name": "react-llm-monorepo",
+  "private": true,
+  "description": "chat with your react components in the browser",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/react-llm.git"
   },
+  "license": "MIT",
+  "author": "Your Name <email@example.com>",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "tsup --watch",
-    "build": "tsup",
-    "lint": "biome check .",
-    "format": "biome format . --write"
-  },
-  "dependencies": {
-    "@google/generative-ai": "^0.2.0",
-    "@preact/signals": "^1.2.2",
-    "@sqlite.org/sqlite-wasm": "3.49.1-build1",
-    "marked": "^11.0.0",
-    "preact": "^10.19.3"
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "format": "biome format . --write",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "turbo run build --filter=./packages/* && changeset publish",
+    "upload-cdn": "node scripts/upload-cdn.js"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.26.2",
     "@biomejs/biome": "1.5.3",
-    "@types/node": "^20.11.5",
-    "@types/react": "^18.2.48",
-    "@types/react-dom": "^18.2.18",
-    "tsup": "^8.0.1",
+    "turbo": "^1.10.16",
     "typescript": "^5.3.3"
   },
-  "peerDependencies": {
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+  "packageManager": "pnpm@8.15.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
   }
 }

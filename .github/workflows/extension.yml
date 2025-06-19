@@ -1,0 +1,155 @@
+name: Browser Extension
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/browser-extension/**'
+      - 'packages/react-llm/**'
+  pull_request:
+    paths:
+      - 'packages/browser-extension/**'
+      - 'packages/react-llm/**'
+  workflow_dispatch:
+
+jobs:
+  build-extension:
+    name: Build Extension
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chrome, firefox]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build core package
+        run: |
+          cd packages/react-llm
+          pnpm build
+
+      - name: Build extension for ${{ matrix.browser }}
+        run: |
+          cd packages/browser-extension
+          pnpm build
+          pnpm package:${{ matrix.browser }}
+
+      - name: Upload extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-${{ matrix.browser }}
+          path: packages/browser-extension/dist/*.zip
+          retention-days: 30
+
+  test-extension:
+    name: Test Extension
+    runs-on: ubuntu-latest
+    needs: build-extension
+    strategy:
+      matrix:
+        browser: [chromium, firefox]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright
+        run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Download extension artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-${{ matrix.browser == 'chromium' && 'chrome' || 'firefox' }}
+          path: packages/browser-extension/dist/
+
+      - name: Test extension
+        run: |
+          cd packages/browser-extension
+          pnpm test:extension --project=${{ matrix.browser }}
+        env:
+          CI: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: extension-test-results-${{ matrix.browser }}
+          path: packages/browser-extension/test-results/
+          retention-days: 7
+
+  publish-extension:
+    name: Publish Extension
+    runs-on: ubuntu-latest
+    needs: [build-extension, test-extension]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    strategy:
+      matrix:
+        browser: [chrome, firefox]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download extension artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-${{ matrix.browser }}
+          path: packages/browser-extension/dist/
+
+      - name: Publish to Chrome Web Store
+        if: matrix.browser == 'chrome'
+        run: |
+          npx chrome-webstore-upload-cli upload \
+            --source packages/browser-extension/dist/chrome-extension.zip \
+            --extension-id ${{ secrets.CHROME_EXTENSION_ID }} \
+            --client-id ${{ secrets.CHROME_CLIENT_ID }} \
+            --client-secret ${{ secrets.CHROME_CLIENT_SECRET }} \
+            --refresh-token ${{ secrets.CHROME_REFRESH_TOKEN }}
+
+      - name: Publish to Firefox Add-ons
+        if: matrix.browser == 'firefox'
+        run: |
+          npx web-ext sign \
+            --source-dir packages/browser-extension/dist/firefox \
+            --api-key ${{ secrets.FIREFOX_API_KEY }} \
+            --api-secret ${{ secrets.FIREFOX_API_SECRET }} \
+            --channel listed

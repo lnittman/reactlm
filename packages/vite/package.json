@@ -1,0 +1,66 @@
+{
+  "name": "@react-llm/vite",
+  "version": "0.1.0",
+  "description": "Vite plugin for React LLM",
+  "keywords": [
+    "react-llm",
+    "vite",
+    "plugin",
+    "ai",
+    "development-tools"
+  ],
+  "homepage": "https://react-llm.dev",
+  "bugs": {
+    "url": "https://github.com/your-org/react-llm/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/react-llm.git",
+    "directory": "packages/vite"
+  },
+  "license": "MIT",
+  "author": "Your Name <email@example.com>",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react-llm": "workspace:*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.5.3",
+    "@types/node": "^20.11.5",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.0"
+  },
+  "peerDependencies": {
+    "vite": ">=4.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "name": "react-llm",
+  "version": "0.1.0",
+  "description": "Browser-native AI coding assistant for React developers",
+  "keywords": [
+    "react",
+    "ai",
+    "llm",
+    "openrouter",
+    "gpt-4",
+    "claude",
+    "gemini",
+    "developer-tools",
+    "code-assistant",
+    "browser-native",
+    "component-selection",
+    "live-editing",
+    "visual-debugging",
+    "multi-model"
+  ],
+  "homepage": "https://react-llm.dev",
+  "bugs": {
+    "url": "https://github.com/your-org/react-llm/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/react-llm.git",
+    "directory": "packages/react-llm"
+  },
+  "license": "MIT",
+  "author": "Your Name <email@example.com>",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "react-llm": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "biome check .",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit",
+    "format": "biome format . --write"
+  },
+  "dependencies": {
+    "@preact/signals": "^1.2.2",
+    "@sqlite.org/sqlite-wasm": "3.49.1-build1",
+    "bippy": "^0.4.0",
+    "marked": "^11.0.0",
+    "preact": "^10.19.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.5.3",
+    "@types/node": "^20.11.5",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.0"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

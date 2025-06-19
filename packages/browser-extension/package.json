@@ -1,0 +1,46 @@
+{
+  "name": "@react-llm/browser-extension",
+  "version": "0.1.0",
+  "description": "Browser extension for React LLM",
+  "keywords": [
+    "react-llm",
+    "browser-extension",
+    "chrome-extension",
+    "firefox-addon",
+    "ai",
+    "development-tools"
+  ],
+  "homepage": "https://react-llm.dev",
+  "bugs": {
+    "url": "https://github.com/your-org/react-llm/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/react-llm.git",
+    "directory": "packages/browser-extension"
+  },
+  "license": "MIT",
+  "author": "Your Name <email@example.com>",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.js",
+    "dev": "node scripts/build.js --watch",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit",
+    "package:chrome": "node scripts/package.js chrome",
+    "package:firefox": "node scripts/package.js firefox"
+  },
+  "dependencies": {
+    "react-llm": "workspace:*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.5.3",
+    "@types/chrome": "^0.0.253",
+    "@types/node": "^20.11.5",
+    "archiver": "^6.0.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

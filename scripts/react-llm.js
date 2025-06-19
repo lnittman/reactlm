@@ -157,6 +157,67 @@ function setupEnvironmentVariables(framework, apiKey) {
   }
 }
 
+// Copy SQLite WASM file
+async function copySqliteWasm(publicDir) {
+  const possibleSources = [
+    // Try package's own dist directory first
+    path.join(__dirname, '..', 'dist', 'sqlite3.wasm'),
+    // Try node_modules as fallback
+    path.join(process.cwd(), 'node_modules', '@sqlite.org', 'sqlite-wasm', 'sqlite-wasm', 'jswasm', 'sqlite3.wasm'),
+  ];
+
+  const sqliteWasmDest = path.join(publicDir, 'sqlite3.wasm');
+  
+  for (const src of possibleSources) {
+    if (fs.existsSync(src)) {
+      fs.copyFileSync(src, sqliteWasmDest);
+      console.log('✅ Copied sqlite3.wasm to public directory');
+      return true;
+    }
+  }
+  
+  console.error('❌ Could not find sqlite3.wasm in any expected location.');
+  console.error('This is likely a bug in react-llm. Please report it at:');
+  console.error('https://github.com/yourusername/react-llm/issues');
+  return false;
+}
+
+async function install(apiKey) {
+  try {
+    const framework = detectFramework();
+    
+    // Create necessary directories
+    const publicDir = path.join(process.cwd(), 'public');
+    ensureDir(publicDir);
+    
+    // Copy required files
+    const success = await copySqliteWasm(publicDir);
+    if (!success) {
+      process.exit(1);
+    }
+    
+    // Add script to package.json
+    addScriptToPackageJson();
+    
+    // Add script to layout
+    await addScriptToLayout(framework);
+    
+    // Setup environment variables
+    await setupEnvironmentVariables(framework, apiKey);
+    
+    console.log('✨ react-llm installation complete!');
+    console.log('');
+    console.log('Next steps:');
+    console.log('1. Start your development server');
+    console.log('2. Visit your app and look for the react-llm chat widget');
+    console.log('');
+    console.log('For more information, visit: https://github.com/yourusername/react-llm');
+  } catch (error) {
+    console.error('❌ Installation failed:', error.message);
+    process.exit(1);
+  }
+}
+
 // Install command
 if (command === 'install') {
   try {
@@ -170,35 +231,7 @@ if (command === 'install') {
       process.exit(1);
     }
     
-    // Detect framework
-    const framework = detectFramework();
-    if (!framework) {
-      console.error('❌ Could not detect React in your project. Please ensure you have React installed.');
-      process.exit(1);
-    }
-    
-    // Create necessary directories
-    const publicDir = path.join(process.cwd(), 'public');
-    ensureDir(publicDir);
-    
-    // Add script to package.json
-    addScriptToPackageJson();
-    console.log('✅ Added react-llm command to package.json scripts');
-    
-    // Add script tag to layout
-    addScriptToLayout(framework);
-    
-    // Set up environment variables
-    setupEnvironmentVariables(framework, apiKey);
-    
-    // Run initial generation
-    console.log('🔍 Generating initial codebase context...');
-    execSync('react-llm generate', { stdio: 'inherit' });
-    
-    console.log('\n🎉 react-llm has been successfully installed!');
-    console.log('\nNext steps:');
-    console.log('1. Commit the changes to your repository');
-    console.log('2. Run `pnpm react-llm` whenever you want to update the codebase context');
+    await install(apiKey);
   } catch (error) {
     console.error('❌ Failed to install react-llm:', error.message);
     process.exit(1);
@@ -210,21 +243,28 @@ if (command === 'generate') {
   try {
     console.log('🔍 Running RepoMix to generate codebase context...');
     
+    // Create public directory if it doesn't exist
+    const publicDir = path.join(process.cwd(), 'public');
+    ensureDir(publicDir);
+    
     // Run RepoMix with increased buffer size
     const output = execSync('repomix', { 
       stdio: ['pipe', 'pipe', 'pipe'],
       maxBuffer: 10 * 1024 * 1024 // 10MB buffer
     });
     
-    // Create the context file in public directory
-    const publicDir = path.join(process.cwd(), 'public');
-    ensureDir(publicDir);
-    
     // Write the context to a JSON file
+    const contextFile = path.join(publicDir, 'codebase-context.json');
     fs.writeFileSync(
-      path.join(publicDir, 'codebase-context.json'),
+      contextFile,
       JSON.stringify({ context: output.toString() })
     );
+    
+    // Verify both required files exist
+    const sqliteWasmPath = path.join(publicDir, 'sqlite3.wasm');
+    if (!fs.existsSync(sqliteWasmPath)) {
+      console.warn('⚠️  sqlite3.wasm not found in public directory. Please run `pnpm react-llm install` again');
+    }
     
     console.log('✅ Codebase context generated successfully!');
     console.log('📝 Saved to public/codebase-context.json');

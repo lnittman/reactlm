@@ -1,54 +1,83 @@
-# React LLM
+# react llm
 
-A floating chat interface for React apps powered by Google's Gemini AI. Get instant AI assistance for your codebase during development.
+browser-native ai coding assistant. chat with your components directly in the browser.
 
-## Features
+## what it is
 
-- 🎯 Simple script tag integration
-- 💬 Floating chat interface
-- 🤖 Powered by Gemini AI
-- 🔒 Secure - runs only in development
-- 🎨 Modern, minimal UI
-- 📱 Draggable interface
-- 🔍 Codebase-aware responses
+react llm adds ai chat to any website. click components to add them to context. describe changes in plain language. see updates instantly in development or explore components in production.
 
-## Quick Start
+## how it works
 
-1. Add the script to your React app's HTML:
-
-```html
-<script src="https://unpkg.com/react-llm@latest/dist/index.js"></script>
+```
+website → bippy (react fiber access) → component context → LLM → code changes
 ```
 
-2. Initialize with your Gemini API key:
+1. bippy traverses react fiber tree to find components
+2. canvas overlay renders component boundaries
+3. selected components provide context to ai
+4. LLM generates code modifications or explanations
+5. file system api applies changes in development
+
+## setup
 
 ```html
+<script src="https://unpkg.com/react-llm"></script>
 <script>
-  window.ReactLLM.init({
-    apiKey: 'your-gemini-api-key'
+  ReactLLM.init({ 
+    providers: { openrouter: 'sk-or-...' }
   });
 </script>
 ```
 
-That's it! You'll see a floating chat interface appear in your app during development.
+or with npm:
 
-## Development
-
-1. Install dependencies:
 ```bash
-npm install
+npm install react-llm
 ```
 
-2. Start development server:
+## constraints
+
+what react llm is:
+- browser-native (no extensions)
+- react-focused (not vue or angular)
+- visual-first (click, don't type)
+- local-first (your data stays yours)
+
+what react llm is not:
+- a code generator from scratch
+- a full ide replacement
+- a testing framework
+- a deployment tool
+
+## development
+
 ```bash
-npm run dev
+git clone https://github.com/react-llm/react-llm
+cd react-llm
+pnpm install
+pnpm dev
 ```
 
-3. Build for production:
-```bash
-npm run build
+### structure
+
+```
+packages/
+├── react-llm/      # core library
+├── web/           # marketing site
+└── docs/          # documentation
 ```
 
-## License
+### contributing
 
-MIT
+1. pick a constraint (we believe constraints breed creativity)
+2. solve one problem well
+3. submit a pull request
+4. include tests
+
+## philosophy
+
+we believe great tools come from engineering truth, not marketing promises. react llm does one thing: it lets you chat with your react components. we chose specific constraints to do this one thing exceptionally well.
+
+## license
+
+mit

@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://docs.react-llm.dev
+    about: Check our documentation for common questions and guides
+  - name: 💬 Discord Community
+    url: https://discord.gg/react-llm
+    about: Join our Discord community for help and discussions
+  - name: 🐛 Security Issues
+    url: https://github.com/your-org/react-llm/security/advisories
+    about: Report security vulnerabilities privately
+  - name: ❓ Stack Overflow
+    url: https://stackoverflow.com/questions/tagged/react-llm
+    about: Ask questions on Stack Overflow with the 'react-llm' tag
