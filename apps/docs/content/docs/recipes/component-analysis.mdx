@@ -1,0 +1,589 @@
+---
+title: Component Analysis Workflow
+description: Deep dive into React component exploration and analysis
+---
+
+# Component Analysis Workflow
+
+React LLM excels at analyzing React components on any website, providing insights into structure, patterns, and implementation details.
+
+## Basic Component Selection
+
+### Visual Selection Mode
+
+```javascript
+// Enable visual component selection
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  componentSelection: {
+    enabled: true,
+    // Visual feedback on hover
+    hover: {
+      outline: '2px dashed #3b82f6',
+      backgroundColor: 'rgba(59, 130, 246, 0.05)',
+      cursor: 'crosshair'
+    },
+    // Selection highlight
+    selected: {
+      outline: '2px solid #10b981',
+      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+      showLabel: true
+    }
+  }
+});
+```
+
+### Keyboard Shortcuts
+
+```javascript
+// Configure selection shortcuts
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  shortcuts: {
+    'cmd+shift+c': 'toggleComponentSelector',
+    'escape': 'cancelSelection',
+    'cmd+i': 'inspectComponent',
+    'cmd+shift+i': 'inspectWithChildren',
+    'tab': 'selectNextComponent',
+    'shift+tab': 'selectPreviousComponent'
+  }
+});
+```
+
+## Component Information Extraction
+
+### Comprehensive Analysis
+
+```javascript
+// Deep component analysis
+ReactLLM.registerAnalyzer('deep-dive', {
+  analyze: async (component) => {
+    return {
+      // Basic info
+      name: component.displayName || component.name,
+      type: component.type, // 'class' | 'function' | 'memo' | 'forward-ref'
+      
+      // Props analysis
+      props: {
+        current: component.props,
+        propTypes: component.propTypes,
+        defaultProps: component.defaultProps,
+        usage: await analyzePropsUsage(component)
+      },
+      
+      // State and hooks
+      state: component.state,
+      hooks: extractHooks(component),
+      context: component.contextType,
+      
+      // Performance
+      renderCount: component.renderCount,
+      renderTime: component.renderTime,
+      updateTriggers: component.updateTriggers,
+      
+      // Dependencies
+      imports: await extractImports(component),
+      exports: await extractExports(component),
+      
+      // DOM info
+      domNode: component.domNode,
+      styles: window.getComputedStyle(component.domNode),
+      eventListeners: getEventListeners(component.domNode),
+      
+      // Component tree
+      parents: getParentChain(component),
+      children: getChildComponents(component),
+      siblings: getSiblingComponents(component)
+    };
+  }
+});
+```
+
+### Props Usage Analysis
+
+```javascript
+// Analyze how props are used
+async function analyzePropsUsage(component) {
+  const usage = {};
+  
+  for (const [key, value] of Object.entries(component.props)) {
+    usage[key] = {
+      type: typeof value,
+      value: value,
+      isRequired: component.propTypes?.[key]?.isRequired,
+      isUsedInRender: await checkPropUsageInRender(component, key),
+      isPassedToChildren: await checkPropPassthrough(component, key),
+      transformations: await findPropTransformations(component, key)
+    };
+  }
+  
+  return usage;
+}
+```
+
+## Pattern Recognition
+
+### Common Pattern Detection
+
+```javascript
+// Detect common React patterns
+ReactLLM.registerPatternDetector({
+  patterns: [
+    {
+      name: 'Container/Presenter',
+      detect: (component) => {
+        const hasStateOrEffects = component.hooks?.some(h => 
+          ['useState', 'useEffect', 'useReducer'].includes(h.name)
+        );
+        const hasChildComponents = component.children?.some(c => 
+          c.type === 'function' && !c.hooks?.length
+        );
+        return hasStateOrEffects && hasChildComponents;
+      }
+    },
+    {
+      name: 'Render Props',
+      detect: (component) => {
+        return Object.values(component.props).some(prop => 
+          typeof prop === 'function' && prop.toString().includes('React.createElement')
+        );
+      }
+    },
+    {
+      name: 'Higher Order Component',
+      detect: (component) => {
+        return component.name?.startsWith('with') || 
+               component.name?.includes('HOC') ||
+               component.type === 'forward-ref';
+      }
+    },
+    {
+      name: 'Compound Component',
+      detect: (component) => {
+        return component.constructor?.Item || 
+               component.constructor?.Header ||
+               component.constructor?.Body;
+      }
+    }
+  ]
+});
+```
+
+### Anti-Pattern Detection
+
+```javascript
+// Detect potential issues
+ReactLLM.registerAntiPatternDetector({
+  detectors: [
+    {
+      name: 'Direct DOM Manipulation',
+      severity: 'warning',
+      detect: (component) => {
+        const source = component.toString();
+        return source.includes('getElementById') || 
+               source.includes('querySelector');
+      }
+    },
+    {
+      name: 'Missing Keys in Lists',
+      severity: 'error',
+      detect: (component) => {
+        const hasMap = component.toString().includes('.map(');
+        const hasKey = component.toString().includes('key=');
+        return hasMap && !hasKey;
+      }
+    },
+    {
+      name: 'Inline Function Props',
+      severity: 'performance',
+      detect: (component) => {
+        return component.props && Object.values(component.props).some(prop =>
+          typeof prop === 'function' && 
+          prop.toString().includes('=>') &&
+          component.renderCount > 10
+        );
+      }
+    }
+  ]
+});
+```
+
+## Component Tree Visualization
+
+### Interactive Tree View
+
+```javascript
+// Visual component tree
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  visualization: {
+    componentTree: {
+      enabled: true,
+      position: 'sidebar',
+      features: {
+        search: true,
+        filter: true,
+        collapse: true,
+        highlight: true,
+        export: true
+      },
+      // Custom node renderer
+      nodeRenderer: (component) => ({
+        label: component.name,
+        badges: [
+          component.hooks?.length && `${component.hooks.length} hooks`,
+          component.state && 'stateful',
+          component.memo && 'memoized'
+        ].filter(Boolean),
+        color: getComponentColor(component),
+        icon: getComponentIcon(component)
+      })
+    }
+  }
+});
+```
+
+### Performance Heatmap
+
+```javascript
+// Visualize performance bottlenecks
+ReactLLM.enablePerformanceHeatmap({
+  metrics: {
+    renderTime: {
+      good: 16,    // < 16ms (60fps)
+      warning: 33, // < 33ms (30fps)
+      bad: 50      // > 50ms
+    },
+    renderCount: {
+      good: 1,
+      warning: 3,
+      bad: 5
+    },
+    propsChangeFrequency: {
+      good: 0.1,   // < 10% of renders
+      warning: 0.3, // < 30% of renders
+      bad: 0.5      // > 50% of renders
+    }
+  },
+  visualization: {
+    overlay: true,
+    legend: true,
+    tooltip: true
+  }
+});
+```
+
+## Advanced Analysis Features
+
+### Component Diffing
+
+```javascript
+// Compare component states over time
+class ComponentDiffer {
+  constructor() {
+    this.snapshots = new Map();
+  }
+  
+  captureSnapshot(component) {
+    const snapshot = {
+      timestamp: Date.now(),
+      props: { ...component.props },
+      state: component.state ? { ...component.state } : null,
+      hooks: this.captureHooks(component),
+      children: component.children?.map(c => c.key || c.type)
+    };
+    
+    if (!this.snapshots.has(component)) {
+      this.snapshots.set(component, []);
+    }
+    
+    this.snapshots.get(component).push(snapshot);
+    return snapshot;
+  }
+  
+  getDiff(component, fromIndex = -2, toIndex = -1) {
+    const snapshots = this.snapshots.get(component);
+    if (!snapshots || snapshots.length < 2) return null;
+    
+    const from = snapshots.at(fromIndex);
+    const to = snapshots.at(toIndex);
+    
+    return {
+      props: this.objectDiff(from.props, to.props),
+      state: this.objectDiff(from.state, to.state),
+      hooks: this.arrayDiff(from.hooks, to.hooks),
+      children: this.arrayDiff(from.children, to.children),
+      timeDelta: to.timestamp - from.timestamp
+    };
+  }
+}
+
+// Usage
+const differ = new ComponentDiffer();
+ReactLLM.on('component:update', (component) => {
+  differ.captureSnapshot(component);
+  const diff = differ.getDiff(component);
+  if (diff) {
+    console.log('Component changed:', diff);
+  }
+});
+```
+
+### Dependency Graph
+
+```javascript
+// Build component dependency graph
+async function buildDependencyGraph(rootComponent) {
+  const graph = new Map();
+  const visited = new Set();
+  
+  async function traverse(component) {
+    if (visited.has(component)) return;
+    visited.add(component);
+    
+    const dependencies = {
+      imports: await extractImports(component),
+      props: extractPropDependencies(component),
+      context: extractContextDependencies(component),
+      children: component.children || []
+    };
+    
+    graph.set(component, dependencies);
+    
+    // Traverse children
+    for (const child of dependencies.children) {
+      await traverse(child);
+    }
+  }
+  
+  await traverse(rootComponent);
+  return graph;
+}
+
+// Visualize dependency graph
+ReactLLM.visualizeDependencies = async (component) => {
+  const graph = await buildDependencyGraph(component);
+  
+  // Convert to D3 format
+  const nodes = Array.from(graph.keys()).map(comp => ({
+    id: comp.name,
+    group: comp.type
+  }));
+  
+  const links = [];
+  graph.forEach((deps, component) => {
+    deps.children.forEach(child => {
+      links.push({
+        source: component.name,
+        target: child.name,
+        type: 'parent-child'
+      });
+    });
+  });
+  
+  return { nodes, links };
+};
+```
+
+## Export and Sharing
+
+### Component Documentation
+
+```javascript
+// Generate comprehensive documentation
+ReactLLM.documentComponent = async (component) => {
+  const analysis = await ReactLLM.analyzeComponent(component);
+  
+  return {
+    markdown: `
+# ${analysis.name}
+
+## Overview
+- Type: ${analysis.type}
+- Render Count: ${analysis.renderCount}
+- Performance: ${analysis.renderTime}ms average
+
+## Props
+${generatePropsTable(analysis.props)}
+
+## State & Hooks
+${generateHooksDocumentation(analysis.hooks)}
+
+## Usage Examples
+${await generateUsageExamples(component)}
+
+## Dependencies
+${generateDependencyList(analysis.imports)}
+    `,
+    
+    json: analysis,
+    
+    typescript: await generateTypeDefinitions(component),
+    
+    storybook: await generateStorybookStory(component),
+    
+    tests: await generateTestSuite(component)
+  };
+};
+```
+
+### Pattern Library Export
+
+```javascript
+// Save interesting patterns
+ReactLLM.saveToPatternLibrary = async (component, metadata) => {
+  const pattern = {
+    id: crypto.randomUUID(),
+    name: metadata.name || component.name,
+    category: metadata.category,
+    tags: metadata.tags,
+    component: {
+      source: await extractComponentSource(component),
+      props: component.propTypes,
+      dependencies: await extractImports(component)
+    },
+    usage: await findUsageExamples(component),
+    performance: {
+      renderTime: component.renderTime,
+      bundleSize: await estimateBundleSize(component)
+    },
+    created: new Date().toISOString(),
+    website: window.location.origin
+  };
+  
+  // Save to IndexedDB
+  await ReactLLM.db.patterns.add(pattern);
+  
+  // Optional: Sync to cloud
+  if (ReactLLM.config.cloudSync) {
+    await ReactLLM.syncPattern(pattern);
+  }
+  
+  return pattern;
+};
+```
+
+## Real-World Analysis Examples
+
+### E-commerce Product Card Analysis
+
+```javascript
+// Analyze a product card component
+const productCardAnalysis = {
+  question: "How is this product card built?",
+  answer: async (component) => {
+    return {
+      structure: {
+        layout: detectLayoutSystem(component), // 'grid' | 'flex'
+        responsive: hasResponsiveStyles(component),
+        accessibility: checkA11y(component)
+      },
+      
+      features: {
+        lazyLoading: hasLazyLoading(component),
+        priceFormatting: extractPriceLogic(component),
+        imageOptimization: checkImageOptimization(component),
+        animations: extractAnimations(component)
+      },
+      
+      interactions: {
+        hover: extractHoverEffects(component),
+        click: extractClickHandlers(component),
+        cartIntegration: findCartIntegration(component)
+      },
+      
+      performance: {
+        renderTime: component.renderTime,
+        rerendersOnScroll: checkScrollPerformance(component),
+        memoization: checkMemoization(component)
+      }
+    };
+  }
+};
+```
+
+### Form Component Analysis
+
+```javascript
+// Analyze form handling patterns
+const formAnalysis = {
+  detectFormLibrary: (component) => {
+    if (component.props.formik) return 'Formik';
+    if (component.props.control) return 'React Hook Form';
+    if (component.props.form) return 'Ant Design Form';
+    return 'Custom';
+  },
+  
+  extractValidation: (component) => {
+    // Find validation rules
+    const rules = [];
+    const source = component.toString();
+    
+    if (source.includes('required')) rules.push('required');
+    if (source.includes('minLength')) rules.push('minLength');
+    if (source.includes('pattern')) rules.push('pattern');
+    if (source.includes('validate')) rules.push('custom');
+    
+    return rules;
+  },
+  
+  findSubmitHandler: (component) => {
+    return component.props.onSubmit || 
+           component.props.handleSubmit ||
+           findInChildren(component, 'onSubmit');
+  }
+};
+```
+
+## Best Practices
+
+1. **Start with visual selection** - Click components to understand structure
+2. **Analyze patterns, not just code** - Look for reusable patterns
+3. **Check performance metrics** - Identify optimization opportunities
+4. **Export valuable patterns** - Build your component library
+5. **Compare implementations** - Learn from different approaches
+6. **Document findings** - Share insights with your team
+
+## Integration with AI Chat
+
+```javascript
+// Enhance AI responses with component context
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  chat: {
+    enhanceWithComponent: true,
+    autoContext: {
+      // Automatically include selected component
+      selection: true,
+      // Include performance metrics
+      performance: true,
+      // Include detected patterns
+      patterns: true,
+      // Include similar components
+      similar: true
+    },
+    
+    // Smart prompts based on component
+    suggestedPrompts: (component) => {
+      const prompts = [
+        `How can I optimize this ${component.name} component?`,
+        `What patterns are used in this component?`,
+        `Generate TypeScript types for this component`,
+        `How would I test this component?`
+      ];
+      
+      if (component.renderTime > 50) {
+        prompts.unshift('Why is this component slow?');
+      }
+      
+      if (hasAccessibilityIssues(component)) {
+        prompts.push('How can I improve accessibility?');
+      }
+      
+      return prompts;
+    }
+  }
+});
+```
+
+With these analysis tools, React LLM becomes a powerful component exploration and learning platform, helping you understand and improve React applications across the web.

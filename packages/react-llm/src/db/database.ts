@@ -58,9 +58,16 @@ export async function initDB() {
 
   try {
     // Initialize wa-sqlite with correct WASM path
-    const sqlite3 = await import('@sqlite.org/sqlite-wasm');
-    const sqlite = await sqlite3.default({
-      locateFile: (file: string) => __PUBLIC_PATH__ + file
+    // Load SQLite WASM from CDN to avoid bundling issues
+    const sqliteWasmUrl = 'https://cdn.jsdelivr.net/npm/@sqlite.org/sqlite-wasm@3.46.1-build1/sqlite-wasm/jswasm/sqlite3.js';
+    const { default: sqlite3InitModule } = await import(/* @vite-ignore */ sqliteWasmUrl);
+    const sqlite = await sqlite3InitModule({
+      locateFile: (file: string) => {
+        if (file === 'sqlite3.wasm') {
+          return __PUBLIC_PATH__ + file;
+        }
+        return 'https://cdn.jsdelivr.net/npm/@sqlite.org/sqlite-wasm@3.46.1-build1/sqlite-wasm/jswasm/' + file;
+      }
     });
     
     if (!sqlite?.oo1) {

@@ -2,17 +2,19 @@ import { defineConfig } from 'tsup';
 import fs from 'fs';
 import path from 'path';
 
-export default defineConfig({
-  entry: {
-    'react-llm': 'src/index.ts'
-  },
-  splitting: false,
-  sourcemap: true,
-  clean: true,
-  format: ['iife'],
-  globalName: 'ReactLLM',
-  dts: false,
-  minify: process.env.NODE_ENV === 'production',
+export default defineConfig([
+  // Main library build
+  {
+    entry: {
+      'react-llm': 'src/index.ts'
+    },
+    splitting: false,
+    sourcemap: true,
+    clean: true,
+    format: ['iife'],
+    globalName: 'ReactLLM',
+    dts: false,
+    minify: process.env.NODE_ENV === 'production',
   loader: {
     '.tsx': 'tsx',
   },
@@ -25,61 +27,44 @@ export default defineConfig({
       (function() {
         console.log('[ReactLLM] Bundle loaded');
         
-        function initReactLLM() {
-          console.log('[ReactLLM] Initializing...');
-          var scripts = document.getElementsByTagName('script');
-          var currentScript = Array.from(scripts).find(script => script.src.includes('react-llm.js'));
-          
-          if (!currentScript) {
-            console.warn('[ReactLLM] Could not find react-llm.js script tag');
-            return;
-          }
-          
-          console.log('[ReactLLM] Script URL:', currentScript.src);
+        // Set up public path for assets
+        var scripts = document.getElementsByTagName('script');
+        var currentScript = Array.from(scripts).find(script => script.src.includes('react-llm.js'));
+        
+        if (currentScript) {
           var scriptUrl = currentScript.src;
           window.__PUBLIC_PATH__ = scriptUrl.substring(0, scriptUrl.lastIndexOf('/') + 1);
-          
-          var apiKey = window.GEMINI_API_KEY;
-          console.log('[ReactLLM] API Key available:', !!apiKey);
-          
-          if (apiKey && window.ReactLLM) {
-            window.ReactLLM.init(apiKey);
-          } else {
-            console.warn('[ReactLLM] Initialization failed. API Key:', !!apiKey, 'ReactLLM:', !!window.ReactLLM);
-          }
+          console.log('[ReactLLM] Public path set to:', window.__PUBLIC_PATH__);
         }
-
-        // Try to initialize immediately if document is already loaded
-        if (document.readyState === 'complete' || document.readyState === 'interactive') {
-          console.log('[ReactLLM] Document already loaded, initializing immediately');
-          initReactLLM();
-        } else {
-          // Otherwise wait for DOMContentLoaded
-          console.log('[ReactLLM] Waiting for DOMContentLoaded');
-          document.addEventListener('DOMContentLoaded', initReactLLM);
-        }
+        
+        console.log('[ReactLLM] Ready for initialization. Call ReactLLM.init() with config.');
       })();`,
     };
     options.jsxFactory = 'h';
     options.jsxFragment = 'Fragment';
     options.jsx = 'transform';
     options.target = 'es2020';
+    options.platform = 'browser';
+    },
+    // No onSuccess needed since we're not using SQLite WASM anymore
   },
-  async onSuccess() {
-    // Copy SQLite WASM files to dist
-    const nodeModulesPath = path.resolve('node_modules');
-    const sqliteWasmPath = path.join(nodeModulesPath, '@sqlite.org', 'sqlite-wasm', 'sqlite-wasm', 'jswasm');
-    const files = ['sqlite3.wasm'];
-    
-    for (const file of files) {
-      const src = path.join(sqliteWasmPath, file);
-      const dest = path.join('dist', file);
-      if (fs.existsSync(src)) {
-        fs.copyFileSync(src, dest);
-        console.log(`Copied ${file} to dist/`);
-      } else {
-        console.warn(`Warning: Could not find ${file} in ${sqliteWasmPath}`);
-      }
-    }
-  },
-});
+  // CLI build
+  {
+    entry: {
+      'cli': 'src/cli.ts'
+    },
+    splitting: false,
+    sourcemap: false,
+    clean: false, // Don't clean so we keep the main library files
+    format: ['cjs'],
+    dts: false,
+    minify: false,
+    banner: {
+      js: '#!/usr/bin/env node'
+    },
+    esbuildOptions: (options) => {
+      options.platform = 'node';
+      options.target = 'node18';
+    },
+  }
+]);

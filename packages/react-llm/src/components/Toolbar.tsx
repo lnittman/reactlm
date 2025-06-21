@@ -2,11 +2,13 @@
 import { h, Fragment } from 'preact';
 import { useSignal, effect } from '@preact/signals';
 import { marked } from 'marked';
-import { initDB, createChatSession, createMessage, getChatSessions, getMessagesForChatSession, deleteChatSession } from '../db/database';
+// Temporarily use simple storage instead of SQLite to avoid WASM issues
+import { initDB, createChatSession, createMessage, getChatSessions, getMessagesForChatSession, deleteChatSession } from '../db/simple-storage';
 import { styles } from './Toolbar.styles';
 import { LLMHub } from '../llm/providers';
-import { ModelSelector } from './ModelSelector';
-import type { Message } from '../llm/openrouter';
+import type { Message, Model } from '../llm/openrouter';
+import { ComponentInspector } from './ComponentInspector';
+import type { ComponentInfo } from '../instrumentation/bippy-adapter';
 
 // Legacy support for Gemini response format
 interface StructuredResponse {
@@ -57,6 +59,8 @@ interface ChatSession {
 }
 
 type ContentTab = 'chat' | 'files' | 'docs' | 'suggestions';
+type ViewMode = 'chat' | 'models' | 'settings' | 'components';
+type SelectionMode = 'none' | 'selecting' | 'selected';
 
 function getInitialResponse(): StructuredResponse {
   return {
@@ -79,6 +83,8 @@ interface Props {
 }
 
 export function Toolbar({ hub }: Props) {
+  console.log('[Toolbar] Initializing with hub:', hub, 'isInitialized:', hub?.isInitialized());
+  
   const isInitializing = useSignal(true);
   const isVisible = useSignal(false);
   const isMinimized = useSignal(false);
@@ -93,6 +99,28 @@ export function Toolbar({ hub }: Props) {
   const isStreamingResponse = useSignal(false);
   const streamingContent = useSignal('');
   const showModelSelector = useSignal(false);
+  const currentView = useSignal<ViewMode>('chat');
+  const apiKey = useSignal('');
+  const selectionMode = useSignal<SelectionMode>('none');
+  const selectedComponent = useSignal<any>(null);
+
+  // Check for dev mode and OpenRouter key
+  effect(() => {
+    const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isDev) {
+      // Check for OpenRouter API key in localStorage or env
+      const storedKey = localStorage.getItem('react-llm-openrouter-key');
+      const envKey = (window as any).__REACT_LLM_CONFIG__?.openrouterKey;
+      
+      if (storedKey || envKey) {
+        apiKey.value = storedKey || envKey;
+        // Initialize OpenRouter instead of demo mode
+        hub.initializeProvider('openrouter', apiKey.value).then(() => {
+          console.log('[ReactLLM] OpenRouter initialized with', hub.getAvailableModels().length, 'models');
+        });
+      }
+    }
+  });
 
   // Initialize database and load chat sessions
   effect(() => {
@@ -228,7 +256,13 @@ What would you like to explore?`;
   });
 
   const createNewChat = async () => {
-    if (!projectInfo.value || isInitializing.value) return;
+    console.log('[createNewChat] Starting...', {
+      isInitializing: isInitializing.value,
+      hubInitialized: hub?.isInitialized(),
+      activeModel: hub?.getActiveModel()
+    });
+    
+    if (isInitializing.value) return;
 
     const newId = String(Date.now());
     
@@ -239,16 +273,16 @@ What would you like to explore?`;
       // Get initial analysis from LLM
       let response: StructuredResponse;
       try {
-        const llmResponse = await hub.completeChat([
+        const llmContent = await hub.completeChat([
           { role: 'user', content: 'Please provide a helpful introduction and overview of how I can assist with this React codebase.' }
         ]);
         
         response = {
-          markdown: llmResponse.content,
-          chatTitle: extractTitleFromResponse(llmResponse.content),
+          markdown: llmContent,
+          chatTitle: extractTitleFromResponse(llmContent),
           relevantFiles: [],
           documentationLinks: [],
-          suggestedQueries: extractSuggestionsFromResponse(llmResponse.content)
+          suggestedQueries: extractSuggestionsFromResponse(llmContent)
         };
       } catch (error) {
         console.error('Failed to get LLM response:', error);
@@ -380,19 +414,7 @@ What would you like to explore?`;
         for await (const chunk of hub.chat(llmMessages)) {
           fullResponse += chunk;
           streamingContent.value = fullResponse;
-          
-          // Update UI with streaming content
-          const streamingMessage: ChatMessage = {
-            role: 'assistant',
-            content: fullResponse
-          };
-          
-          chatSessions.value = chatSessions.value.map(c => 
-            c.id === activeChatId.value ? {
-              ...c,
-              messages: [...updatedMessages, streamingMessage]
-            } : c
-          );
+          // Don't update messages array during streaming - we show streamingContent separately
         }
         
         // Create structured response from the full response
@@ -451,6 +473,7 @@ What would you like to explore?`;
             }]
           } : c
         );
+      }
     } catch (error) {
       console.error('Failed to get response:', error);
       
@@ -479,15 +502,17 @@ What would you like to explore?`;
     }
   };
 
-  const extractTitleFromResponse = (response: string): string => {
+  const extractTitleFromResponse = (response: string | undefined): string => {
     // Simple title extraction from response content
+    if (!response) return 'New Chat';
     const lines = response.split('\n');
     const firstLine = lines[0]?.replace(/^#+\s*/, '').trim();
     return firstLine && firstLine.length < 100 ? firstLine : 'New Chat';
   };
   
-  const extractSuggestionsFromResponse = (response: string): string[] => {
+  const extractSuggestionsFromResponse = (response: string | undefined): string[] => {
     // Simple suggestion extraction - look for questions or bullet points
+    if (!response) return [];
     const suggestions: string[] = [];
     const lines = response.split('\n');
     
@@ -509,6 +534,238 @@ What would you like to explore?`;
   const handleModelChange = (provider: string, model: string) => {
     hub.setActiveModel(provider, model);
     showModelSelector.value = false;
+  };
+  
+  const selectedComponents = useSignal<any[]>([]);
+  
+  const handleComponentSelect = (componentInfo: ComponentInfo) => {
+    selectedComponent.value = componentInfo;
+    selectionMode.value = 'selected';
+    
+    // Add to selected components list
+    if (componentInfo) {
+      const existingIndex = selectedComponents.value.findIndex(
+        c => c.id === componentInfo.id
+      );
+      
+      if (existingIndex === -1) {
+        selectedComponents.value = [...selectedComponents.value, {
+          ...componentInfo,
+          timestamp: new Date().toISOString()
+        }];
+      }
+      
+      // Switch to components view to show selection
+      currentView.value = 'components';
+    }
+  };
+
+  const renderComponentsView = () => (
+    <div className="view-container">
+      <div className="view-header">
+        <h2 className="view-title">Selected Components</h2>
+        <button className="view-close" onClick={() => currentView.value = 'chat'}>×</button>
+      </div>
+      <div className="view-content">
+        {selectedComponents.value.length === 0 ? (
+          <div className="empty-components">
+            <p>No components selected yet</p>
+            <button 
+              className="select-component-button"
+              onClick={() => {
+                currentView.value = 'chat';
+                selectionMode.value = 'selecting';
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 2h4v2H4v2H2V2zm10 0h4v4h-2V4h-2V2zM2 10h2v2h2v2H2v-4zm12 2h2v-2h-2v2zm0 0v2h-2v2h4v-4h-2z"/>
+                <circle cx="8" cy="8" r="2" opacity="0.5"/>
+              </svg>
+              Select a Component
+            </button>
+          </div>
+        ) : (
+          <div className="components-list">
+            {selectedComponents.value.map((comp) => (
+              <div key={comp.id} className="component-item">
+                <div className="component-header">
+                  <h3 className="component-name">{comp.name}</h3>
+                  <button 
+                    className="remove-button"
+                    onClick={() => {
+                      selectedComponents.value = selectedComponents.value.filter(c => c.id !== comp.id);
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="component-details">
+                  {comp.domElement && (
+                    <div className="detail-row">
+                      <span className="detail-label">Element:</span>
+                      <code className="detail-value">
+                        &lt;{comp.domElement.tagName.toLowerCase()}{comp.domElement.id ? ` id="${comp.domElement.id}"` : ''}{comp.domElement.className ? ` class="${comp.domElement.className}"` : ''}&gt;
+                      </code>
+                    </div>
+                  )}
+                  {Object.keys(comp.props || {}).length > 0 && (
+                    <div className="detail-row">
+                      <span className="detail-label">Props:</span>
+                      <pre className="detail-value props-value">{JSON.stringify(comp.props, null, 2)}</pre>
+                    </div>
+                  )}
+                  {comp.state && (
+                    <div className="detail-row">
+                      <span className="detail-label">State:</span>
+                      <pre className="detail-value props-value">{JSON.stringify(comp.state, null, 2)}</pre>
+                    </div>
+                  )}
+                  {comp.hooks && comp.hooks.length > 0 && (
+                    <div className="detail-row">
+                      <span className="detail-label">Hooks:</span>
+                      <div className="detail-value">
+                        {comp.hooks.map((hook: any, i: number) => (
+                          <div key={i} className="hook-item">
+                            Hook {i}: {JSON.stringify(hook.memoizedState)}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="component-actions">
+                    <button 
+                      className="action-button"
+                      onClick={() => {
+                        currentView.value = 'chat';
+                        inputValue.value = `Tell me about the ${comp.name} component`;
+                      }}
+                    >
+                      Ask about this component
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderSettingsView = () => (
+    <div className="view-container">
+      <div className="view-header">
+        <h2 className="view-title">Settings</h2>
+        <button className="view-close" onClick={() => currentView.value = 'chat'}>×</button>
+      </div>
+      <div className="view-content">
+        <div className="settings-section">
+          <label className="settings-label">OpenRouter API Key</label>
+          <input
+            type="password"
+            className="settings-input"
+            value={apiKey.value}
+            onInput={(e) => apiKey.value = (e.target as HTMLInputElement).value}
+            placeholder="sk-or-..."
+          />
+          <div className="settings-hint">
+            Get your API key from{' '}
+            <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(100, 200, 255, 0.9)' }}>
+              openrouter.ai/keys
+            </a>
+          </div>
+          <button
+            className="settings-button"
+            onClick={async () => {
+              if (apiKey.value) {
+                localStorage.setItem('react-llm-openrouter-key', apiKey.value);
+                await hub.initializeProvider('openrouter', apiKey.value);
+                currentView.value = 'models';
+              }
+            }}
+            disabled={!apiKey.value}
+          >
+            Save and Connect
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderModelsView = () => {
+    const models = hub.getAvailableModels();
+    const hasApiKey = hub.isInitialized() && hub.getActiveProvider() !== 'demo';
+    
+    return (
+      <div className="view-container">
+        <div className="view-header">
+          <h2 className="view-title">Select Model</h2>
+          <button className="view-close" onClick={() => currentView.value = 'chat'}>×</button>
+        </div>
+        <div className="view-content">
+          {!hasApiKey && (
+            <div className="api-key-prompt">
+              <div className="api-key-prompt-text">
+                Add your OpenRouter API key to access all models
+              </div>
+              <button 
+                className="api-key-prompt-button"
+                onClick={() => currentView.value = 'settings'}
+              >
+                Add API Key
+              </button>
+            </div>
+          )}
+          
+          <div className="models-grid">
+            {models.map((model: Model) => (
+              <div
+                key={model.id}
+                className={`model-card ${hub.getActiveModel() === model.id ? 'selected' : ''}`}
+                onClick={() => {
+                  hub.setActiveModel('openrouter', model.id);
+                  handleModelChange('openrouter', model.id);
+                  currentView.value = 'chat';
+                }}
+              >
+                <div className="model-card-header">
+                  <div>
+                    <div className="model-card-name">{model.name}</div>
+                    <div className="model-card-provider">{model.provider}</div>
+                  </div>
+                  {model.id.includes('claude-3-5-sonnet') || model.id.includes('gpt-4o') ? (
+                    <span className="model-card-badge recommended">Recommended</span>
+                  ) : null}
+                </div>
+                
+                <div className="model-card-specs">
+                  <div className="model-spec">
+                    <div className="model-spec-label">Context</div>
+                    <div className="model-spec-value">
+                      {model.contextLength >= 1000000 ? `${(model.contextLength / 1000000).toFixed(1)}M` :
+                       model.contextLength >= 1000 ? `${(model.contextLength / 1000).toFixed(0)}K` :
+                       model.contextLength}
+                    </div>
+                  </div>
+                  <div className="model-spec">
+                    <div className="model-spec-label">Input</div>
+                    <div className="model-spec-value">${(model.pricing.prompt * 1000).toFixed(3)}/1K</div>
+                  </div>
+                  <div className="model-spec">
+                    <div className="model-spec-label">Output</div>
+                    <div className="model-spec-value">${(model.pricing.completion * 1000).toFixed(3)}/1K</div>
+                  </div>
+                </div>
+                
+                {model.description && (
+                  <div className="model-card-description">{model.description}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const renderMessage = (msg: ChatMessage) => {
@@ -579,27 +836,51 @@ What would you like to explore?`;
   return (
     <Fragment>
       <style>{styles}</style>
+      {selectionMode.value === 'selecting' && (
+        <ComponentInspector 
+          isActive={true} 
+          onSelect={handleComponentSelect}
+        />
+      )}
       <div 
         className={`toolbar ${isMinimized.value ? 'minimized' : ''} ${isVisible.value ? '' : 'opacity-0'}`}
       >
         <div className="header">
-          <div className="header-left">
-            <div className="chat-title">
-              {isInitializing.value ? (
-                <span className="loading-title">
-                  loading
-                  <div className="loading-dots">
-                    <div className="loading-dot"></div>
-                    <div className="loading-dot"></div>
-                    <div className="loading-dot"></div>
-                  </div>
-                </span>
-              ) : (
-                formatChatTitle(activeChat()?.title || '')
-              )}
-            </div>
-          </div>
           <div className="controls">
+            <button 
+              className={`control-button ${currentView.value === 'components' ? 'active' : ''}`} 
+              onClick={() => currentView.value = currentView.value === 'components' ? 'chat' : 'components'}
+              title="Selected Components"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                <rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                <rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                <rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+              </svg>
+            </button>
+            <button 
+              className={`control-button model-button ${currentView.value === 'models' ? 'active' : ''}`} 
+              onClick={() => currentView.value = currentView.value === 'models' ? 'chat' : 'models'}
+              title="Select Model"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                <rect x="5" y="5" width="6" height="1.5" rx="0.75" fill="currentColor"/>
+                <rect x="5" y="8" width="6" height="1.5" rx="0.75" fill="currentColor"/>
+                <rect x="5" y="11" width="4" height="1.5" rx="0.75" fill="currentColor"/>
+              </svg>
+            </button>
+            <button 
+              className={`control-button ${currentView.value === 'settings' ? 'active' : ''}`} 
+              onClick={() => currentView.value = currentView.value === 'settings' ? 'chat' : 'settings'}
+              title="Settings"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 10a2 2 0 100-4 2 2 0 000 4z"/>
+                <path d="M13.3 9.2a1.2 1.2 0 010-2.4l.7-.1a6 6 0 00-.4-1.6l-.6.4a1.2 1.2 0 01-1.7-.4 1.2 1.2 0 01.4-1.7l.6-.3A6 6 0 0011 2l-.1.7a1.2 1.2 0 01-2.4 0L8.4 2a6 6 0 00-1.6.4l.4.6a1.2 1.2 0 01-.4 1.7 1.2 1.2 0 01-1.7-.4l-.3-.6A6 6 0 002 5l.7.1a1.2 1.2 0 010 2.4L2 7.6a6 6 0 00.4 1.6l.6-.4a1.2 1.2 0 011.7.4 1.2 1.2 0 01-.4 1.7l-.6.3A6 6 0 005 14l.1-.7a1.2 1.2 0 012.4 0l.1.7a6 6 0 001.6-.4l-.4-.6a1.2 1.2 0 01.4-1.7 1.2 1.2 0 011.7.4l.3.6A6 6 0 0014 11l-.7-.1zM8 11a3 3 0 110-6 3 3 0 010 6z"/>
+              </svg>
+            </button>
             <button 
               className="control-button" 
               onClick={createNewChat}
@@ -616,27 +897,88 @@ What would you like to explore?`;
           </div>
         </div>
 
-        {!isMinimized.value && (
-          <div className="empty-state">
-            <div className="empty-state-title">welcome to react llm</div>
-            <div className="empty-state-description">
-              start a new chat to get ai-powered help with your react codebase
-              {isInitializing.value && (
-                <div className="loading-dots">
-                  <div className="loading-dot"></div>
-                  <div className="loading-dot"></div>
-                  <div className="loading-dot"></div>
+        {!isMinimized.value && currentView.value === 'models' && renderModelsView()}
+        {!isMinimized.value && currentView.value === 'settings' && renderSettingsView()}
+        {!isMinimized.value && currentView.value === 'components' && renderComponentsView()}
+        
+        {!isMinimized.value && currentView.value === 'chat' && (
+          activeChat() ? (
+            <Fragment>
+              <div className="messages-container">
+                {activeChat()!.messages.map((msg, i) => (
+                  <div key={i} className="message-wrapper">
+                    {renderMessage(msg)}
+                  </div>
+                ))}
+                {isStreamingResponse.value && streamingContent.value && (
+                  <div className="message-wrapper">
+                    <div className="message assistant-message">
+                      <div dangerouslySetInnerHTML={{ __html: marked(streamingContent.value) }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="input-area">
+                <form onSubmit={handleSubmit} className="input-form">
+                  <input
+                    type="text"
+                    className="input"
+                    value={inputValue.value}
+                    onInput={(e) => inputValue.value = (e.target as HTMLInputElement).value}
+                    placeholder="ask about your react codebase..."
+                    disabled={isInitializing.value || isStreamingResponse.value}
+                  />
+                </form>
+                <div className="input-controls">
+                  <button 
+                    type="button"
+                    className={`control-icon-button ${selectionMode.value === 'selecting' ? 'active' : ''}`}
+                    onClick={() => selectionMode.value = selectionMode.value === 'selecting' ? 'none' : 'selecting'}
+                    title="Select Component"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M2 2h4v2H4v2H2V2zm10 0h4v4h-2V4h-2V2zM2 10h2v2h2v2H2v-4zm12 2h2v-2h-2v2zm0 0v2h-2v2h4v-4h-2z"/>
+                      <circle cx="8" cy="8" r="2" opacity="0.5"/>
+                    </svg>
+                  </button>
+                  <button 
+                    type="button"
+                    className="send-button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleSubmit(e as any);
+                    }}
+                    disabled={isInitializing.value || isStreamingResponse.value || !inputValue.value.trim()}
+                  >
+                    {isStreamingResponse.value ? '...' : '→'}
+                  </button>
                 </div>
-              )}
+              </div>
+              
+            </Fragment>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-state-title">welcome to react llm</div>
+              <div className="empty-state-description">
+                start a new chat to get ai-powered help with your react codebase
+                {isInitializing.value && (
+                  <div className="loading-dots">
+                    <div className="loading-dot"></div>
+                    <div className="loading-dot"></div>
+                    <div className="loading-dot"></div>
+                  </div>
+                )}
+              </div>
+              <button 
+                className="new-chat-button" 
+                onClick={createNewChat}
+                disabled={isInitializing.value}
+              >
+                <span>+</span> new chat
+              </button>
             </div>
-            <button 
-              className="new-chat-button" 
-              onClick={createNewChat}
-              disabled={isInitializing.value}
-            >
-              <span>+</span> new chat
-            </button>
-          </div>
+          )
         )}
       </div>
     </Fragment>

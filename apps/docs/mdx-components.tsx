@@ -1,8 +1,9 @@
 import type { MDXComponents } from 'mdx/types';
-import { Callout, Card } from 'fumadocs-ui/components/callout';
+import { Callout } from 'fumadocs-ui/components/callout';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 import { InteractiveDemo } from '@/components/InteractiveDemo';
+import { Card } from '@/components/ui/card';
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {

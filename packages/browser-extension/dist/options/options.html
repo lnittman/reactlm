@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>React LLM Options</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1a;
+      color: #ffffff;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .logo {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 24px;
+      margin: 0 auto 16px;
+    }
+    
+    .title {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      color: #cccccc;
+      margin: 0;
+    }
+    
+    .section {
+      background: #2a2a2a;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .section-description {
+      color: #cccccc;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #ffffff;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #404040;
+      border-radius: 8px;
+      background: #1a1a1a;
+      color: #ffffff;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .form-input::placeholder {
+      color: #666666;
+    }
+    
+    .form-help {
+      font-size: 12px;
+      color: #999999;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    
+    .button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-right: 12px;
+    }
+    
+    .button-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .button-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .button-secondary {
+      background: #404040;
+      color: #ffffff;
+    }
+    
+    .button-secondary:hover {
+      background: #4a4a4a;
+    }
+    
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-bottom: 1px solid #404040;
+    }
+    
+    .toggle-group:last-child {
+      border-bottom: none;
+    }
+    
+    .toggle-info {
+      flex: 1;
+    }
+    
+    .toggle-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin: 0 0 4px;
+    }
+    
+    .toggle-description {
+      font-size: 12px;
+      color: #cccccc;
+      margin: 0;
+    }
+    
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: #404040;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .toggle.active {
+      background: #667eea;
+    }
+    
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    
+    .toggle.active::after {
+      transform: translateX(20px);
+    }
+    
+    .status-message {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    
+    .status-success {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      color: #4ade80;
+    }
+    
+    .status-error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+    
+    .provider-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    
+    .provider-card {
+      background: #1a1a1a;
+      border: 1px solid #404040;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    
+    .provider-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .provider-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: white;
+    }
+    
+    .provider-openrouter { background: #6366f1; }
+    .provider-openai { background: #10b981; }
+    .provider-anthropic { background: #f59e0b; }
+    .provider-google { background: #3b82f6; }
+    
+    .provider-name {
+      font-weight: 500;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid #404040;
+      color: #cccccc;
+    }
+    
+    .footer a {
+      color: #667eea;
+      text-decoration: none;
+    }
+    
+    .footer a:hover {
+      text-decoration: underline;
+    }
+    
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">RL</div>
+      <h1 class="title">React LLM Options</h1>
+      <p class="subtitle">Configure your AI providers and preferences</p>
+    </div>
+    
+    <div class="section">
+      <h2 class="section-title">🤖 AI Providers</h2>
+      <p class="section-description">
+        Configure your API keys for different AI providers. OpenRouter is recommended as it provides access to 200+ models with a single API key.
+      </p>
+      
+      <div class="provider-grid">
+        <div class="provider-card">
+          <div class="provider-header">
+            <div class="provider-icon provider-openrouter">OR</div>
+            <span class="provider-name">OpenRouter</span>
+            <span style="margin-left: auto; font-size: 12px; color: #4ade80;">Recommended</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="openrouterKey">API Key</label>
+            <input type="password" id="openrouterKey" class="form-input" placeholder="sk-or-...">
+            <div class="form-help">
+              Get your key from <a href="https://openrouter.ai" target="_blank" style="color: #667eea;">openrouter.ai</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="provider-card">
+          <div class="provider-header">
+            <div class="provider-icon provider-openai">AI</div>
+            <span class="provider-name">OpenAI</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="openaiKey">API Key</label>
+            <input type="password" id="openaiKey" class="form-input" placeholder="sk-...">
+            <div class="form-help">
+              Get your key from <a href="https://platform.openai.com" target="_blank" style="color: #667eea;">platform.openai.com</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="provider-card">
+          <div class="provider-header">
+            <div class="provider-icon provider-anthropic">C</div>
+            <span class="provider-name">Anthropic</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="anthropicKey">API Key</label>
+            <input type="password" id="anthropicKey" class="form-input" placeholder="sk-ant-...">
+            <div class="form-help">
+              Get your key from <a href="https://console.anthropic.com" target="_blank" style="color: #667eea;">console.anthropic.com</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="provider-card">
+          <div class="provider-header">
+            <div class="provider-icon provider-google">G</div>
+            <span class="provider-name">Google</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="googleKey">API Key</label>
+            <input type="password" id="googleKey" class="form-input" placeholder="AI...">
+            <div class="form-help">
+              Get your key from <a href="https://makersuite.google.com" target="_blank" style="color: #667eea;">makersuite.google.com</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2 class="section-title">⚙️ Behavior Settings</h2>
+      <p class="section-description">
+        Customize how React LLM behaves in your browser.
+      </p>
+      
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <h3 class="toggle-title">Auto-inject on React pages</h3>
+          <p class="toggle-description">Automatically inject React LLM when a React application is detected</p>
+        </div>
+        <div id="autoInjectToggle" class="toggle"></div>
+      </div>
+      
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <h3 class="toggle-title">Show welcome message</h3>
+          <p class="toggle-description">Display a welcome message when React LLM is first injected</p>
+        </div>
+        <div id="welcomeToggle" class="toggle"></div>
+      </div>
+      
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <h3 class="toggle-title">Remember position</h3>
+          <p class="toggle-description">Remember the last position of the React LLM interface</p>
+        </div>
+        <div id="rememberPositionToggle" class="toggle"></div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2 class="section-title">💾 Data & Privacy</h2>
+      <p class="section-description">
+        Manage your data and privacy settings.
+      </p>
+      
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <h3 class="toggle-title">Cache responses</h3>
+          <p class="toggle-description">Cache AI responses locally to improve performance and reduce API calls</p>
+        </div>
+        <div id="cacheToggle" class="toggle"></div>
+      </div>
+      
+      <button id="clearDataBtn" class="button button-secondary">Clear All Data</button>
+      <button id="exportDataBtn" class="button button-secondary">Export Configuration</button>
+    </div>
+    
+    <div id="statusMessage" class="status-message hidden"></div>
+    
+    <div style="text-align: center; margin-top: 32px;">
+      <button id="saveBtn" class="button button-primary">Save Settings</button>
+      <button id="resetBtn" class="button button-secondary">Reset to Defaults</button>
+    </div>
+    
+    <div class="footer">
+      <p>
+        <a href="https://react-llm.dev" target="_blank">Website</a> •
+        <a href="https://docs.react-llm.dev" target="_blank">Documentation</a> •
+        <a href="https://github.com/your-org/react-llm" target="_blank">GitHub</a>
+      </p>
+      <p style="margin-top: 8px; font-size: 12px;">
+        Your API keys are stored locally and never shared with us.
+      </p>
+    </div>
+  </div>
+  
+  <script src="options.js"></script>
+</body>
+</html>

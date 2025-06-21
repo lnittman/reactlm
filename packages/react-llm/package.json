@@ -43,7 +43,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "react-llm": "./dist/cli.js"
+    "react-llm": "./dist/cli.cjs"
   },
   "files": [
     "dist",
@@ -64,7 +64,6 @@
   },
   "dependencies": {
     "@preact/signals": "^1.2.2",
-    "@sqlite.org/sqlite-wasm": "3.49.1-build1",
     "bippy": "^0.3.17",
     "marked": "^11.0.0",
     "preact": "^10.19.3"

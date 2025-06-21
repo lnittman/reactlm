@@ -29,6 +29,9 @@ export class LLMHub {
   private activeProvider = 'openrouter';
   private activeModel: string | null = null;
   private modelsByProvider: Record<string, Model[]> = {};
+  private apiEndpoint?: string;
+  private modelsEndpoint?: string;
+  private isApiMode = false;
   
   constructor() {
     this.registerProviders();
@@ -106,12 +109,111 @@ export class LLMHub {
     throw new Error(`Unknown provider: ${providerId}`);
   }
   
+  /**
+   * Initialize in demo mode - works without any API keys!
+   */
+  async initializeDemoMode() {
+    this.isApiMode = false;
+    this.activeProvider = 'demo';
+    this.activeModel = 'demo/gemini-2.0-flash';
+    
+    // Set up demo models
+    this.modelsByProvider = {
+      demo: [
+        {
+          id: 'demo/gemini-2.0-flash',
+          name: 'Gemini 2.0 Flash (Demo)',
+          provider: 'demo',
+          contextLength: 32768,
+          pricing: { prompt: 0, completion: 0 }
+        }
+      ]
+    };
+    
+    console.log('[LLMHub] Initialized in demo mode - no API keys required!');
+    return true;
+  }
+  
+  /**
+   * Initialize in API mode - uses server endpoints instead of direct API keys
+   */
+  async initializeApiMode(apiEndpoint: string, modelsEndpoint?: string) {
+    this.isApiMode = true;
+    this.apiEndpoint = apiEndpoint;
+    this.modelsEndpoint = modelsEndpoint || '/api/models';
+    
+    // Set active provider to api mode
+    this.activeProvider = 'api';
+    
+    // Fetch available models from the endpoint
+    if (modelsEndpoint) {
+      try {
+        const response = await fetch(modelsEndpoint);
+        if (response.ok) {
+          const data = await response.json();
+          const models = data.data || [];
+          
+          // Group models by provider
+          this.modelsByProvider = models.reduce((acc: Record<string, Model[]>, model: any) => {
+            const provider = model.id.split('/')[0];
+            if (!acc[provider]) acc[provider] = [];
+            acc[provider].push(model);
+            return acc;
+          }, {});
+          
+          // Set default model - prefer Gemini 2.0 Flash
+          if (!this.activeModel && models.length > 0) {
+            const preferredModel = models.find((m: any) => 
+              m.id.includes('gemini-2.0-flash') ||
+              m.id.includes('gemini-2-flash')
+            ) || models.find((m: any) => 
+              m.id.includes('claude-3-5-sonnet') || 
+              m.id.includes('gpt-4o')
+            ) || models[0];
+            
+            this.activeModel = preferredModel.id;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch models:', error);
+      }
+    }
+    
+    return true;
+  }
+  
   getProviders(): LLMProvider[] {
     return Array.from(this.providers.values());
   }
   
+  getActiveProvider(): string {
+    return this.activeProvider;
+  }
+  
   getModelsByProvider(provider: string): Model[] {
     return this.modelsByProvider[provider] || [];
+  }
+  
+  getAvailableModels(): Model[] {
+    // In demo mode, return mock models
+    if (this.activeProvider === 'demo') {
+      return [{
+        id: 'demo/gemini-2.0-flash',
+        name: 'Gemini 2.0 Flash (Demo)',
+        provider: 'demo',
+        contextLength: 32768,
+        pricing: { prompt: 0, completion: 0 },
+        description: 'Demo mode - no API key required'
+      }];
+    }
+    
+    // Return all models from all providers
+    const allModels: Model[] = [];
+    Object.values(this.modelsByProvider).forEach(models => {
+      allModels.push(...models);
+    });
+    
+    return allModels;
   }
   
   getAllModels(): Model[] {
@@ -170,10 +272,6 @@ export class LLMHub {
     return this.initializeProvider(provider, apiKey, options);
   }
   
-  getActiveProvider(): string {
-    return this.activeProvider;
-  }
-  
   getActiveModel(): string | null {
     return this.activeModel;
   }
@@ -191,6 +289,78 @@ export class LLMHub {
     messages: Message[], 
     context?: ComponentContext
   ): AsyncGenerator<string> {
+    // Demo mode - return helpful demo responses
+    if (this.activeProvider === 'demo') {
+      const demoResponses = [
+        "👋 Welcome to React LLM! I'm running in demo mode.\n\nTo enable full AI capabilities:\n\n1. **Option A**: Use your own API key\n   ```javascript\n   ReactLLM.init({\n     providers: {\n       openrouter: 'your-api-key'\n     }\n   });\n   ```\n\n2. **Option B**: Use a server-side proxy\n   ```javascript\n   ReactLLM.init({\n     apiEndpoint: '/api/chat'\n   });\n   ```\n\nI can see your React components and would love to help once configured!",
+        "I notice you have some React components on this page. Once you configure an API key, I can help you:\n\n- 🔍 Analyze component structure\n- ✏️ Suggest improvements\n- 🐛 Debug issues\n- 📝 Generate documentation\n- 🎨 Refactor code\n\nReact LLM works on any website - just add the script tag!",
+        "Demo mode is limited, but here's what React LLM can do:\n\n- **Component Selection**: Click any component to select it\n- **Context Aware**: I understand your component tree\n- **Multi-Model**: Supports GPT-4, Claude, Gemini, and more\n- **Browser Native**: No server required (with API keys)\n\nConfigure me to unlock these features!"
+      ];
+      
+      const response = demoResponses[Math.floor(Math.random() * demoResponses.length)];
+      
+      // Simulate typing
+      for (const char of response) {
+        yield char;
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      return;
+    }
+    
+    // API mode - use endpoint
+    if (this.isApiMode && this.apiEndpoint) {
+      const enhancedMessages = this.enhanceWithContext(messages, context);
+      
+      const response = await fetch(this.apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: enhancedMessages,
+          model: this.activeModel,
+          stream: true,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.statusText}`);
+      }
+      
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+      
+      const decoder = new TextDecoder();
+      let buffer = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices?.[0]?.delta?.content;
+              if (content) yield content;
+            } catch (e) {
+              // Ignore parse errors
+            }
+          }
+        }
+      }
+      return;
+    }
+    
+    // Direct client mode
     const client = this.clients.get(this.activeProvider);
     if (!client) {
       throw new Error('No API key set for provider');
@@ -215,6 +385,36 @@ export class LLMHub {
     messages: Message[],
     context?: ComponentContext
   ): Promise<string> {
+    // Demo mode
+    if (this.activeProvider === 'demo') {
+      return "Welcome to React LLM! I'm running in demo mode. Configure an API key to unlock full AI capabilities.";
+    }
+    
+    // API mode - use endpoint
+    if (this.isApiMode && this.apiEndpoint) {
+      const enhancedMessages = this.enhanceWithContext(messages, context);
+      
+      const response = await fetch(this.apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: enhancedMessages,
+          model: this.activeModel,
+          stream: false,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || '';
+    }
+    
+    // Direct client mode
     const client = this.clients.get(this.activeProvider);
     if (!client) {
       throw new Error('No API key set for provider');
@@ -295,7 +495,7 @@ export class LLMHub {
   }
   
   isInitialized(): boolean {
-    return this.clients.size > 0;
+    return this.activeProvider === 'demo' || this.isApiMode || this.clients.size > 0;
   }
   
   getAvailableProviders(): string[] {

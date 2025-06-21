@@ -1,0 +1,512 @@
+---
+title: Development Server Integration
+description: Live code editing and hot reload with React LLM
+---
+
+# Development Server Integration
+
+React LLM shines in development environments where it can directly edit your code and provide instant feedback through hot module replacement (HMR).
+
+## Framework Integrations
+
+### Vite Integration
+
+```javascript
+// vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { reactLLMPlugin } from 'react-llm/vite';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    reactLLMPlugin({
+      apiKey: process.env.VITE_OPENROUTER_API_KEY,
+      enableFileEditing: true,
+      enableHotReload: true,
+      watchPaths: ['src/**/*.{js,jsx,ts,tsx}']
+    })
+  ]
+});
+```
+
+### Next.js Integration
+
+```javascript
+// next.config.js
+const { withReactLLM } = require('react-llm/next');
+
+module.exports = withReactLLM({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  enableFileEditing: true,
+  sourceMaps: true
+})({
+  // Your Next.js config
+  reactStrictMode: true,
+});
+```
+
+### Webpack Integration
+
+```javascript
+// webpack.config.js
+const { ReactLLMPlugin } = require('react-llm/webpack');
+
+module.exports = {
+  plugins: [
+    new ReactLLMPlugin({
+      apiKey: process.env.OPENROUTER_API_KEY,
+      enableFileEditing: true,
+      overlay: true // Show error overlay
+    })
+  ]
+};
+```
+
+## File Editing Capabilities
+
+### Enable File System Access
+
+```javascript
+// Development-only configuration
+if (process.env.NODE_ENV === 'development') {
+  ReactLLM.init({
+    providers: {
+      openrouter: process.env.VITE_OPENROUTER_API_KEY
+    },
+    mode: 'development',
+    fileSystem: {
+      enabled: true,
+      rootPath: './src',
+      allowedExtensions: ['.js', '.jsx', '.ts', '.tsx', '.css'],
+      excludePaths: ['node_modules', 'dist', '.git']
+    }
+  });
+}
+```
+
+### Live Code Editing Workflow
+
+```javascript
+// Example: Component enhancement workflow
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  mode: 'development',
+  workflows: {
+    componentEdit: {
+      // Before editing, create a backup
+      beforeEdit: async (file) => {
+        await ReactLLM.backup(file);
+        console.log(`Backing up ${file.path}`);
+      },
+      
+      // After editing, validate the changes
+      afterEdit: async (file, changes) => {
+        const isValid = await ReactLLM.validateSyntax(file);
+        if (!isValid) {
+          await ReactLLM.restore(file);
+          throw new Error('Syntax error in edited file');
+        }
+      },
+      
+      // Custom HMR handling
+      onHotReload: (file) => {
+        console.log(`Hot reloading ${file.path}`);
+      }
+    }
+  }
+});
+```
+
+## Component Selection & Context
+
+### Visual Component Selection
+
+```javascript
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  componentSelection: {
+    enabled: true,
+    highlightStyle: {
+      border: '2px solid #0ea5e9',
+      backgroundColor: 'rgba(14, 165, 233, 0.1)',
+      transition: 'all 0.2s ease'
+    },
+    // Provide rich context to AI
+    contextExtractor: (component) => ({
+      name: component.name,
+      props: component.props,
+      state: component.state,
+      hooks: component.hooks,
+      parentChain: component.getParentChain(),
+      children: component.children.map(c => c.name),
+      styles: component.computedStyles,
+      eventHandlers: component.eventHandlers
+    })
+  }
+});
+```
+
+### Smart Context Building
+
+```javascript
+// Automatically include relevant files
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  context: {
+    autoInclude: {
+      // Include imported files
+      imports: true,
+      // Include parent components
+      parents: true,
+      // Include child components
+      children: true,
+      // Include style files
+      styles: true,
+      // Include test files
+      tests: false,
+      // Maximum depth to traverse
+      maxDepth: 3
+    },
+    // Custom context enhancer
+    enhancer: async (baseContext) => {
+      // Add project-specific context
+      const packageJson = await ReactLLM.readFile('./package.json');
+      const tsConfig = await ReactLLM.readFile('./tsconfig.json');
+      
+      return {
+        ...baseContext,
+        project: {
+          dependencies: JSON.parse(packageJson).dependencies,
+          typescript: JSON.parse(tsConfig).compilerOptions
+        }
+      };
+    }
+  }
+});
+```
+
+## Advanced Development Features
+
+### Git Integration
+
+```javascript
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  git: {
+    enabled: true,
+    // Auto-commit after AI edits
+    autoCommit: false,
+    // Create branch for AI changes
+    branchPrefix: 'ai/',
+    // Commit message template
+    commitMessage: (changes) => 
+      `AI: ${changes.summary}\n\nFiles changed:\n${changes.files.join('\n')}`
+  }
+});
+```
+
+### Test Generation
+
+```javascript
+// Configure test generation
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  testing: {
+    enabled: true,
+    framework: 'jest', // or 'vitest', 'mocha'
+    // Generate tests alongside components
+    colocated: true,
+    // Test template
+    template: 'react-testing-library',
+    // Auto-run tests after generation
+    autoRun: true
+  }
+});
+
+// Usage in chat
+// "Generate tests for the Button component"
+// "Add a test case for disabled state"
+// "Create integration tests for UserForm"
+```
+
+### Code Quality Integration
+
+```javascript
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  codeQuality: {
+    // Run linter after edits
+    lintOnSave: true,
+    linter: 'eslint',
+    
+    // Format code automatically
+    formatOnSave: true,
+    formatter: 'prettier',
+    
+    // Type checking
+    typeCheck: true,
+    
+    // Run before accepting changes
+    preCommitChecks: [
+      'lint',
+      'format',
+      'typecheck',
+      'test'
+    ]
+  }
+});
+```
+
+## Development Workflows
+
+### Component Creation Workflow
+
+```javascript
+// Streamlined component creation
+ReactLLM.registerWorkflow('createComponent', {
+  steps: [
+    {
+      name: 'scaffold',
+      action: async (componentName, options) => {
+        const template = await ReactLLM.getTemplate('component');
+        return ReactLLM.createFile(
+          `src/components/${componentName}.tsx`,
+          template({ name: componentName, ...options })
+        );
+      }
+    },
+    {
+      name: 'styles',
+      action: async (componentName) => {
+        return ReactLLM.createFile(
+          `src/components/${componentName}.module.css`,
+          `.${componentName.toLowerCase()} {\n  /* Styles */\n}`
+        );
+      }
+    },
+    {
+      name: 'tests',
+      action: async (componentName) => {
+        const testTemplate = await ReactLLM.getTemplate('component-test');
+        return ReactLLM.createFile(
+          `src/components/${componentName}.test.tsx`,
+          testTemplate({ name: componentName })
+        );
+      }
+    },
+    {
+      name: 'storybook',
+      condition: () => ReactLLM.hasStorybook(),
+      action: async (componentName) => {
+        const storyTemplate = await ReactLLM.getTemplate('story');
+        return ReactLLM.createFile(
+          `src/components/${componentName}.stories.tsx`,
+          storyTemplate({ name: componentName })
+        );
+      }
+    }
+  ]
+});
+
+// Usage: "Create a new Button component with props for size and variant"
+```
+
+### Refactoring Workflow
+
+```javascript
+// Safe refactoring with rollback
+ReactLLM.registerWorkflow('refactor', {
+  steps: [
+    {
+      name: 'analyze',
+      action: async (target) => {
+        // Analyze dependencies and impacts
+        const analysis = await ReactLLM.analyzeImpact(target);
+        return {
+          files: analysis.affectedFiles,
+          components: analysis.affectedComponents,
+          risk: analysis.riskLevel
+        };
+      }
+    },
+    {
+      name: 'backup',
+      action: async (analysis) => {
+        // Create snapshot of affected files
+        return await ReactLLM.createSnapshot(analysis.files);
+      }
+    },
+    {
+      name: 'refactor',
+      action: async (target, changes) => {
+        // Apply refactoring
+        return await ReactLLM.applyRefactoring(target, changes);
+      }
+    },
+    {
+      name: 'validate',
+      action: async () => {
+        // Run tests and type checking
+        const results = await Promise.all([
+          ReactLLM.runTests(),
+          ReactLLM.typeCheck(),
+          ReactLLM.lint()
+        ]);
+        
+        if (results.some(r => !r.success)) {
+          throw new Error('Validation failed');
+        }
+      }
+    }
+  ],
+  rollback: async (snapshot) => {
+    await ReactLLM.restoreSnapshot(snapshot);
+  }
+});
+```
+
+## Performance Monitoring
+
+```javascript
+// Monitor development performance
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  performance: {
+    monitor: true,
+    metrics: {
+      // Track build times
+      buildTime: true,
+      // Track HMR performance
+      hmrTime: true,
+      // Track bundle size
+      bundleSize: true,
+      // Component render performance
+      renderTime: true
+    },
+    // Alert on performance issues
+    alerts: {
+      buildTime: 5000, // Alert if build > 5s
+      bundleSize: 1048576, // Alert if bundle > 1MB
+      renderTime: 16 // Alert if render > 16ms
+    }
+  }
+});
+```
+
+## Custom Dev Tools
+
+```javascript
+// Add custom development tools
+ReactLLM.registerTool('dependencies', {
+  description: 'Analyze and update project dependencies',
+  action: async (command) => {
+    switch (command) {
+      case 'analyze':
+        return await ReactLLM.analyzeDependencies();
+      
+      case 'update':
+        return await ReactLLM.updateDependencies();
+      
+      case 'audit':
+        return await ReactLLM.auditDependencies();
+      
+      case 'clean':
+        return await ReactLLM.cleanDependencies();
+    }
+  }
+});
+
+// Usage: "Check for outdated dependencies"
+// Usage: "Update all minor versions"
+// Usage: "Audit for security vulnerabilities"
+```
+
+## Environment-Specific Configuration
+
+```javascript
+// Sophisticated environment handling
+const config = {
+  providers: {
+    openrouter: process.env.VITE_OPENROUTER_API_KEY
+  }
+};
+
+// Development features
+if (process.env.NODE_ENV === 'development') {
+  Object.assign(config, {
+    mode: 'development',
+    fileSystem: { enabled: true },
+    componentSelection: { enabled: true },
+    workflows: { enabled: true },
+    git: { enabled: true },
+    testing: { enabled: true }
+  });
+}
+
+// Staging features
+if (process.env.VITE_ENV === 'staging') {
+  Object.assign(config, {
+    mode: 'staging',
+    fileSystem: { enabled: false },
+    componentSelection: { enabled: true },
+    readOnly: true
+  });
+}
+
+// Local overrides
+if (process.env.VITE_LOCAL_OVERRIDES) {
+  const overrides = JSON.parse(process.env.VITE_LOCAL_OVERRIDES);
+  Object.assign(config, overrides);
+}
+
+ReactLLM.init(config);
+```
+
+## Best Practices
+
+1. **Always backup before AI edits** - Use snapshots or git branches
+2. **Validate syntax after edits** - Prevent broken builds
+3. **Use semantic commit messages** - Track AI-assisted changes
+4. **Limit file access scope** - Only allow edits in src directory
+5. **Monitor performance impact** - Track build and HMR times
+6. **Test generated code** - Always verify AI output
+7. **Review before committing** - Human oversight is crucial
+
+## Troubleshooting Development Issues
+
+### HMR Not Working
+```javascript
+// Debug HMR issues
+ReactLLM.debug.hmr = true;
+ReactLLM.on('hmr:error', (error) => {
+  console.error('HMR Error:', error);
+});
+```
+
+### File Access Denied
+```javascript
+// Check file permissions
+const permissions = await ReactLLM.checkPermissions('./src');
+if (!permissions.write) {
+  console.error('No write access to src directory');
+}
+```
+
+### Context Too Large
+```javascript
+// Limit context size
+ReactLLM.init({
+  context: {
+    maxSize: 50000, // 50KB limit
+    compression: true,
+    sampling: {
+      enabled: true,
+      strategy: 'relevant', // or 'recent', 'important'
+      maxFiles: 10
+    }
+  }
+});
+```
+
+With proper development integration, React LLM becomes a powerful AI pair programmer that understands your codebase and can make intelligent edits while you maintain full control.

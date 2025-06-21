@@ -10,7 +10,12 @@ interface ReactLLMConfig {
     anthropic?: string;
     google?: string;
   };
-  mode?: 'development' | 'production';
+  // API endpoint mode (for server-side proxy)
+  apiEndpoint?: string;
+  modelsEndpoint?: string;
+  mode?: 'development' | 'production' | 'demo';
+  position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+  theme?: 'dark' | 'light';
   siteUrl?: string;
   siteName?: string;
   // Legacy support
@@ -49,7 +54,14 @@ const init = async (config: ReactLLMConfig | string) => {
     const hub = new LLMHub();
     
     // Initialize providers based on config
-    if (normalizedConfig.providers?.openrouter || normalizedConfig.apiKey) {
+    if (normalizedConfig.mode === 'demo') {
+      // Demo mode - no API keys needed!
+      await hub.initializeDemoMode();
+    } else if (normalizedConfig.apiEndpoint) {
+      // Use API endpoint mode (for server-side proxy)
+      await hub.initializeApiMode(normalizedConfig.apiEndpoint, normalizedConfig.modelsEndpoint);
+    } else if (normalizedConfig.providers?.openrouter || normalizedConfig.apiKey) {
+      // Direct API key mode (for development)
       await hub.initializeProvider('openrouter', 
         normalizedConfig.providers?.openrouter || normalizedConfig.apiKey!, 
         {
@@ -57,15 +69,21 @@ const init = async (config: ReactLLMConfig | string) => {
           siteName: normalizedConfig.siteName
         }
       );
+    } else {
+      // Default to demo mode if nothing configured
+      await hub.initializeDemoMode();
     }
     
     // Store hub globally for debugging
     window.ReactLLM.hub = hub;
 
-    // Render Toolbar in shadow DOM with hub
-    render(h(Toolbar, { hub }), root);
+    // Pass config to Toolbar
+    render(h(Toolbar, { 
+      hub,
+      config: normalizedConfig 
+    }), root);
     
-    console.log('React-LLM initialized successfully with providers:', Object.keys(normalizedConfig.providers || {}));
+    console.log('React-LLM initialized successfully in', normalizedConfig.apiEndpoint ? 'API mode' : 'direct mode');
   } catch (error) {
     console.error('Failed to initialize React-LLM:', error);
     throw error;

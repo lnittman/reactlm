@@ -13,8 +13,16 @@
     "apps/*"
   ],
   "scripts": {
+    "postinstall": "turbo run build --filter=react-llm",
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "build:react-llm": "turbo run build --filter=react-llm",
+    "dev": "turbo run dev --filter=!@react-llm/browser-extension",
+    "dev:all": "turbo run dev",
+    "dev:web": "turbo run dev --filter=web",
+    "dev:docs": "turbo run dev --filter=@react-llm/docs",
+    "dev:apps": "turbo run dev --filter=web --filter=@react-llm/docs",
+    "dev:react-llm": "turbo run dev --filter=react-llm",
+    "dev:extension": "turbo run dev --filter=@react-llm/browser-extension",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",

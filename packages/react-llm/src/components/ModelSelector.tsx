@@ -7,10 +7,11 @@ import { Model } from '../llm/openrouter';
 interface Props {
   hub: LLMHub;
   onModelChange: (provider: string, model: string) => void;
+  onClose?: () => void;
   className?: string;
 }
 
-export function ModelSelector({ hub, onModelChange, className = '' }: Props) {
+export function ModelSelector({ hub, onModelChange, onClose, className = '' }: Props) {
   const providers = useSignal(hub.getProviders());
   const selectedProvider = useSignal('openrouter');
   const selectedModel = useSignal<string | null>(hub.getActiveModel());
@@ -19,6 +20,22 @@ export function ModelSelector({ hub, onModelChange, className = '' }: Props) {
   const isLoading = useSignal(false);
   const isExpanded = useSignal(false);
   const showRecommended = useSignal(true);
+  
+  // Click outside handler
+  effect(() => {
+    if (!isExpanded.value) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.model-selector')) {
+        isExpanded.value = false;
+        if (onClose) onClose();
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  });
   
   // Fetch models when provider changes or on mount
   effect(() => {

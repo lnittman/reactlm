@@ -27,7 +27,7 @@ function toggleReactLLM() {
         // Get stored configuration
         chrome.storage.sync.get(['reactLLMConfig'], (result) => {
           const config = result.reactLLMConfig || {};
-          window.ReactLLM.init(config);
+          window.ReactLLM?.init(config);
         });
       }
     };

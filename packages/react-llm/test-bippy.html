@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Bippy Integration</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script>
+    // Simple React app for testing
+    const { createElement: h, useState } = React;
+    
+    function TestComponent() {
+      const [count, setCount] = useState(0);
+      
+      return h('div', { style: { padding: '20px' } },
+        h('h1', null, 'Test Component'),
+        h('p', null, `Count: ${count}`),
+        h('button', { onClick: () => setCount(count + 1) }, 'Increment'),
+        h('div', { style: { marginTop: '20px' } },
+          h(ChildComponent, { name: 'Child 1' }),
+          h(ChildComponent, { name: 'Child 2' })
+        )
+      );
+    }
+    
+    function ChildComponent({ name }) {
+      return h('div', { style: { border: '1px solid #ccc', padding: '10px', margin: '5px' } },
+        h('h3', null, name),
+        h('p', null, 'This is a child component')
+      );
+    }
+    
+    ReactDOM.render(h(TestComponent), document.getElementById('root'));
+  </script>
+  
+  <!-- Load React LLM -->
+  <script src="../dist/react-llm.js"></script>
+  <script>
+    // Initialize React LLM after a short delay to ensure React is loaded
+    setTimeout(() => {
+      console.log('Initializing React LLM...');
+      window.ReactLLM.init({
+        mode: 'demo',
+        position: 'bottom-right'
+      });
+    }, 1000);
+  </script>
+</body>
+</html>

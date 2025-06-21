@@ -1,0 +1,680 @@
+---
+title: Custom Styling and Theming
+description: Customize React LLM's appearance to match your brand
+---
+
+# Custom Styling and Theming
+
+React LLM is highly customizable, allowing you to match your brand's design system or personal preferences.
+
+## Basic Theming
+
+### Built-in Themes
+
+```javascript
+// Use built-in themes
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  theme: 'dark' // 'dark' | 'light' | 'auto'
+});
+
+// Auto theme based on system preference
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  theme: 'auto',
+  // Optional: Listen for theme changes
+  onThemeChange: (theme) => {
+    console.log('Theme changed to:', theme);
+  }
+});
+```
+
+### Custom Theme Object
+
+```javascript
+// Define a custom theme
+const customTheme = {
+  name: 'ocean',
+  colors: {
+    // Primary colors
+    primary: '#0891b2',
+    primaryHover: '#0e7490',
+    primaryActive: '#155e75',
+    
+    // Background colors
+    background: '#0f172a',
+    backgroundSecondary: '#1e293b',
+    backgroundTertiary: '#334155',
+    
+    // Text colors
+    text: '#f1f5f9',
+    textSecondary: '#cbd5e1',
+    textTertiary: '#94a3b8',
+    
+    // Accent colors
+    accent: '#06b6d4',
+    success: '#10b981',
+    warning: '#f59e0b',
+    error: '#ef4444',
+    info: '#3b82f6',
+    
+    // UI elements
+    border: '#334155',
+    borderHover: '#475569',
+    shadow: 'rgba(0, 0, 0, 0.5)'
+  },
+  
+  typography: {
+    fontFamily: '"Inter", -apple-system, sans-serif',
+    monospaceFontFamily: '"JetBrains Mono", "Consolas", monospace',
+    fontSize: {
+      xs: '0.75rem',
+      sm: '0.875rem',
+      base: '1rem',
+      lg: '1.125rem',
+      xl: '1.25rem'
+    },
+    fontWeight: {
+      normal: 400,
+      medium: 500,
+      semibold: 600,
+      bold: 700
+    },
+    lineHeight: {
+      tight: 1.25,
+      normal: 1.5,
+      relaxed: 1.75
+    }
+  },
+  
+  spacing: {
+    xs: '0.25rem',
+    sm: '0.5rem',
+    md: '1rem',
+    lg: '1.5rem',
+    xl: '2rem'
+  },
+  
+  borderRadius: {
+    sm: '0.25rem',
+    md: '0.5rem',
+    lg: '0.75rem',
+    full: '9999px'
+  },
+  
+  animations: {
+    duration: {
+      fast: '150ms',
+      normal: '300ms',
+      slow: '500ms'
+    },
+    easing: {
+      in: 'cubic-bezier(0.4, 0, 1, 1)',
+      out: 'cubic-bezier(0, 0, 0.2, 1)',
+      inOut: 'cubic-bezier(0.4, 0, 0.2, 1)'
+    }
+  }
+};
+
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  theme: customTheme
+});
+```
+
+## Component-Level Styling
+
+### Style Overrides
+
+```javascript
+// Override specific component styles
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  styles: {
+    // Main chat container
+    container: {
+      width: '400px',
+      height: '600px',
+      borderRadius: '16px',
+      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+    },
+    
+    // Chat header
+    header: {
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '1.5rem',
+      fontSize: '1.125rem'
+    },
+    
+    // Message bubbles
+    message: {
+      user: {
+        backgroundColor: '#4f46e5',
+        color: '#ffffff',
+        borderRadius: '18px 18px 4px 18px'
+      },
+      assistant: {
+        backgroundColor: '#f3f4f6',
+        color: '#111827',
+        borderRadius: '18px 18px 18px 4px'
+      }
+    },
+    
+    // Input area
+    input: {
+      backgroundColor: '#ffffff',
+      border: '2px solid #e5e7eb',
+      borderRadius: '12px',
+      fontSize: '1rem',
+      padding: '0.75rem 1rem',
+      '&:focus': {
+        borderColor: '#4f46e5',
+        outline: 'none',
+        boxShadow: '0 0 0 3px rgba(79, 70, 229, 0.1)'
+      }
+    },
+    
+    // Buttons
+    button: {
+      primary: {
+        backgroundColor: '#4f46e5',
+        '&:hover': {
+          backgroundColor: '#4338ca'
+        }
+      },
+      secondary: {
+        backgroundColor: 'transparent',
+        border: '1px solid #e5e7eb',
+        '&:hover': {
+          backgroundColor: '#f9fafb'
+        }
+      }
+    }
+  }
+});
+```
+
+### CSS Variables
+
+```javascript
+// Use CSS variables for dynamic theming
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  cssVariables: {
+    '--rl-primary': '#4f46e5',
+    '--rl-primary-dark': '#4338ca',
+    '--rl-primary-light': '#6366f1',
+    '--rl-background': '#ffffff',
+    '--rl-text': '#111827',
+    '--rl-border': '#e5e7eb',
+    '--rl-shadow': '0 1px 3px rgba(0, 0, 0, 0.1)',
+    '--rl-radius': '0.5rem',
+    '--rl-transition': 'all 0.2s ease'
+  }
+});
+
+// Use in custom CSS
+const customCSS = `
+  .react-llm-container {
+    background: var(--rl-background);
+    border-radius: var(--rl-radius);
+    box-shadow: var(--rl-shadow);
+    transition: var(--rl-transition);
+  }
+  
+  .react-llm-button {
+    background: var(--rl-primary);
+    color: white;
+    border-radius: var(--rl-radius);
+  }
+  
+  .react-llm-button:hover {
+    background: var(--rl-primary-dark);
+  }
+`;
+```
+
+## Advanced Customization
+
+### Custom Components
+
+```javascript
+// Replace built-in components with custom ones
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  components: {
+    // Custom header component
+    Header: ({ onClose, onMinimize }) => (
+      <div className="custom-header">
+        <img src="/logo.png" alt="Company Logo" />
+        <h2>AI Assistant</h2>
+        <button onClick={onMinimize}>_</button>
+        <button onClick={onClose}>×</button>
+      </div>
+    ),
+    
+    // Custom message component
+    Message: ({ message, isUser }) => (
+      <div className={`custom-message ${isUser ? 'user' : 'assistant'}`}>
+        {!isUser && <img src="/ai-avatar.png" className="avatar" />}
+        <div className="content">
+          {message.content}
+        </div>
+        <time>{new Date(message.timestamp).toLocaleTimeString()}</time>
+      </div>
+    ),
+    
+    // Custom input component
+    Input: ({ onSend, placeholder }) => {
+      const [value, setValue] = useState('');
+      
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (value.trim()) {
+          onSend(value);
+          setValue('');
+        }
+      };
+      
+      return (
+        <form onSubmit={handleSubmit} className="custom-input-form">
+          <textarea
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={placeholder}
+            rows={3}
+          />
+          <button type="submit">
+            <SendIcon />
+          </button>
+        </form>
+      );
+    }
+  }
+});
+```
+
+### Animation Configuration
+
+```javascript
+// Customize animations
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  animations: {
+    // Entry animation for chat window
+    entry: {
+      from: {
+        opacity: 0,
+        transform: 'scale(0.9) translateY(20px)'
+      },
+      to: {
+        opacity: 1,
+        transform: 'scale(1) translateY(0)'
+      },
+      duration: 300,
+      easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+    },
+    
+    // Message appearance
+    messageIn: {
+      from: { opacity: 0, transform: 'translateX(-10px)' },
+      to: { opacity: 1, transform: 'translateX(0)' },
+      duration: 200
+    },
+    
+    // Loading animation
+    loading: {
+      keyframes: `
+        @keyframes pulse {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 1; }
+        }
+      `,
+      animation: 'pulse 1.5s ease-in-out infinite'
+    },
+    
+    // Minimize/maximize
+    minimize: {
+      duration: 250,
+      easing: 'ease-out'
+    }
+  }
+});
+```
+
+### Position and Layout
+
+```javascript
+// Advanced positioning options
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  layout: {
+    // Position preset or custom
+    position: 'bottom-right', // or custom position object
+    
+    // Custom positioning
+    customPosition: {
+      bottom: '2rem',
+      right: '2rem',
+      position: 'fixed',
+      zIndex: 9999
+    },
+    
+    // Responsive breakpoints
+    responsive: {
+      mobile: {
+        position: 'fullscreen',
+        width: '100vw',
+        height: '100vh',
+        borderRadius: 0
+      },
+      tablet: {
+        width: '450px',
+        height: '600px',
+        bottom: '1rem',
+        right: '1rem'
+      },
+      desktop: {
+        width: '400px',
+        height: '600px',
+        bottom: '2rem',
+        right: '2rem'
+      }
+    },
+    
+    // Docking behavior
+    docking: {
+      enabled: true,
+      snapToEdges: true,
+      magneticDistance: 50
+    }
+  }
+});
+```
+
+## Brand Integration
+
+### Company Branding
+
+```javascript
+// Full brand integration example
+const companyBranding = {
+  name: 'acme-assistant',
+  
+  // Brand colors from design system
+  colors: {
+    primary: '#FF6B6B',
+    primaryHover: '#FF5252',
+    primaryActive: '#FF3838',
+    background: '#1A1B3A',
+    backgroundSecondary: '#2D2E5F',
+    text: '#FFFFFF',
+    textSecondary: '#B8BCC8',
+    accent: '#4ECDC4',
+    success: '#95E1D3',
+    warning: '#FFE66D',
+    error: '#FF6B6B'
+  },
+  
+  // Brand fonts
+  typography: {
+    fontFamily: '"Poppins", sans-serif',
+    monospaceFontFamily: '"Source Code Pro", monospace',
+    fontSize: {
+      xs: '0.75rem',
+      sm: '0.875rem',
+      base: '1rem',
+      lg: '1.125rem',
+      xl: '1.25rem'
+    }
+  },
+  
+  // Custom logo and branding
+  branding: {
+    logo: '/assets/company-logo.svg',
+    logoSize: { width: 120, height: 32 },
+    tagline: 'AI-Powered Development',
+    headerGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+  },
+  
+  // Custom styles
+  styles: {
+    container: {
+      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+      backdropFilter: 'blur(10px)'
+    },
+    
+    header: {
+      background: 'linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%)',
+      padding: '1.5rem',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '1rem'
+    }
+  }
+};
+
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  theme: companyBranding
+});
+```
+
+### Design System Integration
+
+```javascript
+// Integrate with existing design system
+import { tokens, components } from '@company/design-system';
+
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  theme: {
+    // Use design system tokens
+    colors: tokens.colors,
+    typography: tokens.typography,
+    spacing: tokens.spacing,
+    borderRadius: tokens.borderRadius,
+    shadows: tokens.shadows
+  },
+  
+  // Use design system components
+  components: {
+    Button: components.Button,
+    Input: components.TextArea,
+    Card: components.Card,
+    Avatar: components.Avatar
+  },
+  
+  // Apply global styles
+  globalStyles: `
+    @import '@company/design-system/styles/globals.css';
+    
+    .react-llm-container {
+      font-family: var(--font-primary);
+      color: var(--color-text-primary);
+      background: var(--color-background-primary);
+    }
+  `
+});
+```
+
+## Accessibility Customization
+
+### High Contrast Mode
+
+```javascript
+// Support for accessibility preferences
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  accessibility: {
+    // High contrast theme
+    highContrast: {
+      colors: {
+        primary: '#0066CC',
+        background: '#FFFFFF',
+        text: '#000000',
+        border: '#000000',
+        error: '#CC0000',
+        success: '#006600'
+      },
+      styles: {
+        '*': {
+          borderWidth: '2px !important'
+        },
+        button: {
+          border: '2px solid #000000',
+          fontWeight: 'bold'
+        }
+      }
+    },
+    
+    // Reduced motion
+    reducedMotion: {
+      animations: {
+        duration: { fast: 0, normal: 0, slow: 0 },
+        entry: { duration: 0 },
+        messageIn: { duration: 0 }
+      }
+    },
+    
+    // Font size preferences
+    fontSize: {
+      scale: 1.2, // 120% of base size
+      minimum: '14px'
+    }
+  }
+});
+```
+
+### Keyboard Navigation
+
+```javascript
+// Enhanced keyboard navigation
+ReactLLM.init({
+  providers: { openrouter: 'sk-or-v1-...' },
+  keyboard: {
+    shortcuts: {
+      'cmd+k': 'toggle',
+      'escape': 'close',
+      'cmd+/': 'focusInput',
+      'cmd+up': 'previousMessage',
+      'cmd+down': 'nextMessage',
+      'cmd+c': 'copyMessage',
+      'cmd+r': 'regenerateResponse'
+    },
+    
+    // Focus trap when open
+    trapFocus: true,
+    
+    // Skip to content
+    skipLinks: true
+  }
+});
+```
+
+## Dynamic Theming
+
+### Theme Switching
+
+```javascript
+// Runtime theme switching
+class ThemeManager {
+  constructor() {
+    this.themes = {
+      light: { /* light theme */ },
+      dark: { /* dark theme */ },
+      contrast: { /* high contrast */ }
+    };
+  }
+  
+  setTheme(themeName) {
+    const theme = this.themes[themeName];
+    ReactLLM.updateTheme(theme);
+    
+    // Save preference
+    localStorage.setItem('react-llm-theme', themeName);
+  }
+  
+  // Auto-detect system theme
+  detectSystemTheme() {
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isHighContrast = window.matchMedia('(prefers-contrast: high)').matches;
+    
+    if (isHighContrast) return 'contrast';
+    return isDark ? 'dark' : 'light';
+  }
+  
+  init() {
+    // Load saved or detect theme
+    const saved = localStorage.getItem('react-llm-theme');
+    const theme = saved || this.detectSystemTheme();
+    this.setTheme(theme);
+    
+    // Listen for system changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('react-llm-theme')) {
+        this.setTheme(e.matches ? 'dark' : 'light');
+      }
+    });
+  }
+}
+
+// Usage
+const themeManager = new ThemeManager();
+themeManager.init();
+```
+
+### User Preferences
+
+```javascript
+// Save and restore user customizations
+class UserPreferences {
+  save(preferences) {
+    localStorage.setItem('react-llm-prefs', JSON.stringify({
+      theme: preferences.theme,
+      position: preferences.position,
+      size: preferences.size,
+      fontSize: preferences.fontSize,
+      animations: preferences.animations
+    }));
+  }
+  
+  load() {
+    const saved = localStorage.getItem('react-llm-prefs');
+    return saved ? JSON.parse(saved) : null;
+  }
+  
+  apply() {
+    const prefs = this.load();
+    if (prefs) {
+      ReactLLM.updateConfig({
+        theme: prefs.theme,
+        layout: {
+          position: prefs.position,
+          size: prefs.size
+        },
+        accessibility: {
+          fontSize: { scale: prefs.fontSize }
+        },
+        animations: prefs.animations
+      });
+    }
+  }
+}
+```
+
+## Best Practices
+
+1. **Maintain Contrast** - Ensure text is readable with WCAG AA compliance
+2. **Respect User Preferences** - Honor system dark mode and reduced motion
+3. **Use Semantic Colors** - Define colors by purpose (primary, error, success)
+4. **Test Across Themes** - Verify UI works in light, dark, and high contrast
+5. **Consistent Spacing** - Use spacing scale for visual harmony
+6. **Smooth Animations** - Keep animations subtle and purposeful
+7. **Mobile Responsive** - Ensure styling works on all screen sizes
+8. **Brand Consistency** - Match your existing design system
+9. **Performance** - Minimize CSS size and complexity
+10. **Documentation** - Document custom theme properties for team use
+
+With these customization options, React LLM can seamlessly integrate into any application while maintaining your brand identity and user experience standards.

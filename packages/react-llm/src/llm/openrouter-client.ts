@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from '../utils/event-emitter';
 
 export interface OpenRouterConfig {
   apiKey: string;
@@ -15,6 +15,7 @@ export interface Model {
     prompt: number;
     completion: number;
   };
+  description?: string;
   architectures?: {
     instruct: string;
     modality: string;
