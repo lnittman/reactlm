@@ -1,8 +1,12 @@
-<img src="apps/web/public/logo.png" alt="reactlm logo" width="48" height="48" align="left">
+<div align="center">
+  <img src="apps/web/public/logo.png" alt="reactlm logo" width="80" height="80">
+  
+  # reactlm
+  
+  **browser-native ai coding assistant. chat with your components directly in the browser.**
+</div>
 
-# reactlm
-
-browser-native ai coding assistant. chat with your components directly in the browser.
+<br>
 
 ## what it is
 
