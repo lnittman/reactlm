@@ -73,8 +73,8 @@ importers:
         specifier: ^4
         version: 4.1.10
       '@types/node':
-        specifier: ^20.0.0
-        version: 20.19.1
+        specifier: ^24.0.4
+        version: 24.0.4
       '@types/react':
         specifier: ^18.2.0
         version: 18.3.23
@@ -146,8 +146,8 @@ importers:
         specifier: ^4
         version: 4.1.10
       '@types/node':
-        specifier: ^20
-        version: 20.19.1
+        specifier: ^24
+        version: 24.0.4
       '@types/react':
         specifier: ^19
         version: 19.1.8
@@ -169,9 +169,9 @@ importers:
 
   packages/browser-extension:
     dependencies:
-      react-llm:
+      reactlm:
         specifier: workspace:*
-        version: link:../react-llm
+        version: link:../reactlm
     devDependencies:
       '@biomejs/biome':
         specifier: 1.5.3
@@ -180,8 +180,8 @@ importers:
         specifier: ^0.0.253
         version: 0.0.253
       '@types/node':
-        specifier: ^20.11.5
-        version: 20.19.1
+        specifier: ^24.0.4
+        version: 24.0.4
       archiver:
         specifier: ^6.0.1
         version: 6.0.2
@@ -194,16 +194,16 @@ importers:
 
   packages/next:
     dependencies:
-      react-llm:
+      reactlm:
         specifier: workspace:*
-        version: link:../react-llm
+        version: link:../reactlm
     devDependencies:
       '@biomejs/biome':
         specifier: 1.5.3
         version: 1.5.3
       '@types/node':
-        specifier: ^20.11.5
-        version: 20.19.1
+        specifier: ^24.0.4
+        version: 24.0.4
       next:
         specifier: ^14.0.0
         version: 14.2.30(react-dom@18.3.1)(react@18.3.1)
@@ -214,7 +214,7 @@ importers:
         specifier: ^5.3.3
         version: 5.8.3
 
-  packages/react-llm:
+  packages/reactlm:
     dependencies:
       '@preact/signals':
         specifier: ^1.2.2
@@ -248,8 +248,8 @@ importers:
         specifier: ^14.6.1
         version: 14.6.1(@testing-library/dom@10.4.0)
       '@types/node':
-        specifier: ^20.11.5
-        version: 20.19.1
+        specifier: ^24.0.4
+        version: 24.0.4
       '@types/react':
         specifier: ^18.2.48
         version: 18.3.23
@@ -267,20 +267,20 @@ importers:
         version: 5.8.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@20.19.1)(happy-dom@18.0.1)
+        version: 1.6.1(@types/node@24.0.4)(happy-dom@18.0.1)
 
   packages/vite:
     dependencies:
-      react-llm:
+      reactlm:
         specifier: workspace:*
-        version: link:../react-llm
+        version: link:../reactlm
     devDependencies:
       '@biomejs/biome':
         specifier: 1.5.3
         version: 1.5.3
       '@types/node':
-        specifier: ^20.11.5
-        version: 20.19.1
+        specifier: ^24.0.4
+        version: 24.0.4
       tsup:
         specifier: ^8.0.1
         version: 8.5.0(typescript@5.8.3)
@@ -289,7 +289,7 @@ importers:
         version: 5.8.3
       vite:
         specifier: ^5.0.0
-        version: 5.4.19(@types/node@20.19.1)
+        version: 5.4.19(@types/node@24.0.4)
 
 packages:
 
@@ -2976,6 +2976,12 @@ packages:
     resolution: {integrity: sha512-jJD50LtlD2dodAEO653i3YF04NWak6jN3ky+Ri3Em3mGR39/glWiboM/IePaRbgwSfqM1TpGXfAg8ohn/4dTgA==}
     dependencies:
       undici-types: 6.21.0
+    dev: true
+
+  /@types/node@24.0.4:
+    resolution: {integrity: sha512-ulyqAkrhnuNq9pB76DRBTkcS6YsmDALy6Ua63V8OhrOBgbcYt6IOdzpw5P1+dyRIyMerzLkeYWBeOXPpA9GMAA==}
+    dependencies:
+      undici-types: 7.8.0
     dev: true
 
   /@types/prop-types@15.7.15:
@@ -8960,6 +8966,10 @@ packages:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
     dev: true
 
+  /undici-types@7.8.0:
+    resolution: {integrity: sha512-9UJ2xGDvQ43tYyVMpuHlsgApydB8ZKfVYTsLDhXkFL/6gfkp+U8xTGdh8pMJv1SpZna0zxG1DwsKZsreLbXBxw==}
+    dev: true
+
   /unified@11.0.5:
     resolution: {integrity: sha512-xKvGhPWw3k84Qjh8bI3ZeJjqnyadK+GEFtazSfZv/rKeTkTjOJho6mFqh2SM96iIcZokxiOpg78GazTSg8+KHA==}
     dependencies:
@@ -9116,7 +9126,7 @@ packages:
       vfile-message: 4.0.2
     dev: false
 
-  /vite-node@1.6.1(@types/node@20.19.1):
+  /vite-node@1.6.1(@types/node@24.0.4):
     resolution: {integrity: sha512-YAXkfvGtuTzwWbDSACdJSg4A4DZiAqckWe90Zapc/sEX3XvHcw1NdurM/6od8J207tSDqNbSsgdCacBgvJKFuA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -9125,7 +9135,7 @@ packages:
       debug: 4.4.1
       pathe: 1.1.2
       picocolors: 1.1.1
-      vite: 5.4.19(@types/node@20.19.1)
+      vite: 5.4.19(@types/node@24.0.4)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -9138,7 +9148,7 @@ packages:
       - terser
     dev: true
 
-  /vite@5.4.19(@types/node@20.19.1):
+  /vite@5.4.19(@types/node@24.0.4):
     resolution: {integrity: sha512-qO3aKv3HoQC8QKiNSTuUM1l9o/XX3+c+VTgLHbJWHZGeTPVAg2XwazI9UWzoxjIJCGCV2zU60uqMzjeLZuULqA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -9169,7 +9179,7 @@ packages:
       terser:
         optional: true
     dependencies:
-      '@types/node': 20.19.1
+      '@types/node': 24.0.4
       esbuild: 0.21.5
       postcss: 8.5.6
       rollup: 4.44.0
@@ -9177,7 +9187,7 @@ packages:
       fsevents: 2.3.3
     dev: true
 
-  /vitest@1.6.1(@types/node@20.19.1)(happy-dom@18.0.1):
+  /vitest@1.6.1(@types/node@24.0.4)(happy-dom@18.0.1):
     resolution: {integrity: sha512-Ljb1cnSJSivGN0LqXd/zmDbWEM0RNNg2t1QW/XUhYl/qPqyu7CsqeWtqQXHVaJsecLPuDoak2oJcZN2QoRIOag==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -9202,7 +9212,7 @@ packages:
       jsdom:
         optional: true
     dependencies:
-      '@types/node': 20.19.1
+      '@types/node': 24.0.4
       '@vitest/expect': 1.6.1
       '@vitest/runner': 1.6.1
       '@vitest/snapshot': 1.6.1
@@ -9221,8 +9231,8 @@ packages:
       strip-literal: 2.1.1
       tinybench: 2.9.0
       tinypool: 0.8.4
-      vite: 5.4.19(@types/node@20.19.1)
-      vite-node: 1.6.1(@types/node@20.19.1)
+      vite: 5.4.19(@types/node@24.0.4)
+      vite-node: 1.6.1(@types/node@24.0.4)
       why-is-node-running: 2.3.0
     transitivePeerDependencies:
       - less
