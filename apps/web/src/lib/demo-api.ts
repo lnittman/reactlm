@@ -1,6 +1,8 @@
 // Real API integration for React LLM demo
 // This will replace the simulation when actual React LLM is integrated
 
+import { DemoMockProvider } from './demo-mock-provider'
+
 export interface ApiConfig {
   openRouterKey?: string
   anthropicKey?: string
@@ -53,9 +55,11 @@ export interface ApiResponse {
 class ReactLLMApi {
   private config: ApiConfig
   private isInitialized = false
+  private mockProvider: DemoMockProvider
 
   constructor(config: ApiConfig = {}) {
     this.config = { simulationMode: true, ...config }
+    this.mockProvider = new DemoMockProvider()
   }
 
   async initialize(): Promise<boolean> {
@@ -99,7 +103,8 @@ class ReactLLMApi {
     }
 
     if (this.config.simulationMode) {
-      // Return simulated component analysis
+      // Use mock provider for analysis
+      const analysis = await this.mockProvider.analyzeComponent({ id: componentId, name: componentId })
       return {
         id: componentId,
         name: componentId,
@@ -116,8 +121,9 @@ class ReactLLMApi {
           renderCount: 3,
           memoryUsage: 1.2,
           suggestions: ['Use React.memo for optimization', 'Reduce re-renders']
-        }
-      }
+        },
+        analysis: { message: analysis }
+      } as ComponentAnalysis
     }
 
     try {
@@ -143,29 +149,25 @@ class ReactLLMApi {
     const startTime = Date.now()
 
     if (this.config.simulationMode) {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000))
+      // Use mock provider for code modifications
+      const modification = await this.mockProvider.generateCodeModification(
+        { id: componentId, name: componentId }, 
+        instruction
+      )
       
-      // Return simulated response
       return {
-        message: `I've modified the ${componentId} component based on your request: "${instruction}". Here are the changes I made:`,
+        message: `I've modified the ${componentId} component based on your request: "${instruction}". ${modification.explanation}`,
         codeChanges: [{
-          before: `<div className="old-class">Original content</div>`,
-          after: `<div className="new-class enhanced">Updated content with improvements</div>`,
-          language: 'tsx',
-          explanation: 'Updated styling and added enhancement classes',
-          reasoning: 'These changes improve the visual design and user experience'
+          before: modification.before,
+          after: modification.after,
+          language: modification.language,
+          explanation: modification.explanation,
+          reasoning: modification.explanation
         }],
-        suggestions: [
-          'Consider adding loading states',
-          'Add error boundaries for better error handling',
-          'Implement responsive design breakpoints'
-        ],
+        suggestions: modification.changes,
         metadata: {
-          model,
-          tokensUsed: 150 + Math.floor(Math.random() * 100),
-          responseTime: Date.now() - startTime,
-          cost: 0.001 + Math.random() * 0.01
+          ...this.mockProvider.getMetadata(),
+          responseTime: Date.now() - startTime
         }
       }
     }
@@ -197,6 +199,47 @@ class ReactLLMApi {
       }
     } catch (error) {
       throw new Error(`Component modification failed: ${error}`)
+    }
+  }
+
+  async chat(messages: Array<{role: string, content: string}>, model: string = 'gpt-4o'): Promise<ApiResponse> {
+    if (!this.isInitialized) {
+      throw new Error('API not initialized')
+    }
+
+    const startTime = Date.now()
+
+    if (this.config.simulationMode) {
+      // Use mock provider for chat
+      const response = await this.mockProvider.chat(messages)
+      
+      return {
+        message: response,
+        metadata: {
+          ...this.mockProvider.getMetadata(),
+          responseTime: Date.now() - startTime
+        }
+      }
+    }
+
+    try {
+      // Real React LLM chat
+      const reactLLM = (window as unknown as { ReactLLM?: { chat: (messages: any[], options: any) => Promise<string> } }).ReactLLM
+      if (!reactLLM) throw new Error('ReactLLM not available')
+      
+      const response = await reactLLM.chat(messages, { model })
+      
+      return {
+        message: response,
+        metadata: {
+          model,
+          tokensUsed: 0,
+          responseTime: Date.now() - startTime,
+          cost: 0
+        }
+      }
+    } catch (error) {
+      throw new Error(`Chat failed: ${error}`)
     }
   }
 

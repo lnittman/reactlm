@@ -35,15 +35,15 @@ export function ComponentOverlay({ component, isSelecting = false }: Props) {
       
       if (!ctx) return;
       
-      // Position overlay
+      // Position overlay - CRITICAL: must not block interactions
       overlay.style.display = 'block';
       overlay.style.position = 'fixed';
       overlay.style.top = '0';
       overlay.style.left = '0';
-      overlay.style.width = '100vw';
-      overlay.style.height = '100vh';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
       overlay.style.pointerEvents = 'none';
-      overlay.style.zIndex = '999999';
+      overlay.style.zIndex = '2147483645'; // Below inspector but above page
       
       // Size canvas
       canvas.width = window.innerWidth;
@@ -184,7 +184,16 @@ export function ComponentOverlay({ component, isSelecting = false }: Props) {
   return (
     <div 
       ref={(el) => overlayRef.value = el}
-      style={{ display: 'none' }}
+      style={{ 
+        display: 'none',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: 0,
+        height: 0,
+        pointerEvents: 'none'
+      }}
+      data-react-llm-overlay="true"
     >
       <canvas 
         ref={(el) => canvasRef.value = el}

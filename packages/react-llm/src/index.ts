@@ -2,6 +2,9 @@
 import { h, render } from 'preact';
 import { Toolbar } from './components/Toolbar';
 import { LLMHub } from './llm/providers';
+import { reactDetector, waitForReact } from './utils/react-detector';
+import { ComponentInspector } from './instrumentation/bippy-adapter';
+import { MonitorManager } from './monitoring/monitor-manager';
 
 interface ReactLLMConfig {
   providers?: {
@@ -18,6 +21,7 @@ interface ReactLLMConfig {
   theme?: 'dark' | 'light';
   siteUrl?: string;
   siteName?: string;
+  debug?: boolean;
   // Legacy support
   apiKey?: string;
 }
@@ -25,6 +29,9 @@ interface ReactLLMConfig {
 interface ReactLLMGlobal {
   init: (config: ReactLLMConfig | string) => void;
   hub?: LLMHub;
+  inspector?: ComponentInspector;
+  monitorManager?: MonitorManager;
+  debug?: boolean;
 }
 
 declare global {
@@ -33,24 +40,66 @@ declare global {
   }
 }
 
+let isInitialized = false;
+
 const init = async (config: ReactLLMConfig | string) => {
+  // Prevent multiple initializations
+  if (isInitialized) {
+    console.warn('[ReactLLM] Already initialized, ignoring duplicate init call');
+    return;
+  }
+  
   try {
+    isInitialized = true;
+    
     // Handle legacy string API key format
     const normalizedConfig: ReactLLMConfig = typeof config === 'string' 
       ? { providers: { openrouter: config } }
       : config;
 
-    // Create container with shadow DOM
+    // Enable debug mode if requested
+    if (normalizedConfig.debug) {
+      window.ReactLLM.debug = true;
+    }
+
+    console.log('[ReactLLM] Initializing React-LLM...');
+
+    // Step 1: Initialize React detection and bippy instrumentation early
+    await initializeReactInstrumentation();
+
+    // Step 2: Create a single container with shadow DOM (following react-scan pattern)
     const container = document.createElement('div');
     container.id = 'react-llm-root';
+    // Critical: Set pointer-events: none on container, only the toolbar inside will have pointer-events: auto
+    container.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+      z-index: 2147483645;
+    `;
+    
     document.body.appendChild(container);
 
-    // Create shadow root
+    // Create shadow root for style isolation
     const shadow = container.attachShadow({ mode: 'open' });
+    
+    // Create root div inside shadow DOM
     const root = document.createElement('div');
+    root.id = 'react-llm-shadow-root';
+    root.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+    `;
     shadow.appendChild(root);
 
-    // Initialize LLM Hub
+    // Step 3: Initialize LLM Hub
     const hub = new LLMHub();
     
     // Initialize providers based on config
@@ -74,24 +123,116 @@ const init = async (config: ReactLLMConfig | string) => {
       await hub.initializeDemoMode();
     }
     
-    // Store hub globally for debugging
+    // Step 4: Initialize monitoring system (disabled by default to avoid interference)
+    const monitorManager = new MonitorManager();
+    // Only start monitoring if explicitly in development mode
+    if (normalizedConfig.mode === 'development') {
+      console.log('[ReactLLM] Starting monitoring in development mode');
+      monitorManager.start();
+    }
+    
+    // Store globals for debugging (ensure global object exists)
+    if (!window.ReactLLM) {
+      window.ReactLLM = { init };
+    }
     window.ReactLLM.hub = hub;
+    window.ReactLLM.monitorManager = monitorManager;
 
-    // Pass config to Toolbar
+    // Step 5: Pass everything to Toolbar
     render(h(Toolbar, { 
       hub,
-      config: normalizedConfig 
+      monitorManager,
+      shadowRoot: root // Pass shadow root so toolbar can render overlays inside it
     }), root);
     
-    console.log('React-LLM initialized successfully in', normalizedConfig.apiEndpoint ? 'API mode' : 'direct mode');
+    console.log('[ReactLLM] Initialized successfully in', normalizedConfig.apiEndpoint ? 'API mode' : 'direct mode');
+    
+    // Debug: Check if any elements are blocking the page
+    if (normalizedConfig.debug) {
+      debugCheckBlockingElements();
+    }
   } catch (error) {
-    console.error('Failed to initialize React-LLM:', error);
+    isInitialized = false; // Reset flag on error so retry is possible
+    console.error('[ReactLLM] Failed to initialize:', error);
     throw error;
   }
 };
 
-// Explicitly set up global object
-window.ReactLLM = {
+/**
+ * Initialize React detection and bippy instrumentation early
+ */
+async function initializeReactInstrumentation(): Promise<void> {
+  try {
+    console.log('[ReactLLM] Starting React detection...');
+    
+    // Wait for React to be detected (up to 5 seconds)
+    const reactResult = await waitForReact(5000);
+    
+    if (!reactResult.isReact) {
+      console.warn('[ReactLLM] React not detected, component inspection will be limited');
+      return;
+    }
+    
+    console.log('[ReactLLM] React detected:', reactResult.version);
+    
+    // Initialize bippy instrumentation
+    const inspector = new ComponentInspector();
+    
+    // Store inspector globally for debugging (ensure global object exists)
+    if (!window.ReactLLM) {
+      window.ReactLLM = { init };
+    }
+    window.ReactLLM.inspector = inspector;
+    
+    // Wait a bit for React to render initial components
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    console.log('[ReactLLM] Component instrumentation ready');
+  } catch (error) {
+    console.warn('[ReactLLM] React detection failed:', error instanceof Error ? error.message : String(error));
+    console.warn('[ReactLLM] Component inspection will be limited');
+  }
+}
+
+/**
+ * Debug utility to check for elements that might be blocking page interaction
+ */
+function debugCheckBlockingElements() {
+  console.log('[ReactLLM Debug] Checking for blocking elements...');
+  
+  // Check all elements at viewport corners and center
+  const points = [
+    { x: 10, y: 10, name: 'top-left' },
+    { x: window.innerWidth - 10, y: 10, name: 'top-right' },
+    { x: 10, y: window.innerHeight - 10, name: 'bottom-left' },
+    { x: window.innerWidth - 10, y: window.innerHeight - 10, name: 'bottom-right' },
+    { x: window.innerWidth / 2, y: window.innerHeight / 2, name: 'center' }
+  ];
+  
+  points.forEach(point => {
+    const element = document.elementFromPoint(point.x, point.y);
+    if (element) {
+      const styles = window.getComputedStyle(element);
+      console.log(`[ReactLLM Debug] Element at ${point.name}:`, {
+        element,
+        id: element.id,
+        className: element.className,
+        pointerEvents: styles.pointerEvents,
+        position: styles.position,
+        zIndex: styles.zIndex
+      });
+      
+      // Check if it's one of ours blocking things
+      if (element.id && element.id.includes('react-llm')) {
+        console.warn(`[ReactLLM Debug] Found React LLM element potentially blocking at ${point.name}!`);
+      }
+    }
+  });
+}
+
+// Export for both CommonJS/ESM and IIFE builds
+// The IIFE build will automatically create window.ReactLLM from this export
+export default {
   init
 };
 

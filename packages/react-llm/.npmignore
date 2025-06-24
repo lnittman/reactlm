@@ -1,0 +1,52 @@
+# Source files
+src/
+*.ts
+*.tsx
+!dist/**/*.d.ts
+
+# Config files
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+biome.json
+.turbo/
+
+# Test files
+**/*.test.*
+**/*.spec.*
+__tests__/
+tests/
+coverage/
+*.snap
+
+# Development files
+.DS_Store
+*.log
+*.tmp
+.env*
+.vscode/
+.idea/
+
+# Build artifacts (except dist)
+*.tsbuildinfo
+node_modules/
+
+# Documentation source
+docs/
+*.md
+!README.md
+!CHANGELOG.md
+
+# Examples and demos
+examples/
+demo/
+monitoring-test.html
+validate-monitoring.js
+
+# CI/CD
+.github/
+.changeset/
+
+# Misc
+.gitignore
+.npmignore

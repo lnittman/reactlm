@@ -32,8 +32,13 @@ const storage = {
   messages: new Map<string, ChatMessage[]>(),
 };
 
+let isInitialized = false;
+
 export async function initDB() {
+  if (isInitialized) return true;
+  
   console.log('[ReactLLM] Using in-memory storage');
+  isInitialized = true;
   return true;
 }
 

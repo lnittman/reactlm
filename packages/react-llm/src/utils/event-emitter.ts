@@ -10,6 +10,15 @@ export class EventEmitter {
     return this;
   }
 
+  once(event: string, listener: (...args: any[]) => void): this {
+    const onceWrapper = (...args: any[]) => {
+      this.removeListener(event, onceWrapper);
+      listener(...args);
+    };
+    this.on(event, onceWrapper);
+    return this;
+  }
+
   emit(event: string, ...args: any[]): boolean {
     const listeners = this.events.get(event);
     if (!listeners || listeners.length === 0) {

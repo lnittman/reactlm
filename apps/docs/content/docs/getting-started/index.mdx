@@ -1,0 +1,241 @@
+---
+title: Getting Started
+description: Get React LLM up and running in your project in under 5 minutes
+---
+
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+# getting started
+
+get react llm up and running in your project in under 5 minutes.
+
+<div className="intro">
+  <p>
+    react llm works with any website - from simple html pages to complex react applications.
+    choose the installation method that best fits your workflow.
+  </p>
+</div>
+
+## prerequisites
+
+before you begin, make sure you have:
+
+- a modern web browser (chrome 120+, firefox 125+, safari 18+)
+- an api key from one of our supported providers:
+  - **openrouter** (recommended) - access to 100+ models
+  - **openai** - gpt-4o, gpt-4 turbo, gpt-3.5
+  - **anthropic** - claude 3.5 sonnet, claude 3 opus
+  - **google** - gemini 2.0 flash, gemini 1.5 pro
+
+<Callout type="info">
+  **tip**: openrouter provides access to all major models through a single api key. 
+  [get your key at openrouter.ai](https://openrouter.ai)
+</Callout>
+
+## installation methods
+
+<div className="feature-grid">
+  <div className="feature-card">
+    <div className="feature-card-icon">📜</div>
+    <h3 className="feature-card-title">script tag</h3>
+    <p className="feature-card-description">
+      add one line to any html page. perfect for quick prototypes or existing websites.
+    </p>
+    <a href="/docs/installation/script-tag" className="button button-secondary">
+      view guide →
+    </a>
+  </div>
+  <div className="feature-card">
+    <div className="feature-card-icon">📦</div>
+    <h3 className="feature-card-title">npm package</h3>
+    <p className="feature-card-description">
+      integrate with your build process. ideal for react apps and modern frameworks.
+    </p>
+    <a href="/docs/installation/npm" className="button button-secondary">
+      view guide →
+    </a>
+  </div>
+  <div className="feature-card">
+    <div className="feature-card-icon">🌐</div>
+    <h3 className="feature-card-title">browser extension</h3>
+    <p className="feature-card-description">
+      use on any website without code changes. perfect for exploration and learning.
+    </p>
+    <a href="/docs/installation/browser-extension" className="button button-secondary">
+      view guide →
+    </a>
+  </div>
+  <div className="feature-card">
+    <div className="feature-card-icon">🔧</div>
+    <h3 className="feature-card-title">framework plugins</h3>
+    <p className="feature-card-description">
+      enhanced integration for next.js, vite, and webpack with development features.
+    </p>
+    <a href="/docs/installation/frameworks" className="button button-secondary">
+      view guide →
+    </a>
+  </div>
+</div>
+
+## quick start guide
+
+<Steps>
+<Step>
+### choose your installation method
+
+select the method that best fits your project:
+- **script tag** for quick setup or existing sites
+- **npm package** for modern react applications
+- **browser extension** for exploration without code
+- **framework plugin** for enhanced development features
+</Step>
+
+<Step>
+### get an api key
+
+sign up for an api key from one of our supported providers:
+
+<Tabs items={['OpenRouter', 'OpenAI', 'Anthropic', 'Google']}>
+<Tab value="OpenRouter">
+1. visit [openrouter.ai](https://openrouter.ai)
+2. sign up for an account
+3. create an api key
+4. copy your key starting with `sk-or-`
+</Tab>
+<Tab value="OpenAI">
+1. visit [platform.openai.com](https://platform.openai.com)
+2. sign up or log in
+3. go to api keys section
+4. create a new key
+5. copy your key starting with `sk-`
+</Tab>
+<Tab value="Anthropic">
+1. visit [console.anthropic.com](https://console.anthropic.com)
+2. sign up or log in
+3. navigate to api keys
+4. generate a new key
+5. copy your key starting with `sk-ant-`
+</Tab>
+<Tab value="Google">
+1. visit [makersuite.google.com](https://makersuite.google.com)
+2. sign in with google
+3. get api key
+4. copy your key
+</Tab>
+</Tabs>
+</Step>
+
+<Step>
+### initialize react llm
+
+add react llm to your project and initialize with your api key:
+
+```javascript
+ReactLLM.init({
+  providers: {
+    openrouter: 'your-api-key-here'
+  },
+  mode: 'development', // or 'production'
+  theme: 'light', // or 'dark', 'auto'
+  position: 'bottom-right' // or 'bottom-left'
+});
+```
+</Step>
+
+<Step>
+### start using react llm
+
+1. look for the react llm icon in the corner of your page
+2. click to open the chat interface
+3. select any component on your page
+4. start chatting with ai about your code
+</Step>
+</Steps>
+
+## configuration options
+
+react llm can be configured to match your needs:
+
+```javascript
+ReactLLM.init({
+  // api providers (at least one required)
+  providers: {
+    openrouter: 'sk-or-...',
+    openai: 'sk-...',
+    anthropic: 'sk-ant-...',
+    google: 'your-google-key'
+  },
+  
+  // operating mode
+  mode: 'development', // enables file editing
+  
+  // ui customization
+  theme: 'auto', // 'light', 'dark', or 'auto'
+  position: 'bottom-right', // or 'bottom-left'
+  hotkey: 'cmd+k', // keyboard shortcut
+  
+  // advanced options
+  debug: false, // enable debug logging
+  telemetry: true, // anonymous usage stats
+  maxContextSize: 8000, // max tokens for context
+  
+  // model preferences
+  defaultModel: 'claude-3-5-sonnet', // or any supported model
+  temperature: 0.7, // ai response creativity (0-1)
+});
+```
+
+## environment detection
+
+react llm automatically detects your environment:
+
+### development indicators
+- localhost or 127.0.0.1
+- port 3000-9999
+- presence of source maps
+- react development mode
+- webpack/vite dev server
+
+### production safety
+- read-only component exploration
+- no file system access
+- sandboxed execution
+- limited to public apis
+
+## troubleshooting
+
+### react llm not appearing
+
+1. check browser console for errors
+2. verify api key is valid
+3. ensure script is loaded after page content
+4. check for content security policy restrictions
+
+### component selection not working
+
+1. ensure you're on a react-based site
+2. check if react is in production mode
+3. try refreshing the page
+4. verify browser compatibility
+
+### api errors
+
+1. check api key format and validity
+2. verify you have credits/quota
+3. check network connectivity
+4. try a different model/provider
+
+## next steps
+
+now that you have react llm installed:
+
+- explore the [features guide](/docs/features) to learn what's possible
+- check out [example use cases](/docs/examples) for inspiration
+- read the [api reference](/docs/api) for advanced usage
+- join our [discord community](https://discord.gg/react-llm) for help
+
+<Callout type="success">
+  **you're ready!** react llm is now active on your page. click the icon in the corner to start exploring.
+</Callout>

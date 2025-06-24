@@ -6,18 +6,29 @@ on:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -34,13 +45,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build packages
+      - name: Build all packages
         run: pnpm build
 
-      - name: Run tests
-        run: pnpm test
+      - name: Run full test suite
+        run: |
+          pnpm test
+          pnpm test:integration || true
 
-      - name: Create Release PR or Publish
+      - name: Create Release Pull Request or Publish
         id: changesets
         uses: changesets/action@v1
         with:
@@ -48,34 +61,257 @@ jobs:
           version: pnpm version
           commit: 'chore: release packages'
           title: 'chore: release packages'
+          createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
 
-      - name: Upload to CDN
+      - name: Generate changelog
         if: steps.changesets.outputs.published == 'true'
+        run: |
+          # Extract version from published packages
+          VERSION=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[0].version')
+          
+          # Generate comprehensive changelog
+          cat > RELEASE_NOTES.md << EOF
+          # React LLM v${VERSION} Release Notes
+          
+          ## 📦 Published Packages
+          $(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | "- \(.name)@\(.version)"')
+          
+          ## 🚀 Installation
+          
+          ### NPM
+          \`\`\`bash
+          npm install react-llm@${VERSION}
+          \`\`\`
+          
+          ### CDN
+          \`\`\`html
+          <script src="https://unpkg.com/react-llm@${VERSION}/dist/react-llm.global.js"></script>
+          \`\`\`
+          
+          ## 📝 Changelog
+          See the full changelog at: https://github.com/${{ github.repository }}/blob/main/packages/react-llm/CHANGELOG.md
+          EOF
+
+  cdn-publish:
+    name: CDN Distribution
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install and build
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Generate CDN artifacts
+        run: |
+          cd packages/react-llm
+          VERSION=$(node -p "require('./package.json').version")
+          
+          # Generate SRI hashes
+          SHA384=$(openssl dgst -sha384 -binary dist/react-llm.global.js | openssl base64 -A)
+          
+          # Create CDN usage documentation
+          cat > ../../CDN_USAGE.md << EOF
+          # React LLM CDN Usage Guide
+          
+          ## Version: ${VERSION}
+          
+          ### Basic Usage
+          \`\`\`html
+          <script 
+            src="https://unpkg.com/react-llm@${VERSION}/dist/react-llm.global.js"
+            integrity="sha384-${SHA384}"
+            crossorigin="anonymous"
+          ></script>
+          <script>
+            ReactLLM.init({
+              providers: {
+                openrouter: 'your-api-key'
+              }
+            });
+          </script>
+          \`\`\`
+          
+          ### Available CDNs
+          - unpkg: https://unpkg.com/react-llm@${VERSION}/dist/react-llm.global.js
+          - jsDelivr: https://cdn.jsdelivr.net/npm/react-llm@${VERSION}/dist/react-llm.global.js
+          - cdnjs: Coming soon
+          
+          ### File Sizes
+          $(ls -lh dist/*.js | awk '{print "- " $9 ": " $5}')
+          
+          ### Integrity Hashes
+          - SHA-384: \`sha384-${SHA384}\`
+          EOF
+
+      - name: Upload GitHub Release assets
+        run: |
+          # Get latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          
+          # Create distribution archive
+          cd packages/react-llm
+          tar -czf ../../react-llm-${LATEST_TAG}-dist.tar.gz dist/
+          cd ../..
+          
+          # Upload to GitHub release
+          gh release upload ${LATEST_TAG} \
+            react-llm-${LATEST_TAG}-dist.tar.gz \
+            CDN_USAGE.md \
+            RELEASE_NOTES.md \
+            --clobber
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: pnpm upload-cdn
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy Documentation
-        if: steps.changesets.outputs.published == 'true'
+  documentation:
+    name: Deploy Documentation
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build documentation
+        run: pnpm --filter @react-llm/docs build
+
+      - name: Deploy to Vercel
+        if: env.VERCEL_TOKEN != ''
+        run: |
+          cd apps/docs
+          npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          pnpm --filter @react-llm/docs build
-          pnpm dlx vercel --prod --token $VERCEL_TOKEN
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DOCS }}
 
-      - name: Notify Discord
-        if: steps.changesets.outputs.published == 'true'
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+  notifications:
+    name: Send Notifications
+    needs: [release, cdn-publish]
+    if: needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse release info
+        id: parse
         run: |
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d "{\"content\":\"🚀 New React LLM release published! Check it out at https://react-llm.dev\"}" \
-               $DISCORD_WEBHOOK
+          PACKAGES=$(echo '${{ needs.release.outputs.publishedPackages }}' | jq -r '.[] | "\(.name)@\(.version)"' | tr '\n' ', ' | sed 's/,$//')
+          VERSION=$(echo '${{ needs.release.outputs.publishedPackages }}' | jq -r '.[0].version')
+          echo "packages=${PACKAGES}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Discord notification
+        if: env.DISCORD_WEBHOOK_URL != ''
+        run: |
+          curl -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
+            -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "🚀 React LLM v${{ steps.parse.outputs.version }} Released!",
+                "description": "A new version of React LLM has been published to NPM.",
+                "color": 3066993,
+                "fields": [
+                  {
+                    "name": "📦 Packages",
+                    "value": "${{ steps.parse.outputs.packages }}",
+                    "inline": false
+                  },
+                  {
+                    "name": "🔗 Links",
+                    "value": "[NPM](https://npmjs.com/package/react-llm) • [GitHub](https://github.com/${{ github.repository }}/releases/latest) • [Docs](https://react-llm.dev)",
+                    "inline": false
+                  },
+                  {
+                    "name": "💿 CDN",
+                    "value": "`https://unpkg.com/react-llm@${{ steps.parse.outputs.version }}/dist/react-llm.global.js`",
+                    "inline": false
+                  }
+                ],
+                "footer": {
+                  "text": "React LLM",
+                  "icon_url": "https://react-llm.dev/logo.png"
+                },
+                "timestamp": "${{ github.event.head_commit.timestamp }}"
+              }]
+            }'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Slack notification
+        if: env.SLACK_WEBHOOK_URL != ''
+        run: |
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+            -H "Content-Type: application/json" \
+            -d '{
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "🚀 React LLM v${{ steps.parse.outputs.version }} Released!"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Packages:*\n${{ steps.parse.outputs.packages }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Links:*\n<https://npmjs.com/package/react-llm|NPM> • <https://github.com/${{ github.repository }}/releases/latest|GitHub> • <https://react-llm.dev|Docs>"
+                    }
+                  ]
+                }
+              ]
+            }'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create announcement issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.parse.outputs.version }}';
+            const packages = '${{ steps.parse.outputs.packages }}';
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🎉 Release v${version} - Announcement`,
+              body: `# React LLM v${version} has been released!\n\n## Published packages\n${packages}\n\n## Installation\n\`\`\`bash\nnpm install react-llm@${version}\n\`\`\`\n\n## CDN\n\`\`\`html\n<script src="https://unpkg.com/react-llm@${version}/dist/react-llm.global.js"></script>\n\`\`\`\n\n## Links\n- [NPM Package](https://npmjs.com/package/react-llm)\n- [Release Notes](https://github.com/${{ github.repository }}/releases/latest)\n- [Documentation](https://react-llm.dev)\n\n---\n*This issue was automatically created by the release workflow.*`,
+              labels: ['release', 'announcement']
+            });

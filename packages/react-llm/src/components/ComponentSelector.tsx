@@ -48,15 +48,20 @@ export function ComponentSelector({ inspector, onSelect, className = '' }: Props
     };
     
     const handleClick = (e: MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
+      // Get the component at click point
       const component = inspector.getComponentAtPoint(e.clientX, e.clientY);
+      
       if (component) {
-        // Unhighlight the component
-        inspector.unhighlightComponent(component);
+        // Only prevent default if we found a component to select
+        e.preventDefault();
+        e.stopPropagation();
         
-        // Select the component
+        // Unhighlight the component
+        if (hoveredComponent.value) {
+          inspector.unhighlightComponent(hoveredComponent.value);
+        }
+        
+        // Select the component and exit selection mode
         selectedComponent.value = component;
         onSelect(component);
         isSelecting.value = false;
@@ -76,24 +81,27 @@ export function ComponentSelector({ inspector, onSelect, className = '' }: Props
       }
     };
     
-    // Add event listeners
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('click', handleClick, true);
-    document.addEventListener('keydown', handleEscape);
+    // Add event listeners (only use capture for click to ensure we get it first)
+    document.addEventListener('mousemove', handleMouseMove, false);
+    document.addEventListener('click', handleClick, true); // Capture phase for click
+    document.addEventListener('keydown', handleEscape, false);
     
-    // Change cursor
+    // Change cursor to indicate selection mode
     document.body.style.cursor = 'crosshair';
     
     return () => {
-      // Cleanup
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('click', handleClick, true);
-      document.removeEventListener('keydown', handleEscape);
+      // Cleanup all event listeners
+      document.removeEventListener('mousemove', handleMouseMove, false);
+      document.removeEventListener('click', handleClick, true); // Match capture phase
+      document.removeEventListener('keydown', handleEscape, false);
+      
+      // Reset cursor
       document.body.style.cursor = '';
       
       // Cleanup any remaining highlights
       if (hoveredComponent.value) {
         inspector.unhighlightComponent(hoveredComponent.value);
+        hoveredComponent.value = null;
       }
     };
   });

@@ -1,0 +1,305 @@
+---
+title: Quick Start - 5-Minute Setup
+description: Get React LLM running in 5 minutes with our quickest setup path
+---
+
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+# quick start
+
+get react llm running in 5 minutes with our quickest setup path.
+
+<div className="intro">
+  <p>
+    this guide shows the fastest way to add react llm to any website.
+    perfect for trying it out or adding to an existing project.
+  </p>
+</div>
+
+## the 30-second version
+
+add this to your html:
+
+```html
+<script src="https://unpkg.com/react-llm/dist/react-llm.js"></script>
+<script>
+  ReactLLM.init({
+    providers: {
+      openrouter: 'sk-or-...' // get free key at openrouter.ai
+    }
+  });
+</script>
+```
+
+that's it! react llm is now active on your page.
+
+## step-by-step guide
+
+<Steps>
+<Step>
+### get an openrouter api key
+
+openrouter gives you access to 100+ ai models with one key:
+
+1. go to [openrouter.ai](https://openrouter.ai)
+2. click "sign up" (free)
+3. create an api key
+4. copy the key (starts with `sk-or-`)
+
+<Callout type="info">
+  **why openrouter?** one key for claude, gpt-4, gemini, and more. switch models anytime.
+</Callout>
+</Step>
+
+<Step>
+### add to your website
+
+choose your setup method:
+
+<Tabs items={['HTML Page', 'React App', 'Next.js', 'Vite']}>
+<Tab value="HTML Page">
+add before closing `</body>` tag:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My App</title>
+</head>
+<body>
+  <!-- your content -->
+  
+  <script src="https://unpkg.com/react-llm/dist/react-llm.js"></script>
+  <script>
+    ReactLLM.init({
+      providers: {
+        openrouter: 'sk-or-YOUR-KEY-HERE'
+      }
+    });
+  </script>
+</body>
+</html>
+```
+</Tab>
+<Tab value="React App">
+in your main app file:
+
+```jsx
+import { useEffect } from 'react';
+
+function App() {
+  useEffect(() => {
+    // dynamically load react llm
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/react-llm/dist/react-llm.js';
+    script.onload = () => {
+      window.ReactLLM.init({
+        providers: {
+          openrouter: 'sk-or-YOUR-KEY-HERE'
+        }
+      });
+    };
+    document.body.appendChild(script);
+  }, []);
+
+  return <YourApp />;
+}
+```
+</Tab>
+<Tab value="Next.js">
+in `pages/_app.js` or `app/layout.tsx`:
+
+```jsx
+import Script from 'next/script';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        {children}
+        <Script 
+          src="https://unpkg.com/react-llm/dist/react-llm.js"
+          strategy="afterInteractive"
+          onLoad={() => {
+            window.ReactLLM.init({
+              providers: {
+                openrouter: 'sk-or-YOUR-KEY-HERE'
+              }
+            });
+          }}
+        />
+      </body>
+    </html>
+  );
+}
+```
+</Tab>
+<Tab value="Vite">
+in your `index.html`:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Vite App</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+  
+  <script src="https://unpkg.com/react-llm/dist/react-llm.js"></script>
+  <script>
+    window.addEventListener('load', () => {
+      ReactLLM.init({
+        providers: {
+          openrouter: 'sk-or-YOUR-KEY-HERE'
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+```
+</Tab>
+</Tabs>
+</Step>
+
+<Step>
+### verify it's working
+
+1. look for the react llm icon in the bottom-right corner
+2. click it to open the chat
+3. click any component on your page
+4. type "what is this component?"
+
+<Callout type="success">
+  **success!** if you see component details in the chat, react llm is working.
+</Callout>
+</Step>
+</Steps>
+
+## what to try first
+
+once react llm is running, try these:
+
+### explore components
+- click any ui element to select it
+- ask "what props does this component have?"
+- try "show me the component hierarchy"
+
+### analyze code
+- select a complex component
+- ask "how does this component work?"
+- try "what could be improved here?"
+
+### get suggestions
+- ask "how would you refactor this?"
+- try "suggest accessibility improvements"
+- ask "what's the best practice for this pattern?"
+
+## common questions
+
+### is my api key secure?
+
+yes - your key stays in your browser and is only used for direct api calls.
+
+### which model should i use?
+
+start with claude 3.5 sonnet for best results. it's fast and great at code.
+
+### can i use multiple providers?
+
+yes! add multiple keys:
+
+```javascript
+ReactLLM.init({
+  providers: {
+    openrouter: 'sk-or-...',
+    openai: 'sk-...',
+    anthropic: 'sk-ant-...'
+  }
+});
+```
+
+### how do i change models?
+
+click the model selector in the chat interface to switch between available models.
+
+## quick configuration
+
+customize react llm for your needs:
+
+```javascript
+ReactLLM.init({
+  providers: {
+    openrouter: 'sk-or-...'
+  },
+  
+  // appearance
+  theme: 'dark', // or 'light', 'auto'
+  position: 'bottom-left', // or 'bottom-right'
+  
+  // behavior
+  mode: 'development', // enables file editing
+  hotkey: 'cmd+shift+l', // custom keyboard shortcut
+  
+  // defaults
+  defaultModel: 'claude-3-5-sonnet',
+  temperature: 0.7
+});
+```
+
+## troubleshooting quick fixes
+
+<div className="action-list-item">
+  <div className="action-list-item-main">
+    <div className="action-list-item-icon">⚠️</div>
+    <div className="action-list-item-content">
+      <div className="action-list-item-text">icon not appearing</div>
+      <div className="action-list-item-description">
+        check browser console for errors. make sure script loads after page content.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div className="action-list-item">
+  <div className="action-list-item-main">
+    <div className="action-list-item-icon">🔍</div>
+    <div className="action-list-item-content">
+      <div className="action-list-item-text">can't select components</div>
+      <div className="action-list-item-description">
+        ensure you're on a react site. try refreshing. check if react devtools work.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div className="action-list-item">
+  <div className="action-list-item-main">
+    <div className="action-list-item-icon">🔑</div>
+    <div className="action-list-item-content">
+      <div className="action-list-item-text">api key errors</div>
+      <div className="action-list-item-description">
+        verify key format. check you have credits. try a different model.
+      </div>
+    </div>
+  </div>
+</div>
+
+## next steps
+
+now that react llm is running:
+
+1. **[explore features](/docs/features)** - see everything react llm can do
+2. **[try examples](/docs/examples)** - learn from real-world use cases
+3. **[read guides](/docs/guides)** - best practices and workflows
+4. **[join discord](https://discord.gg/react-llm)** - get help from the community
+
+<Callout>
+  **pro tip**: in development mode, react llm can edit files directly. 
+  [learn more about development mode →](/docs/guides/development-mode)
+</Callout>

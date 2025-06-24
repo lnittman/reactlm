@@ -1,0 +1,702 @@
+---
+title: React Examples
+description: Real-world examples of using React LLM in React applications
+---
+
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+# react examples
+
+real-world examples of using react llm in react applications.
+
+<div className="intro">
+  <p>
+    these examples show common patterns and use cases for integrating react llm
+    into your react projects. from simple setups to advanced configurations.
+  </p>
+</div>
+
+## basic react app
+
+### create react app
+
+<Steps>
+<Step>
+### create a new react app
+
+```bash
+npx create-react-app my-app --template typescript
+cd my-app
+```
+</Step>
+
+<Step>
+### add react llm
+
+```bash
+npm install react-llm
+```
+</Step>
+
+<Step>
+### integrate in app.tsx
+
+```tsx
+import React, { useEffect } from 'react';
+import './App.css';
+
+function App() {
+  useEffect(() => {
+    // dynamically import and initialize
+    import('react-llm').then(({ default: ReactLLM }) => {
+      ReactLLM.init({
+        providers: {
+          openrouter: process.env.REACT_APP_OPENROUTER_KEY || ''
+        }
+      });
+    });
+  }, []);
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <h1>my react app</h1>
+        <p>react llm is now active. click the icon to chat!</p>
+      </header>
+    </div>
+  );
+}
+
+export default App;
+```
+</Step>
+
+<Step>
+### add environment variables
+
+create `.env.local`:
+
+```bash
+REACT_APP_OPENROUTER_KEY=sk-or-your-key-here
+```
+</Step>
+</Steps>
+
+## advanced integration
+
+### custom provider component
+
+create a reusable provider component:
+
+```tsx
+// ReactLLMProvider.tsx
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import ReactLLM from 'react-llm';
+
+interface ReactLLMContextType {
+  isReady: boolean;
+  selectedComponent: any;
+  chatHistory: any[];
+}
+
+const ReactLLMContext = createContext<ReactLLMContextType>({
+  isReady: false,
+  selectedComponent: null,
+  chatHistory: []
+});
+
+export const useReactLLM = () => useContext(ReactLLMContext);
+
+export function ReactLLMProvider({ 
+  children,
+  config 
+}: { 
+  children: React.ReactNode;
+  config: any;
+}) {
+  const [isReady, setIsReady] = useState(false);
+  const [selectedComponent, setSelectedComponent] = useState(null);
+  const [chatHistory, setChatHistory] = useState([]);
+
+  useEffect(() => {
+    // initialize react llm
+    ReactLLM.init(config);
+    
+    // listen for events
+    ReactLLM.on('ready', () => setIsReady(true));
+    ReactLLM.on('component-selected', setSelectedComponent);
+    ReactLLM.on('message', (msg) => {
+      setChatHistory(prev => [...prev, msg]);
+    });
+
+    return () => {
+      ReactLLM.off('ready');
+      ReactLLM.off('component-selected');
+      ReactLLM.off('message');
+    };
+  }, [config]);
+
+  return (
+    <ReactLLMContext.Provider value={{
+      isReady,
+      selectedComponent,
+      chatHistory
+    }}>
+      {children}
+    </ReactLLMContext.Provider>
+  );
+}
+```
+
+### usage with custom provider
+
+```tsx
+// App.tsx
+import React from 'react';
+import { ReactLLMProvider, useReactLLM } from './ReactLLMProvider';
+
+function Dashboard() {
+  const { isReady, selectedComponent } = useReactLLM();
+  
+  return (
+    <div>
+      <h2>dashboard</h2>
+      <p>react llm status: {isReady ? 'ready' : 'loading...'}</p>
+      {selectedComponent && (
+        <div>
+          <h3>selected component</h3>
+          <pre>{JSON.stringify(selectedComponent, null, 2)}</pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function App() {
+  const config = {
+    providers: {
+      openrouter: process.env.REACT_APP_OPENROUTER_KEY!
+    },
+    ui: {
+      theme: 'dark',
+      position: 'bottom-right'
+    },
+    features: {
+      componentSelection: true,
+      persistHistory: true
+    }
+  };
+
+  return (
+    <ReactLLMProvider config={config}>
+      <Dashboard />
+    </ReactLLMProvider>
+  );
+}
+
+export default App;
+```
+
+## component patterns
+
+### debugging helper
+
+create a component that shows react llm status:
+
+```tsx
+// ReactLLMDebugger.tsx
+import React, { useEffect, useState } from 'react';
+import ReactLLM from 'react-llm';
+
+export function ReactLLMDebugger() {
+  const [status, setStatus] = useState({
+    initialized: false,
+    model: '',
+    messagesCount: 0,
+    selectedComponent: null
+  });
+
+  useEffect(() => {
+    const updateStatus = () => {
+      ReactLLM.getStatus().then(setStatus);
+    };
+
+    // initial status
+    updateStatus();
+
+    // listen for changes
+    const interval = setInterval(updateStatus, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!status.initialized) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 10,
+      right: 10,
+      background: 'rgba(0,0,0,0.8)',
+      color: 'white',
+      padding: '10px',
+      borderRadius: '5px',
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      zIndex: 999999
+    }}>
+      <div>model: {status.model}</div>
+      <div>messages: {status.messagesCount}</div>
+      <div>selected: {status.selectedComponent?.name || 'none'}</div>
+    </div>
+  );
+}
+```
+
+### conditional loading
+
+load react llm based on user preferences:
+
+```tsx
+// ConditionalReactLLM.tsx
+import React, { useEffect, useState } from 'react';
+
+export function ConditionalReactLLM() {
+  const [enabled, setEnabled] = useState(
+    localStorage.getItem('react-llm-enabled') === 'true'
+  );
+
+  useEffect(() => {
+    if (enabled) {
+      import('react-llm').then(({ default: ReactLLM }) => {
+        ReactLLM.init({
+          providers: {
+            openrouter: process.env.REACT_APP_OPENROUTER_KEY!
+          }
+        });
+      });
+    }
+  }, [enabled]);
+
+  const toggle = () => {
+    const newState = !enabled;
+    setEnabled(newState);
+    localStorage.setItem('react-llm-enabled', String(newState));
+    if (newState) {
+      window.location.reload(); // reload to initialize
+    }
+  };
+
+  return (
+    <button 
+      onClick={toggle}
+      style={{
+        position: 'fixed',
+        bottom: 20,
+        left: 20,
+        padding: '10px 20px',
+        background: enabled ? '#dc2626' : '#10b981',
+        color: 'white',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer'
+      }}
+    >
+      {enabled ? 'disable' : 'enable'} react llm
+    </button>
+  );
+}
+```
+
+## real-world use cases
+
+### e-commerce product editor
+
+```tsx
+// ProductEditor.tsx
+import React, { useState } from 'react';
+import { useReactLLM } from './ReactLLMProvider';
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+}
+
+export function ProductEditor({ product }: { product: Product }) {
+  const [editing, setEditing] = useState(false);
+  const { selectedComponent } = useReactLLM();
+  
+  // automatically enter edit mode when this component is selected
+  React.useEffect(() => {
+    if (selectedComponent?.props?.product?.id === product.id) {
+      setEditing(true);
+    }
+  }, [selectedComponent, product.id]);
+
+  return (
+    <div className="product-card" data-product-id={product.id}>
+      <img src={product.image} alt={product.name} />
+      <h3>{product.name}</h3>
+      <p>{product.description}</p>
+      <span>${product.price}</span>
+      
+      {editing && (
+        <div className="ai-edit-hint">
+          chat with ai to modify this product
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### form validation helper
+
+```tsx
+// AIFormValidator.tsx
+import React, { useState } from 'react';
+import ReactLLM from 'react-llm';
+
+interface FormData {
+  email: string;
+  password: string;
+  username: string;
+}
+
+export function AIFormValidator() {
+  const [formData, setFormData] = useState<FormData>({
+    email: '',
+    password: '',
+    username: ''
+  });
+  const [validating, setValidating] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  const validateWithAI = async () => {
+    setValidating(true);
+    
+    const response = await ReactLLM.chat({
+      messages: [{
+        role: 'user',
+        content: `validate this form data and suggest improvements:
+        ${JSON.stringify(formData, null, 2)}`
+      }]
+    });
+    
+    // parse ai suggestions
+    const parsed = response.match(/- (.+)/g) || [];
+    setSuggestions(parsed.map(s => s.replace('- ', '')));
+    setValidating(false);
+  };
+
+  return (
+    <form>
+      <input
+        type="email"
+        placeholder="email"
+        value={formData.email}
+        onChange={(e) => setFormData({...formData, email: e.target.value})}
+      />
+      <input
+        type="password"
+        placeholder="password"
+        value={formData.password}
+        onChange={(e) => setFormData({...formData, password: e.target.value})}
+      />
+      <input
+        type="text"
+        placeholder="username"
+        value={formData.username}
+        onChange={(e) => setFormData({...formData, username: e.target.value})}
+      />
+      
+      <button type="button" onClick={validateWithAI} disabled={validating}>
+        {validating ? 'validating...' : 'validate with ai'}
+      </button>
+      
+      {suggestions.length > 0 && (
+        <div className="suggestions">
+          <h4>ai suggestions:</h4>
+          <ul>
+            {suggestions.map((suggestion, i) => (
+              <li key={i}>{suggestion}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </form>
+  );
+}
+```
+
+### component documentation generator
+
+```tsx
+// ComponentDocGenerator.tsx
+import React, { useState } from 'react';
+import ReactLLM from 'react-llm';
+
+export function ComponentDocGenerator({ 
+  component 
+}: { 
+  component: React.ComponentType 
+}) {
+  const [docs, setDocs] = useState('');
+  const [generating, setGenerating] = useState(false);
+
+  const generateDocs = async () => {
+    setGenerating(true);
+    
+    const componentString = component.toString();
+    const response = await ReactLLM.chat({
+      messages: [{
+        role: 'user',
+        content: `generate comprehensive documentation for this react component:
+        
+        ${componentString}
+        
+        include: description, props, usage example, and best practices`
+      }]
+    });
+    
+    setDocs(response);
+    setGenerating(false);
+  };
+
+  return (
+    <div className="doc-generator">
+      <button onClick={generateDocs} disabled={generating}>
+        {generating ? 'generating...' : 'generate docs'}
+      </button>
+      
+      {docs && (
+        <div className="generated-docs">
+          <pre>{docs}</pre>
+          <button onClick={() => navigator.clipboard.writeText(docs)}>
+            copy to clipboard
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## error boundaries
+
+### react llm error boundary
+
+```tsx
+// ReactLLMErrorBoundary.tsx
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+
+interface Props {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+  error: Error | null;
+}
+
+export class ReactLLMErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('React LLM Error:', error, errorInfo);
+    
+    // optionally report to react llm
+    if (window.ReactLLM) {
+      window.ReactLLM.logError({
+        error: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack
+      });
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
+        <div style={{ padding: '20px', background: '#fee', borderRadius: '5px' }}>
+          <h3>react llm encountered an error</h3>
+          <p>{this.state.error?.message}</p>
+          <button onClick={() => this.setState({ hasError: false, error: null })}>
+            retry
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// usage
+function App() {
+  return (
+    <ReactLLMErrorBoundary>
+      <YourApp />
+    </ReactLLMErrorBoundary>
+  );
+}
+```
+
+## performance optimization
+
+### lazy loading react llm
+
+```tsx
+// LazyReactLLM.tsx
+import React, { lazy, Suspense } from 'react';
+
+const ReactLLMLoader = lazy(() => 
+  import('./ReactLLMProvider').then(module => ({
+    default: module.ReactLLMProvider
+  }))
+);
+
+export function LazyReactLLM({ children }: { children: React.ReactNode }) {
+  const [shouldLoad, setShouldLoad] = React.useState(false);
+
+  React.useEffect(() => {
+    // only load after initial render
+    requestIdleCallback(() => setShouldLoad(true));
+  }, []);
+
+  if (!shouldLoad) return <>{children}</>;
+
+  return (
+    <Suspense fallback={<>{children}</>}>
+      <ReactLLMLoader config={{
+        providers: {
+          openrouter: process.env.REACT_APP_OPENROUTER_KEY!
+        }
+      }}>
+        {children}
+      </ReactLLMLoader>
+    </Suspense>
+  );
+}
+```
+
+## typescript integration
+
+### typed configuration
+
+```tsx
+// types/react-llm.d.ts
+import 'react-llm';
+
+declare module 'react-llm' {
+  interface CustomConfig {
+    myCustomOption?: string;
+  }
+  
+  interface ReactLLMConfig {
+    custom?: CustomConfig;
+  }
+}
+
+// usage
+import ReactLLM from 'react-llm';
+
+ReactLLM.init({
+  providers: {
+    openrouter: 'sk-or-...'
+  },
+  custom: {
+    myCustomOption: 'value' // now typed!
+  }
+});
+```
+
+### typed hooks
+
+```tsx
+// hooks/useReactLLMChat.ts
+import { useState, useCallback } from 'react';
+import ReactLLM from 'react-llm';
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
+
+export function useReactLLMChat() {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const sendMessage = useCallback(async (content: string) => {
+    setIsLoading(true);
+    
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    
+    try {
+      const response = await ReactLLM.chat({
+        messages: [...messages, userMessage].map(m => ({
+          role: m.role,
+          content: m.content
+        }))
+      });
+      
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: response,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Chat error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [messages]);
+  
+  return {
+    messages,
+    sendMessage,
+    isLoading,
+    clearMessages: () => setMessages([])
+  };
+}
+```
+
+## best practices
+
+<Callout type="info">
+  **tips for react integration**:
+  1. always initialize react llm after react has mounted
+  2. use environment variables for api keys
+  3. implement error boundaries for robustness
+  4. lazy load for better performance
+  5. create reusable provider components
+</Callout>
+
+## next steps
+
+- explore [next.js examples](/docs/examples/nextjs)
+- learn about [vite integration](/docs/examples/vite)
+- check out [advanced recipes](/docs/examples/recipes)
+- join our [community](https://discord.gg/react-llm) for more examples

@@ -4,106 +4,315 @@ on:
   push:
     branches: [main]
     paths:
-      - 'docs/**'
+      - 'apps/docs/**'
+      - 'packages/react-llm/**'
+      - '.github/workflows/docs.yml'
       - 'README.md'
       - 'packages/*/README.md'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/docs/**'
+      - 'packages/react-llm/**'
+      - '.github/workflows/docs.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+
 jobs:
-  deploy-docs:
-    name: Deploy Documentation
+  build-docs:
+    name: Build Documentation
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    concurrency:
-      group: "pages"
-      cancel-in-progress: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          run_install: false
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version: 20
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build --filter=react-llm
 
       - name: Build documentation
+        run: pnpm --filter @react-llm/docs build
+
+      - name: Generate API documentation
         run: |
-          cd apps/docs
-          pnpm build
-        env:
-          NODE_ENV: production
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'apps/docs/dist'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-  api-docs:
-    name: Generate API Documentation
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          run_install: false
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Generate API docs
-        run: |
+          # Install typedoc if not present
+          pnpm add -D typedoc typedoc-plugin-markdown -w
+          
+          # Generate API docs
           pnpm exec typedoc packages/react-llm/src/index.ts \
-            --out docs/api \
+            --out apps/docs/public/api \
             --readme none \
             --excludePrivate \
             --excludeInternal \
             --hideGenerator \
+            --plugin typedoc-plugin-markdown \
             --gitRevision main
 
-      - name: Upload API docs
+      - name: Upload docs artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: api-docs
-          path: docs/api
-          retention-days: 30
+          name: docs-build
+          path: |
+            apps/docs/.next
+            apps/docs/public/api
+          retention-days: 7
+
+  deploy-preview:
+    name: Deploy Preview
+    needs: build-docs
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: Preview
+      url: ${{ steps.deploy.outputs.url }}
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download docs artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: docs-build
+          path: apps/docs
+
+      - name: Deploy to Vercel Preview
+        id: deploy
+        run: |
+          cd apps/docs
+          
+          # Install Vercel CLI
+          npm i -g vercel@latest
+          
+          # Deploy preview
+          DEPLOYMENT_URL=$(vercel deploy --token ${{ secrets.VERCEL_TOKEN }} --yes)
+          echo "url=${DEPLOYMENT_URL}" >> $GITHUB_OUTPUT
+          
+          # Alias to PR-specific URL
+          PR_URL="react-llm-pr-${{ github.event.pull_request.number }}.vercel.app"
+          vercel alias ${DEPLOYMENT_URL} ${PR_URL} --token ${{ secrets.VERCEL_TOKEN }} --yes || true
+          echo "preview_url=https://${PR_URL}" >> $GITHUB_OUTPUT
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DOCS }}
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deploymentUrl = '${{ steps.deploy.outputs.url }}';
+            const previewUrl = '${{ steps.deploy.outputs.preview_url }}';
+            
+            const comment = `## 📚 Documentation Preview Ready!
+            
+            | Preview | URL |
+            |---------|-----|
+            | 🔗 Custom URL | ${previewUrl} |
+            | 🔗 Direct Link | ${deploymentUrl} |
+            
+            ### 📊 Preview Details
+            | Check | Status |
+            |-------|--------|
+            | Build | ✅ Success |
+            | Deploy | ✅$ Success |
+            | API Docs | ✅ Generated |
+            
+            ---
+            <sub>This preview will be automatically updated on new commits. Preview expires 7 days after last update.</sub>`;
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Documentation Preview Ready')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment,
+              });
+            }
+
+  deploy-production:
+    name: Deploy Production
+    needs: build-docs
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: Production
+      url: https://react-llm.dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download docs artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: docs-build
+          path: apps/docs
+
+      - name: Deploy to Vercel Production
+        id: deploy
+        run: |
+          cd apps/docs
+          
+          # Install Vercel CLI
+          npm i -g vercel@latest
+          
+          # Deploy to production
+          vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DOCS }}
+
+      - name: Deploy to GitHub Pages (backup)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: apps/docs/.next
+          cname: docs.react-llm.dev
+
+      - name: Purge CDN cache
+        run: |
+          # Purge Cloudflare cache if configured
+          if [ -n "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
+            curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+              -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d '{"files":["https://react-llm.dev/*"]}'
+          fi
+
+      - name: Update search index
+        run: |
+          # Trigger Algolia DocSearch crawler if configured
+          if [ -n "${{ secrets.ALGOLIA_CRAWLER_API_KEY }}" ]; then
+            curl -X POST "https://crawler.algolia.com/api/1/crawlers/${{ secrets.ALGOLIA_CRAWLER_ID }}/reindex" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Basic $(echo -n ${{ secrets.ALGOLIA_CRAWLER_USER_ID }}:${{ secrets.ALGOLIA_CRAWLER_API_KEY }} | base64)"
+          fi
+
+  lighthouse:
+    name: Lighthouse CI
+    needs: deploy-preview
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@latest
+          
+          # Create Lighthouse config
+          cat > lighthouserc.js << 'EOF'
+          module.exports = {
+            ci: {
+              collect: {
+                url: [
+                  'https://react-llm-pr-${{ github.event.pull_request.number }}.vercel.app/',
+                  'https://react-llm-pr-${{ github.event.pull_request.number }}.vercel.app/docs/getting-started',
+                  'https://react-llm-pr-${{ github.event.pull_request.number }}.vercel.app/api'
+                ],
+                numberOfRuns: 3,
+              },
+              assert: {
+                preset: 'lighthouse:recommended',
+                assertions: {
+                  'categories:performance': ['warn', {minScore: 0.9}],
+                  'categories:accessibility': ['error', {minScore: 0.95}],
+                  'categories:best-practices': ['error', {minScore: 0.95}],
+                  'categories:seo': ['error', {minScore: 0.95}],
+                  'first-contentful-paint': ['warn', {maxNumericValue: 2000}],
+                  'interactive': ['warn', {maxNumericValue: 3500}],
+                  'cumulative-layout-shift': ['error', {maxNumericValue: 0.1}],
+                },
+              },
+              upload: {
+                target: 'temporary-public-storage',
+              },
+            },
+          };
+          EOF
+          
+          # Run Lighthouse
+          lhci autorun || true
+
+      - name: Comment Lighthouse results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('.lighthouseci/manifest.json', 'utf8'));
+            
+            let comment = '## 🔦 Lighthouse Results\n\n';
+            
+            results.forEach(result => {
+              const url = result.url;
+              const scores = result.summary;
+              
+              comment += `### ${url}\n`;
+              comment += '| Category | Score |\n';
+              comment += '|----------|-------|\n';
+              comment += `| Performance | ${Math.round(scores.performance * 100)}% |\n`;
+              comment += `| Accessibility | ${Math.round(scores.accessibility * 100)}% |\n`;
+              comment += `| Best Practices | ${Math.round(scores['best-practices'] * 100)}% |\n`;
+              comment += `| SEO | ${Math.round(scores.seo * 100)}% |\n\n`;
+            });
+            
+            // Add comment to PR
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment,
+            });

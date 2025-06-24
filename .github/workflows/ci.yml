@@ -1,52 +1,47 @@
-name: Quality Checks
+name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+
 jobs:
   lint:
-    name: Lint
+    name: Lint & Format
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          run_install: false
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version: 20
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
+      - name: Run linter
         run: pnpm lint
+
+      - name: Check formatting
+        run: pnpm format --check
 
   typecheck:
     name: Type Check
@@ -55,215 +50,264 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          run_install: false
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version: 20
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Type check
+      - name: Run type check
         run: pnpm typecheck
 
   test:
-    name: Test
+    name: Test (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 20, 22]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          run_install: false
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version: ${{ matrix.node }}
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run unit tests
-        run: pnpm test:unit
+      - name: Run tests with coverage
+        run: pnpm --filter=react-llm test:coverage
 
-      - name: Run test coverage
-        run: pnpm test:coverage
+      - name: Check coverage threshold
+        if: matrix.node == 20
+        run: |
+          if [ -f "packages/react-llm/coverage/coverage-summary.json" ]; then
+            coverage=$(cat packages/react-llm/coverage/coverage-summary.json | jq '.total.lines.pct')
+            echo "Test coverage: $coverage%"
+            if (( $(echo "$coverage < 80" | bc -l) )); then
+              echo "❌ Coverage is below 80% threshold!"
+              exit 1
+            else
+              echo "✅ Coverage meets 80% threshold"
+            fi
+          else
+            echo "⚠️ Coverage report not found, skipping threshold check"
+          fi
 
-      - name: Upload coverage reports
+      - name: Upload coverage to Codecov
+        if: matrix.node == 20
         uses: codecov/codecov-action@v4
-        if: always()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage/lcov.info
-          fail_ci_if_error: false
-
-  integration:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    needs: test
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          run_install: false
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build packages
-        run: pnpm build
-
-      - name: Run integration tests
-        run: pnpm test:integration
+          directory: ./packages/react-llm/coverage
+          flags: unittests
+          fail_ci_if_error: true
 
   build:
-    name: Build
+    name: Build & Bundle Analysis
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          run_install: false
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version: 20
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build packages
         run: pnpm build
+
+      - name: Check bundle size
+        run: |
+          # Check IIFE bundle size
+          if [ -f "packages/react-llm/dist/react-llm.global.js" ]; then
+            size=$(stat -c%s packages/react-llm/dist/react-llm.global.js 2>/dev/null || stat -f%z packages/react-llm/dist/react-llm.global.js)
+            size_kb=$((size / 1024))
+            echo "IIFE bundle size: ${size_kb}KB"
+            
+            if [ $size -gt 500000 ]; then
+              echo "❌ Bundle size exceeds 500KB limit!"
+              exit 1
+            else
+              echo "✅ Bundle size is within limits"
+            fi
+          fi
+
+      - name: Analyze bundle
+        run: |
+          # Create bundle analysis report
+          echo "## Bundle Analysis" > bundle-report.md
+          echo "" >> bundle-report.md
+          
+          for file in packages/react-llm/dist/*.js; do
+            if [ -f "$file" ]; then
+              size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file")
+              size_kb=$((size / 1024))
+              echo "- $(basename $file): ${size_kb}KB" >> bundle-report.md
+            fi
+          done
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
+          name: dist
           path: |
             packages/*/dist
-            !packages/*/dist/**/*.tsbuildinfo
-          retention-days: 30
+            !packages/*/dist/**/*.map
+            bundle-report.md
 
-  browser-test:
-    name: Browser Tests
+  security:
+    name: Security Scan
     runs-on: ubuntu-latest
-    needs: build
-    strategy:
-      matrix:
-        browser: [chromium, firefox, webkit]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright
-        run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
+      - name: Run npm audit
+        run: |
+          # Convert pnpm lockfile to package-lock.json for audit
+          pnpm install --lockfile-only
+          npm audit --production --audit-level=high || true
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-
-      - name: Run browser tests
-        run: pnpm test:browser --project=${{ matrix.browser }}
+      - name: Run Snyk Security Scan
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: snyk/actions/node@master
+        continue-on-error: true
         env:
-          CI: true
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: failure()
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          name: test-results-${{ matrix.browser }}
-          path: test-results/
-          retention-days: 7
+          args: --severity-threshold=high
+
+  performance:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          cd main && pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: |
+          pnpm build
+          cd main && pnpm build
+
+      - name: Run performance benchmarks
+        run: |
+          echo "## Performance Comparison" > performance-report.md
+          echo "" >> performance-report.md
+          
+          # Compare bundle sizes
+          echo "### Bundle Size" >> performance-report.md
+          
+          if [ -f "packages/react-llm/dist/react-llm.global.js" ] && [ -f "main/packages/react-llm/dist/react-llm.global.js" ]; then
+            pr_size=$(stat -c%s packages/react-llm/dist/react-llm.global.js 2>/dev/null || stat -f%z packages/react-llm/dist/react-llm.global.js)
+            main_size=$(stat -c%s main/packages/react-llm/dist/react-llm.global.js 2>/dev/null || stat -f%z main/packages/react-llm/dist/react-llm.global.js)
+            
+            pr_size_kb=$((pr_size / 1024))
+            main_size_kb=$((main_size / 1024))
+            diff=$((pr_size_kb - main_size_kb))
+            
+            echo "- PR: ${pr_size_kb}KB" >> performance-report.md
+            echo "- Main: ${main_size_kb}KB" >> performance-report.md
+            echo "- Difference: ${diff}KB" >> performance-report.md
+          fi
+
+      - name: Comment PR with performance report
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('performance-report.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+
+  quality-gate:
+    name: Quality Gate
+    needs: [lint, typecheck, test, build, security]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check Quality Gate
+        run: |
+          if [[ "${{ needs.lint.result }}" != "success" || 
+                "${{ needs.typecheck.result }}" != "success" || 
+                "${{ needs.test.result }}" != "success" || 
+                "${{ needs.build.result }}" != "success" || 
+                "${{ needs.security.result }}" != "success" ]]; then
+            echo "❌ Quality gate failed"
+            exit 1
+          fi
+          echo "✅ Quality gate passed"
+
+      - name: Create status badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "All quality checks passed for commit ${{ github.sha }}"

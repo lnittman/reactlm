@@ -428,11 +428,13 @@ export class LLMHub {
       throw new Error('No model selected. Please choose a model first.');
     }
     
-    return client.completeChat(enhancedMessages, {
+    const result = await client.completeChat(enhancedMessages, {
       model: this.activeModel,
       siteUrl: window.location.href,
       siteName: document.title
     });
+    
+    return result.content;
   }
   
   /**

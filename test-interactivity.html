@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React LLM Interactivity Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #fafafa;
+      min-height: 100vh;
+    }
+    
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    .test-card {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    
+    .test-card h3 {
+      margin-top: 0;
+      color: #3b82f6;
+    }
+    
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 4px;
+      transition: all 0.2s;
+    }
+    
+    button:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    input, select, textarea {
+      background: #262626;
+      border: 1px solid #404040;
+      color: #fafafa;
+      padding: 8px;
+      border-radius: 4px;
+      width: 100%;
+      margin: 4px 0;
+    }
+    
+    .hover-box {
+      background: #262626;
+      padding: 20px;
+      margin: 10px 0;
+      border-radius: 4px;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    
+    .hover-box:hover {
+      background: #404040;
+      transform: scale(1.02);
+    }
+    
+    .scroll-area {
+      height: 150px;
+      overflow-y: auto;
+      background: #262626;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    
+    .scroll-area::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .scroll-area::-webkit-scrollbar-track {
+      background: #1a1a1a;
+    }
+    
+    .scroll-area::-webkit-scrollbar-thumb {
+      background: #3b82f6;
+      border-radius: 4px;
+    }
+    
+    .status {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: monospace;
+    }
+    
+    .status.success {
+      border-color: #22c55e;
+      color: #22c55e;
+    }
+    
+    .status.error {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+    
+    .log-output {
+      background: #0a0a0a;
+      border: 1px solid #333;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .react-component {
+      background: #1a1a1a;
+      padding: 20px;
+      border: 1px solid #333;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>React LLM Interactivity Test</h1>
+  <p>This page tests that all interactions work correctly when React LLM is loaded.</p>
+  
+  <div class="status" id="status">React LLM: Not Loaded</div>
+  
+  <div class="test-grid">
+    <!-- Click Test -->
+    <div class="test-card">
+      <h3>Click Test</h3>
+      <button onclick="logEvent('Button clicked!')">Click Me</button>
+      <button onclick="alert('Alert works!')">Show Alert</button>
+      <button onclick="confirm('Confirm works?')">Show Confirm</button>
+    </div>
+    
+    <!-- Hover Test -->
+    <div class="test-card">
+      <h3>Hover Test</h3>
+      <div class="hover-box" onmouseover="logEvent('Hover in')" onmouseout="logEvent('Hover out')">
+        Hover over this box
+      </div>
+      <p>The box should change color and scale on hover</p>
+    </div>
+    
+    <!-- Input Test -->
+    <div class="test-card">
+      <h3>Input Test</h3>
+      <input type="text" placeholder="Type here..." oninput="logEvent('Input: ' + this.value)">
+      <select onchange="logEvent('Selected: ' + this.value)">
+        <option>Option 1</option>
+        <option>Option 2</option>
+        <option>Option 3</option>
+      </select>
+      <textarea placeholder="Multi-line text..." oninput="logEvent('Textarea: ' + this.value)"></textarea>
+    </div>
+    
+    <!-- Scroll Test -->
+    <div class="test-card">
+      <h3>Scroll Test</h3>
+      <div class="scroll-area" onscroll="logEvent('Scrolled to: ' + this.scrollTop)">
+        <p>Line 1 - Scroll this area</p>
+        <p>Line 2</p>
+        <p>Line 3</p>
+        <p>Line 4</p>
+        <p>Line 5</p>
+        <p>Line 6</p>
+        <p>Line 7</p>
+        <p>Line 8</p>
+        <p>Line 9</p>
+        <p>Line 10</p>
+      </div>
+    </div>
+    
+    <!-- Focus Test -->
+    <div class="test-card">
+      <h3>Focus Test</h3>
+      <input type="text" placeholder="Focus me" onfocus="logEvent('Input focused')" onblur="logEvent('Input blurred')">
+      <button onfocus="logEvent('Button focused')" onblur="logEvent('Button blurred')">Tab to me</button>
+    </div>
+    
+    <!-- React LLM Control -->
+    <div class="test-card">
+      <h3>React LLM Control</h3>
+      <button onclick="loadReactLLM()">Load React LLM</button>
+      <button onclick="checkBlockingElements()">Check Blocking Elements</button>
+      <button onclick="removeReactLLM()">Remove React LLM</button>
+    </div>
+  </div>
+  
+  <!-- Event Log -->
+  <div class="test-card">
+    <h3>Event Log</h3>
+    <button onclick="clearLog()">Clear Log</button>
+    <div class="log-output" id="log"></div>
+  </div>
+  
+  <!-- React Component for Testing -->
+  <div id="react-root"></div>
+  
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  
+  <script>
+    const logEl = document.getElementById('log');
+    const statusEl = document.getElementById('status');
+    
+    function logEvent(msg) {
+      const time = new Date().toLocaleTimeString();
+      const entry = document.createElement('div');
+      entry.textContent = `[${time}] ${msg}`;
+      logEl.appendChild(entry);
+      logEl.scrollTop = logEl.scrollHeight;
+      console.log(msg);
+    }
+    
+    function clearLog() {
+      logEl.innerHTML = '';
+      logEvent('Log cleared');
+    }
+    
+    function updateStatus(msg, type = '') {
+      statusEl.textContent = msg;
+      statusEl.className = 'status ' + type;
+    }
+    
+    function loadReactLLM() {
+      logEvent('Loading React LLM...');
+      const script = document.createElement('script');
+      script.src = '/react-llm.js';
+      script.onload = () => {
+        logEvent('React LLM script loaded');
+        if (window.ReactLLM) {
+          try {
+            window.ReactLLM.init({
+              mode: 'demo',
+              position: 'bottom-right',
+              theme: 'dark',
+              debug: true
+            });
+            updateStatus('React LLM: Loaded', 'success');
+            logEvent('React LLM initialized');
+            
+            // Test interactions after load
+            setTimeout(testAllInteractions, 100);
+          } catch (e) {
+            updateStatus('React LLM: Error', 'error');
+            logEvent('Failed to initialize: ' + e.message);
+            console.error(e);
+          }
+        }
+      };
+      script.onerror = () => {
+        updateStatus('React LLM: Failed to Load', 'error');
+        logEvent('Failed to load React LLM script');
+      };
+      document.head.appendChild(script);
+    }
+    
+    function checkBlockingElements() {
+      logEvent('Checking for blocking elements...');
+      
+      // Check React LLM elements
+      const reactLLMElements = document.querySelectorAll('[id*="react-llm"], [data-react-llm]');
+      reactLLMElements.forEach(el => {
+        const styles = window.getComputedStyle(el);
+        logEvent(`Found: ${el.id || el.className} - pointer-events: ${styles.pointerEvents}, z-index: ${styles.zIndex}`);
+      });
+      
+      // Test element at center
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const centerEl = document.elementFromPoint(centerX, centerY);
+      if (centerEl) {
+        logEvent(`Element at center: ${centerEl.tagName}#${centerEl.id}.${centerEl.className}`);
+      }
+    }
+    
+    function removeReactLLM() {
+      logEvent('Removing React LLM...');
+      
+      const elements = document.querySelectorAll('[id*="react-llm"], [data-react-llm]');
+      elements.forEach(el => {
+        el.remove();
+        logEvent(`Removed: ${el.id || el.getAttribute('data-react-llm')}`);
+      });
+      
+      updateStatus('React LLM: Removed', '');
+      
+      // Test interactions after removal
+      setTimeout(testAllInteractions, 100);
+    }
+    
+    function testAllInteractions() {
+      logEvent('=== Testing All Interactions ===');
+      
+      // Test click
+      const button = document.querySelector('button');
+      if (button) {
+        button.click();
+        logEvent('✓ Click test passed');
+      }
+      
+      // Test hover (check computed styles)
+      const hoverBox = document.querySelector('.hover-box');
+      if (hoverBox) {
+        const event = new MouseEvent('mouseover', { bubbles: true });
+        hoverBox.dispatchEvent(event);
+        logEvent('✓ Hover test passed');
+      }
+      
+      // Test input
+      const input = document.querySelector('input[type="text"]');
+      if (input) {
+        input.focus();
+        input.value = 'Test';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        logEvent('✓ Input test passed');
+      }
+      
+      // Test scroll
+      const scrollArea = document.querySelector('.scroll-area');
+      if (scrollArea) {
+        scrollArea.scrollTop = 50;
+        logEvent('✓ Scroll test passed');
+      }
+      
+      logEvent('=== All Tests Complete ===');
+    }
+    
+    // React Component Test
+    function TestComponent() {
+      const [count, setCount] = React.useState(0);
+      
+      return React.createElement('div', { className: 'react-component' },
+        React.createElement('h3', null, 'React Component Test'),
+        React.createElement('p', null, `Count: ${count}`),
+        React.createElement('button', { 
+          onClick: () => {
+            setCount(count + 1);
+            logEvent(`React component clicked, count: ${count + 1}`);
+          }
+        }, 'Increment')
+      );
+    }
+    
+    // Mount React component
+    const root = ReactDOM.createRoot(document.getElementById('react-root'));
+    root.render(React.createElement(TestComponent));
+    
+    // Initial log
+    logEvent('Page loaded, all interactions should work');
+    logEvent('React component mounted');
+  </script>
+</body>
+</html>

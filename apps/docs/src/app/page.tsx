@@ -1,145 +1,220 @@
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, BookOpen, Code2, Rocket, Zap } from 'lucide-react';
 
 export default function HomePage() {
   return (
-    <main className="flex flex-col">
+    <main className="container">
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-16 text-center">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            React LLM
-            <span className="block text-3xl md:text-5xl font-normal text-muted-foreground mt-2">
-              Documentation
-            </span>
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Complete guide to using React LLM - the browser-native AI coding assistant 
-            that lets you chat with your React components and code directly in the browser.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg">
-              <Link href="/docs">
-                Get Started <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link href="/docs/api">
-                API Reference
-              </Link>
-            </Button>
+      <section className="content-section">
+        <div className="header">
+          <div className="header-left">
+            <h1 className="header-title">react llm docs</h1>
+          </div>
+          <div className="header-nav">
+            <Link href="https://react-llm.dev" className="nav-link">
+              website
+            </Link>
+            <Link href="https://github.com/react-llm/react-llm" className="nav-link">
+              github
+            </Link>
+            <Link href="https://discord.gg/react-llm" className="nav-link">
+              discord
+            </Link>
           </div>
         </div>
-      </section>
-
-      {/* Features Grid */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Everything you need to know</h2>
-          <p className="text-muted-foreground text-lg">
-            From quick setup to advanced usage patterns
+        
+        <div className="intro">
+          <p>
+            complete documentation for react llm - the browser-native ai coding assistant
+            that lets you chat with your react components and code directly in the browser.
+            learn how to integrate, configure, and use every feature.
           </p>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader>
-              <Rocket className="h-8 w-8 text-primary mb-2" />
-              <CardTitle>Quick Start</CardTitle>
-              <CardDescription>
-                Get React LLM running in 30 seconds with a single script tag
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="ghost" asChild className="p-0 h-auto font-normal">
-                <Link href="/docs">
-                  Start here →
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <Code2 className="h-8 w-8 text-primary mb-2" />
-              <CardTitle>Installation</CardTitle>
-              <CardDescription>
-                Multiple ways to integrate: script tag, npm, Next.js, Vite
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="ghost" asChild className="p-0 h-auto font-normal">
-                <Link href="/docs/installation">
-                  Installation guides →
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <Zap className="h-8 w-8 text-primary mb-2" />
-              <CardTitle>Features</CardTitle>
-              <CardDescription>
-                Component selection, multi-model AI, live editing, and more
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="ghost" asChild className="p-0 h-auto font-normal">
-                <Link href="/docs/features">
-                  Explore features →
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <BookOpen className="h-8 w-8 text-primary mb-2" />
-              <CardTitle>API Reference</CardTitle>
-              <CardDescription>
-                Complete TypeScript definitions and interactive examples
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="ghost" asChild className="p-0 h-auto font-normal">
-                <Link href="/docs/api">
-                  API docs →
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Quick Example */}
-      <section className="bg-muted/30 py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-8">
-              30-Second Setup
-            </h2>
-            <div className="bg-card border rounded-lg p-6">
-              <pre className="text-sm overflow-x-auto">
-                <code>{`<!-- Add to any HTML page -->
-<script src="https://unpkg.com/react-llm/dist/react-llm.js"></script>
+        {/* Quick Start */}
+        <div className="content-section">
+          <h2>quick start</h2>
+          <p>get react llm running in 30 seconds:</p>
+          
+          <pre className="code-block">
+{`<script src="https://unpkg.com/react-llm/dist/react-llm.js"></script>
 <script>
   ReactLLM.init({
     providers: {
-      openrouter: 'sk-or-...' // Your OpenRouter API key
+      openrouter: 'sk-or-...' // get your key at openrouter.ai
     }
   });
-</script>`}</code>
-              </pre>
+</script>`}
+          </pre>
+          
+          <div className="row">
+            <Link href="/docs" className="button button-primary">
+              get started →
+            </Link>
+            <Link href="/docs/api" className="button button-secondary">
+              api reference
+            </Link>
+          </div>
+        </div>
+
+        {/* Navigation Cards */}
+        <div className="content-section">
+          <h2>documentation sections</h2>
+          
+          <Link href="/docs/getting-started" className="action-list-item">
+            <div className="action-list-item-main">
+              <div className="action-list-item-icon">🚀</div>
+              <div className="action-list-item-content">
+                <div className="action-list-item-text">getting started</div>
+                <div className="action-list-item-description">
+                  learn the basics and get react llm up and running in your project
+                </div>
+              </div>
             </div>
-            <p className="text-center text-muted-foreground mt-4">
-              That's it! React LLM will appear as a floating chat interface on your page.
-            </p>
+          </Link>
+
+          <Link href="/docs/installation" className="action-list-item">
+            <div className="action-list-item-main">
+              <div className="action-list-item-icon">📦</div>
+              <div className="action-list-item-content">
+                <div className="action-list-item-text">installation</div>
+                <div className="action-list-item-description">
+                  multiple ways to integrate: script tag, npm, browser extension, framework plugins
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/docs/features" className="action-list-item">
+            <div className="action-list-item-main">
+              <div className="action-list-item-icon">⚡</div>
+              <div className="action-list-item-content">
+                <div className="action-list-item-text">features</div>
+                <div className="action-list-item-description">
+                  explore component selection, multi-model ai, live editing, and more
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/docs/guides" className="action-list-item">
+            <div className="action-list-item-main">
+              <div className="action-list-item-icon">📖</div>
+              <div className="action-list-item-content">
+                <div className="action-list-item-text">guides</div>
+                <div className="action-list-item-description">
+                  best practices, workflows, and advanced usage patterns
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/docs/api" className="action-list-item">
+            <div className="action-list-item-main">
+              <div className="action-list-item-icon">🔧</div>
+              <div className="action-list-item-content">
+                <div className="action-list-item-text">api reference</div>
+                <div className="action-list-item-description">
+                  complete typescript definitions, methods, events, and configuration
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/docs/examples" className="action-list-item">
+            <div className="action-list-item-main">
+              <div className="action-list-item-icon">💡</div>
+              <div className="action-list-item-content">
+                <div className="action-list-item-text">examples</div>
+                <div className="action-list-item-description">
+                  real-world usage examples for react, next.js, vite, and more
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Features Grid */}
+        <div className="content-section">
+          <h2>key features</h2>
+          
+          <div className="feature-grid">
+            <div className="feature-card">
+              <div className="feature-card-icon">🎯</div>
+              <h3 className="feature-card-title">zero-config setup</h3>
+              <p className="feature-card-description">
+                single script tag or npm package. no api endpoints, no server setup.
+              </p>
+            </div>
+            
+            <div className="feature-card">
+              <div className="feature-card-icon">🔍</div>
+              <h3 className="feature-card-title">component selection</h3>
+              <p className="feature-card-description">
+                visually select any react component. understand props, state, and hierarchy.
+              </p>
+            </div>
+            
+            <div className="feature-card">
+              <div className="feature-card-icon">💬</div>
+              <h3 className="feature-card-title">multi-model ai</h3>
+              <p className="feature-card-description">
+                use claude 3.5, gpt-4o, gemini 2.0, or 100+ models via openrouter.
+              </p>
+            </div>
+            
+            <div className="feature-card">
+              <div className="feature-card-icon">✏️</div>
+              <h3 className="feature-card-title">live editing</h3>
+              <p className="feature-card-description">
+                make changes directly through chat. see updates instantly in dev mode.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Links */}
+        <div className="content-section">
+          <h2>popular topics</h2>
+          
+          <div className="row">
+            <div className="column">
+              <h3>getting started</h3>
+              <ul>
+                <li><Link href="/docs/getting-started/quick-start">5-minute quickstart</Link></li>
+                <li><Link href="/docs/installation/script-tag">script tag setup</Link></li>
+                <li><Link href="/docs/installation/npm">npm installation</Link></li>
+                <li><Link href="/docs/configuration/api-keys">api key setup</Link></li>
+              </ul>
+            </div>
+            
+            <div className="column">
+              <h3>features</h3>
+              <ul>
+                <li><Link href="/docs/features/component-selection">component selection</Link></li>
+                <li><Link href="/docs/features/ai-chat">ai chat interface</Link></li>
+                <li><Link href="/docs/features/live-editing">live code editing</Link></li>
+                <li><Link href="/docs/features/multi-model">model switching</Link></li>
+              </ul>
+            </div>
+            
+            <div className="column">
+              <h3>advanced</h3>
+              <ul>
+                <li><Link href="/docs/guides/development-mode">development workflow</Link></li>
+                <li><Link href="/docs/guides/production-mode">production safety</Link></li>
+                <li><Link href="/docs/api/configuration">configuration api</Link></li>
+                <li><Link href="/docs/api/methods">methods reference</Link></li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
+
+      <footer>
+        <p>
+          react llm is open source. <Link href="https://github.com/react-llm/react-llm">contribute on github</Link>.
+        </p>
+      </footer>
     </main>
   );
 }

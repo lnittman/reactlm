@@ -1,14 +1,18 @@
 /** @jsx h */
-import { h, Fragment } from 'preact';
-import { useSignal, effect } from '@preact/signals';
+import { h, Fragment, render } from 'preact';
+import { useSignal, effect, batch } from '@preact/signals';
+import { useEffect } from 'preact/hooks';
 import { marked } from 'marked';
-// Temporarily use simple storage instead of SQLite to avoid WASM issues
+// Using simple storage to avoid SQLite WASM loading issues
 import { initDB, createChatSession, createMessage, getChatSessions, getMessagesForChatSession, deleteChatSession } from '../db/simple-storage';
 import { styles } from './Toolbar.styles';
 import { LLMHub } from '../llm/providers';
 import type { Message, Model } from '../llm/openrouter';
 import { ComponentInspector } from './ComponentInspector';
+import { ContextSelector } from './ContextSelector';
 import type { ComponentInfo } from '../instrumentation/bippy-adapter';
+import { MonitorManager } from '../monitoring/monitor-manager';
+import type { ContextOption } from '../types/monitoring';
 
 // Legacy support for Gemini response format
 interface StructuredResponse {
@@ -80,9 +84,11 @@ function getInitialResponse(): StructuredResponse {
 
 interface Props {
   hub: LLMHub;
+  monitorManager?: MonitorManager;
+  shadowRoot?: ShadowRoot;
 }
 
-export function Toolbar({ hub }: Props) {
+export function Toolbar({ hub, monitorManager, shadowRoot }: Props) {
   console.log('[Toolbar] Initializing with hub:', hub, 'isInitialized:', hub?.isInitialized());
   
   const isInitializing = useSignal(true);
@@ -95,6 +101,7 @@ export function Toolbar({ hub }: Props) {
   const activeTab = useSignal<ContentTab>('chat');
   const projectInfo = useSignal<ProjectInfo | null>(null);
   const hasInitialChat = useSignal(false);
+  const initializationStarted = useSignal(false);
   const isLoadingMessages = useSignal(false);
   const isStreamingResponse = useSignal(false);
   const streamingContent = useSignal('');
@@ -103,9 +110,16 @@ export function Toolbar({ hub }: Props) {
   const apiKey = useSignal('');
   const selectionMode = useSignal<SelectionMode>('none');
   const selectedComponent = useSignal<any>(null);
+  const inspectorCleanup = useSignal<(() => void) | null>(null);
+
+  // Context selector state
+  const showContextSelector = useSignal(false);
+  const contextSelectorPosition = useSignal({ x: 0, y: 0 });
+  const contextSearchTerm = useSignal('');
+  const inputRef = useSignal<HTMLInputElement | null>(null);
 
   // Check for dev mode and OpenRouter key
-  effect(() => {
+  useEffect(() => {
     const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     if (isDev) {
       // Check for OpenRouter API key in localStorage or env
@@ -120,11 +134,13 @@ export function Toolbar({ hub }: Props) {
         });
       }
     }
-  });
+  }, [hub]);
 
-  // Initialize database and load chat sessions
-  effect(() => {
-    if (hasInitialChat.value) return;
+  // Initialize database and load chat sessions - run only once
+  useEffect(() => {
+    if (initializationStarted.value) return;
+    
+    initializationStarted.value = true;
     
     const initialize = async () => {
       try {
@@ -163,7 +179,12 @@ export function Toolbar({ hub }: Props) {
               console.warn('Failed to parse structured response:', e);
             }
           }
-        } else if (hub.isInitialized()) {
+        } else {
+          // Check if hub is initialized before proceeding
+          if (!hub.isInitialized()) {
+            console.log('[Toolbar] Hub not initialized yet, skipping initial chat creation');
+            return;
+          }
           // No existing chats, create initial welcome message
           const initialResponse = getInitialResponse();
           if (initialResponse.projectInfo) {
@@ -218,10 +239,10 @@ What would you like to explore?`;
     };
 
     initialize();
-  });
+  }, []);
 
   // Load messages when active chat changes
-  effect(() => {
+  useEffect(() => {
     if (!activeChatId.value || isLoadingMessages.value) return;
     
     const currentChat = chatSessions.value.find(c => c.id === activeChatId.value);
@@ -253,7 +274,7 @@ What would you like to explore?`;
     };
 
     loadMessages();
-  });
+  }, [activeChatId.value]);
 
   const createNewChat = async () => {
     console.log('[createNewChat] Starting...', {
@@ -364,6 +385,84 @@ What would you like to explore?`;
       );
     }
     editingTitle.value = '';
+  };
+
+  // Handle @ mention detection
+  const handleInputChange = (e: Event) => {
+    const input = e.target as HTMLInputElement;
+    const value = input.value;
+    inputValue.value = value;
+    
+    // Check for @ mentions
+    const cursorPosition = input.selectionStart || 0;
+    const textBeforeCursor = value.substring(0, cursorPosition);
+    const atMatch = textBeforeCursor.match(/@(\w*)$/);
+    
+    if (atMatch) {
+      const searchTerm = atMatch[1];
+      contextSearchTerm.value = searchTerm;
+      
+      // Get input position for context selector
+      const rect = input.getBoundingClientRect();
+      contextSelectorPosition.value = {
+        x: rect.left,
+        y: rect.top
+      };
+      
+      showContextSelector.value = true;
+    } else {
+      showContextSelector.value = false;
+    }
+  };
+
+  // Handle context selection from @ mentions
+  const handleContextSelect = (context: ContextOption | null) => {
+    if (!context) {
+      showContextSelector.value = false;
+      return;
+    }
+
+    const input = inputRef.value;
+    if (!input) return;
+
+    const cursorPosition = input.selectionStart || 0;
+    const value = inputValue.value;
+    const textBeforeCursor = value.substring(0, cursorPosition);
+    const textAfterCursor = value.substring(cursorPosition);
+    
+    // Replace the @ mention with the selected context
+    const atMatch = textBeforeCursor.match(/@\w*$/);
+    if (atMatch) {
+      const beforeAtSign = textBeforeCursor.substring(0, atMatch.index);
+      
+      // Get context data from monitor manager
+      let contextData = '';
+      if (monitorManager) {
+        contextData = monitorManager.getContext(context.type, context.filter);
+      }
+      
+      // Insert context label and add context data as a comment for the AI
+      const newValue = `${beforeAtSign}${context.label}${textAfterCursor}\n\n<!-- Context: ${contextData} -->`;
+      inputValue.value = newValue;
+      
+      // Position cursor after the context label
+      setTimeout(() => {
+        const newPosition = beforeAtSign.length + context.label.length;
+        input.setSelectionRange(newPosition, newPosition);
+      }, 0);
+    }
+    
+    showContextSelector.value = false;
+  };
+
+  // Handle input keydown for context selector navigation
+  const handleInputKeyDown = (e: KeyboardEvent) => {
+    if (showContextSelector.value) {
+      // Let ContextSelector handle arrow keys and enter
+      if (['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(e.key)) {
+        return; // Let ContextSelector handle these
+      }
+    }
   };
 
   const handleSubmit = async (e: Event) => {
@@ -538,7 +637,14 @@ What would you like to explore?`;
   
   const selectedComponents = useSignal<any[]>([]);
   
-  const handleComponentSelect = (componentInfo: ComponentInfo) => {
+  const handleComponentSelect = (componentInfo: ComponentInfo | null) => {
+    // Handle escape/cancel
+    if (!componentInfo) {
+      selectionMode.value = 'none';
+      console.log('[Toolbar] Component selection cancelled');
+      return;
+    }
+    
     selectedComponent.value = componentInfo;
     selectionMode.value = 'selected';
     
@@ -553,6 +659,11 @@ What would you like to explore?`;
           ...componentInfo,
           timestamp: new Date().toISOString()
         }];
+      }
+      
+      // Sync with monitor manager
+      if (monitorManager) {
+        monitorManager.setSelectedComponents(selectedComponents.value);
       }
       
       // Switch to components view to show selection
@@ -594,6 +705,10 @@ What would you like to explore?`;
                     className="remove-button"
                     onClick={() => {
                       selectedComponents.value = selectedComponents.value.filter(c => c.id !== comp.id);
+                      // Sync with monitor manager
+                      if (monitorManager) {
+                        monitorManager.setSelectedComponents(selectedComponents.value);
+                      }
                     }}
                   >
                     ×
@@ -817,9 +932,9 @@ What would you like to explore?`;
                   className="suggested-query"
                   onClick={() => {
                     inputValue.value = query;
-                    const input = document.querySelector('.input') as HTMLInputElement;
-                    if (input) {
-                      input.focus();
+                    // Use ref instead of querySelector for Shadow DOM compatibility
+                    if (inputRef.value) {
+                      inputRef.value.focus();
                     }
                   }}
                 >
@@ -833,15 +948,19 @@ What would you like to explore?`;
     );
   };
 
+  // Log when toolbar renders for debugging
+  useEffect(() => {
+    console.log('[Toolbar] Mounted, visibility:', isVisible.value);
+    const toolbar = document.querySelector('.toolbar');
+    if (toolbar) {
+      const rect = (toolbar as HTMLElement).getBoundingClientRect();
+      console.log('[Toolbar] Position:', rect);
+    }
+  }, []);
+
   return (
     <Fragment>
       <style>{styles}</style>
-      {selectionMode.value === 'selecting' && (
-        <ComponentInspector 
-          isActive={true} 
-          onSelect={handleComponentSelect}
-        />
-      )}
       <div 
         className={`toolbar ${isMinimized.value ? 'minimized' : ''} ${isVisible.value ? '' : 'opacity-0'}`}
       >
@@ -922,11 +1041,13 @@ What would you like to explore?`;
               <div className="input-area">
                 <form onSubmit={handleSubmit} className="input-form">
                   <input
+                    ref={(el) => inputRef.value = el}
                     type="text"
                     className="input"
                     value={inputValue.value}
-                    onInput={(e) => inputValue.value = (e.target as HTMLInputElement).value}
-                    placeholder="ask about your react codebase..."
+                    onInput={handleInputChange}
+                    onKeyDown={handleInputKeyDown}
+                    placeholder="ask about your react codebase... (type @ for context)"
                     disabled={isInitializing.value || isStreamingResponse.value}
                   />
                 </form>
@@ -944,14 +1065,20 @@ What would you like to explore?`;
                   </button>
                   <button 
                     type="button"
-                    className="send-button"
+                    className={`send-button ${isStreamingResponse.value ? 'streaming' : ''}`}
                     onClick={(e) => {
                       e.preventDefault();
                       handleSubmit(e as any);
                     }}
                     disabled={isInitializing.value || isStreamingResponse.value || !inputValue.value.trim()}
                   >
-                    {isStreamingResponse.value ? '...' : '→'}
+                    {isStreamingResponse.value ? (
+                      <span className="loading-dots">
+                        <span className="loading-dot"></span>
+                        <span className="loading-dot"></span>
+                        <span className="loading-dot"></span>
+                      </span>
+                    ) : '→'}
                   </button>
                 </div>
               </div>
@@ -981,6 +1108,24 @@ What would you like to explore?`;
           )
         )}
       </div>
+      
+      {/* Component selection overlay - renders when in selection mode */}
+      {selectionMode.value === 'selecting' && (
+        <ComponentInspector 
+          isActive={true} 
+          onSelect={handleComponentSelect}
+          theme="dark"
+        />
+      )}
+      
+      {/* Context selector - renders when @ mention is typed */}
+      {showContextSelector.value && (
+        <ContextSelector
+          onSelect={handleContextSelect}
+          position={contextSelectorPosition.value}
+          searchTerm={contextSearchTerm.value}
+        />
+      )}
     </Fragment>
   );
 }

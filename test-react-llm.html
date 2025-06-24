@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React LLM Test - Component Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #0f0f0f;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .component {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005c99;
+        }
+        .nested {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #333;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    </style>
+    <!-- Load React from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+</head>
+<body>
+    <div class="status" id="status">Loading...</div>
+    
+    <div class="container">
+        <h1>React LLM Component Detection Test</h1>
+        <p>This page tests the new React component detection and canvas overlay system.</p>
+        
+        <!-- React app will be mounted here -->
+        <div id="react-root"></div>
+        
+        <div class="component">
+            <h2>Static HTML Component</h2>
+            <p>This is a static HTML element that should not be detected as a React component.</p>
+            <button onclick="alert('HTML button clicked')">HTML Button</button>
+        </div>
+    </div>
+
+    <!-- Load React LLM -->
+    <script src="packages/react-llm/dist/react-llm.global.js"></script>
+    
+    <script>
+        // Simple React app for testing
+        const { useState, useEffect } = React;
+        
+        function Counter() {
+            const [count, setCount] = useState(0);
+            
+            return React.createElement('div', { className: 'component' },
+                React.createElement('h2', null, 'React Counter Component'),
+                React.createElement('p', null, `Count: ${count}`),
+                React.createElement('button', { 
+                    onClick: () => setCount(count + 1) 
+                }, 'Increment'),
+                React.createElement('button', { 
+                    onClick: () => setCount(count - 1) 
+                }, 'Decrement'),
+                React.createElement('div', { className: 'nested' },
+                    React.createElement('h3', null, 'Nested Component'),
+                    React.createElement('p', null, 'This component is nested inside the Counter.'),
+                    React.createElement('button', {
+                        onClick: () => setCount(0)
+                    }, 'Reset Counter')
+                )
+            );
+        }
+        
+        function UserProfile({ name, email }) {
+            const [isEditing, setIsEditing] = useState(false);
+            const [currentName, setCurrentName] = useState(name);
+            
+            return React.createElement('div', { className: 'component' },
+                React.createElement('h2', null, 'User Profile Component'),
+                isEditing 
+                    ? React.createElement('div', null,
+                        React.createElement('input', {
+                            type: 'text',
+                            value: currentName,
+                            onChange: (e) => setCurrentName(e.target.value),
+                            style: { margin: '5px', padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }
+                        }),
+                        React.createElement('button', { onClick: () => setIsEditing(false) }, 'Save')
+                    )
+                    : React.createElement('div', null,
+                        React.createElement('p', null, `Name: ${currentName}`),
+                        React.createElement('p', null, `Email: ${email}`),
+                        React.createElement('button', { onClick: () => setIsEditing(true) }, 'Edit')
+                    )
+            );
+        }
+        
+        function TestApp() {
+            const [showProfile, setShowProfile] = useState(true);
+            
+            return React.createElement('div', null,
+                React.createElement(Counter),
+                showProfile && React.createElement(UserProfile, { 
+                    name: 'John Doe', 
+                    email: 'john@example.com' 
+                }),
+                React.createElement('div', { className: 'component' },
+                    React.createElement('h2', null, 'App Controls'),
+                    React.createElement('button', {
+                        onClick: () => setShowProfile(!showProfile)
+                    }, showProfile ? 'Hide Profile' : 'Show Profile')
+                )
+            );
+        }
+        
+        // Render the React app
+        const container = document.getElementById('react-root');
+        const root = ReactDOM.createRoot(container);
+        root.render(React.createElement(TestApp));
+        
+        // Initialize React LLM after React is rendered
+        setTimeout(() => {
+            if (window.ReactLLM) {
+                console.log('Initializing React LLM...');
+                window.ReactLLM.init({
+                    mode: 'demo',
+                    position: 'bottom-right',
+                    theme: 'dark'
+                }).then(() => {
+                    console.log('React LLM initialized successfully');
+                    document.getElementById('status').textContent = 'React LLM Ready';
+                }).catch(error => {
+                    console.error('React LLM initialization failed:', error);
+                    document.getElementById('status').textContent = 'React LLM Failed';
+                });
+            } else {
+                console.error('ReactLLM not found');
+                document.getElementById('status').textContent = 'ReactLLM not found';
+            }
+        }, 1000);
+        
+        // Debug info
+        console.log('React version:', React.version);
+        console.log('ReactDOM version:', ReactDOM.version);
+        
+        // Check for React DevTools
+        setTimeout(() => {
+            const hook = window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
+            if (hook) {
+                console.log('React DevTools detected:', hook);
+                console.log('Renderers:', hook.renderers);
+            } else {
+                console.log('React DevTools not detected');
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

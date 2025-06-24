@@ -1,0 +1,163 @@
+name: PR Automation
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  auto-label:
+    name: Auto Label PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label PR based on paths
+        uses: actions/labeler@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  size-label:
+    name: Add Size Label
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add size label
+        uses: codelytv/pr-size-labeler@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          xs_label: 'size/xs'
+          xs_max_size: 10
+          s_label: 'size/s'
+          s_max_size: 100
+          m_label: 'size/m'
+          m_max_size: 500
+          l_label: 'size/l'
+          l_max_size: 1000
+          xl_label: 'size/xl'
+
+  pr-title:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            didn't match the configured pattern. Please ensure that the subject
+            doesn't start with an uppercase character.
+
+  welcome:
+    name: Welcome First Time Contributors
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    steps:
+      - name: Check if first contribution
+        id: first
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-message: |
+            ## 🎉 Welcome!
+            
+            Thank you for contributing to React LLM! This appears to be your first contribution to our project.
+            
+            ### What happens next?
+            - Our automated checks will run to ensure code quality
+            - A maintainer will review your PR soon
+            - Feel free to join our [Discord](https://discord.gg/react-llm) for any questions
+            
+            ### Checklist
+            Please ensure:
+            - [ ] You've read our [Contributing Guidelines](https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md)
+            - [ ] Tests pass locally with `pnpm test`
+            - [ ] Code is formatted with `pnpm format`
+            - [ ] You've added a changeset if needed with `pnpm changeset`
+            
+            Thanks again for your contribution! 🚀
+
+  changeset-check:
+    name: Check for Changeset
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for changeset
+        run: |
+          pnpm changeset status --since=origin/main
+        continue-on-error: true
+        id: changeset
+
+      - name: Comment if changeset is missing
+        if: steps.changeset.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `## ⚠️ Missing Changeset
+            
+            This PR appears to contain changes to packages but doesn't have a changeset.
+            
+            ### Do I need a changeset?
+            
+            You need a changeset if you've made any of the following changes:
+            - ✅ Bug fixes
+            - ✅ New features
+            - ✅ Breaking changes
+            - ✅ Documentation updates to packages
+            
+            You don't need a changeset for:
+            - ❌ Changes to examples
+            - ❌ Changes to tests only
+            - ❌ Changes to build tools
+            - ❌ Changes to GitHub workflows
+            
+            ### How to add a changeset
+            
+            Run this command and follow the prompts:
+            \`\`\`bash
+            pnpm changeset
+            \`\`\`
+            
+            Then commit and push the generated changeset file.`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

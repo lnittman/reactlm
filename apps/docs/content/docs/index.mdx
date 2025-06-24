@@ -1,188 +1,274 @@
 ---
-title: Getting Started
-description: Learn how to integrate React LLM into your project in 30 seconds
+title: React LLM - AI Coding Assistant for the Browser
+description: The easiest way to integrate AI-powered coding assistance into any website. Chat with components, analyze code, and make live changes - all from your browser.
 ---
 
 import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
 import { Callout } from 'fumadocs-ui/components/callout';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
+import { Card, Cards } from 'fumadocs-ui/components/card';
 
-# Getting Started
+# React LLM
 
-React LLM is a browser-native AI coding assistant that lets you chat with your React components and code directly in the browser. Get started in 30 seconds with any of these methods.
+the easiest way to integrate ai-powered coding assistance into any website. chat with components, analyze code, and make live changes - all from your browser.
 
-<Callout>
-**New in v0.1.0**: Full OpenRouter integration with 100+ AI models including GPT-4, Claude 3.5 Sonnet, and Gemini 2.0 Flash!
-</Callout>
+<div className="intro">
+  <p>
+    react llm brings the power of claude, gpt-4, and other llms natively to your browser.
+    select any component visually, chat with ai about your code, and see changes instantly.
+    works on any website - from local development to production sites.
+  </p>
+</div>
 
-## Quick Start
+## features
 
-The fastest way to get React LLM running is with a simple script tag:
+<div className="feature-grid">
+  <div className="feature-card">
+    <div className="feature-card-icon">🎯</div>
+    <h3 className="feature-card-title">zero-config setup</h3>
+    <p className="feature-card-description">
+      single script tag or npm package. no api endpoints, no server setup, no build configuration.
+    </p>
+  </div>
+  <div className="feature-card">
+    <div className="feature-card-icon">🔍</div>
+    <h3 className="feature-card-title">component selection</h3>
+    <p className="feature-card-description">
+      visually select any react component on the page. understand props, state, and component hierarchy.
+    </p>
+  </div>
+  <div className="feature-card">
+    <div className="feature-card-icon">💬</div>
+    <h3 className="feature-card-title">context-aware chat</h3>
+    <p className="feature-card-description">
+      ai understands your selected components, codebase structure, and can suggest relevant changes.
+    </p>
+  </div>
+  <div className="feature-card">
+    <div className="feature-card-icon">✏️</div>
+    <h3 className="feature-card-title">live editing</h3>
+    <p className="feature-card-description">
+      in development mode, make changes directly through chat. see updates instantly via hot reload.
+    </p>
+  </div>
+  <div className="feature-card">
+    <div className="feature-card-icon">🤖</div>
+    <h3 className="feature-card-title">multi-model support</h3>
+    <p className="feature-card-description">
+      use claude 3.5 sonnet, gpt-4o, gemini 2.0, or 100+ other models through openrouter integration.
+    </p>
+  </div>
+  <div className="feature-card">
+    <div className="feature-card-icon">🛡️</div>
+    <h3 className="feature-card-title">production safe</h3>
+    <p className="feature-card-description">
+      explore components on any site safely. file editing only enabled in development environments.
+    </p>
+  </div>
+</div>
 
-<Tabs items={['Script Tag', 'npm Install', 'Next.js Plugin']}>
-<Tab value="Script Tag">
+## quick start
+
+get react llm running in under 30 seconds:
+
+<Steps>
+<Step>
+### add the script
+
+add this single line to any html page:
 
 ```html
-<!-- Add to any HTML page -->
 <script src="https://unpkg.com/react-llm/dist/react-llm.js"></script>
 <script>
   ReactLLM.init({
     providers: {
-      openrouter: 'sk-or-v1-...' // Your OpenRouter API key
+      openrouter: 'sk-or-...' // get your key at openrouter.ai
     }
   });
 </script>
 ```
-
-That's it! React LLM will appear as a floating chat interface on your page.
-
-</Tab>
-<Tab value="npm Install">
-
-```bash
-npm install react-llm
-# or
-pnpm add react-llm
-# or
-yarn add react-llm
-```
-
-Then in your React app:
-
-```tsx
-import { ReactLLMProvider } from 'react-llm';
-
-function App() {
-  return (
-    <ReactLLMProvider
-      config={{
-        providers: {
-          openrouter: 'sk-or-v1-...' // Your API key
-        }
-      }}
-    >
-      <YourApp />
-    </ReactLLMProvider>
-  );
-}
-```
-
-</Tab>
-<Tab value="Next.js Plugin">
-
-Install the Next.js plugin for enhanced development features:
-
-```bash
-npm install react-llm @react-llm/next
-```
-
-Add to your `next.config.js`:
-
-```javascript
-const { withReactLLM } = require('@react-llm/next');
-
-module.exports = withReactLLM({
-  // your existing Next.js config
-  reactLLM: {
-    enableHotReload: true,
-    fileAccess: true, // Enable live code editing
-  }
-});
-```
-
-</Tab>
-</Tabs>
-
-## What You Get
-
-After setup, you'll have access to:
-
-- **🎯 Visual Component Selection**: Click on any React component to inspect it
-- **💬 AI Chat Interface**: Chat with GPT-4, Claude, Gemini, and 100+ other models
-- **✏️ Live Code Editing**: Make changes to your code through AI chat (development mode)
-- **🔍 Component Discovery**: Explore component props, state, and relationships
-- **📚 Pattern Library**: Save and organize interesting component patterns
-- **🚀 Zero Configuration**: Works out of the box with any React application
-
-## Core Features
-
-<Steps>
-<Step>
-### Component Selection
-Click on any React component on your page to select it. React LLM uses advanced fiber traversal to understand your component structure.
 </Step>
 
 <Step>
-### Multi-Model AI Chat
-Ask questions about your components using any of 100+ AI models:
-- **OpenAI**: GPT-4o, GPT-4 Turbo, GPT-3.5
-- **Anthropic**: Claude 3.5 Sonnet, Claude 3 Opus
-- **Google**: Gemini 2.0 Flash, Gemini 1.5 Pro
-- **And many more** via OpenRouter
+### select a component
+
+click the react llm icon in the bottom-right corner, then click any component on your page.
 </Step>
 
 <Step>
-### Live Code Editing
-In development mode, React LLM can make actual changes to your code files through the File System Access API, with instant hot module replacement.
+### start chatting
+
+ask questions about the component, request changes, or explore the codebase structure.
 </Step>
 </Steps>
 
-## Development vs Production
+## installation options
 
-React LLM adapts to your environment:
+<Cards>
+  <Card 
+    title="script tag" 
+    description="fastest way to get started - add to any website"
+    href="/docs/installation/script-tag"
+  />
+  <Card 
+    title="npm package" 
+    description="integrate with your build process"
+    href="/docs/installation/npm"
+  />
+  <Card 
+    title="browser extension" 
+    description="use on any website without code changes"
+    href="/docs/installation/browser-extension"
+  />
+  <Card 
+    title="framework plugins" 
+    description="next.js, vite, and webpack plugins"
+    href="/docs/installation/frameworks"
+  />
+</Cards>
 
-### Development Mode
-- Full file system access for live editing
-- Hot module replacement integration
-- Source map analysis
-- Advanced debugging tools
+## example use cases
 
-### Production Mode
-- Read-only component exploration
-- Sandboxed execution
-- Component pattern discovery
-- Learning and documentation
+### development mode
+- **live code editing**: chat to modify components, see changes instantly
+- **debugging assistance**: understand component state and props
+- **code generation**: create new components and features through conversation
+- **refactoring help**: get ai suggestions for better patterns
 
-## Next Steps
+### production exploration
+- **component discovery**: explore how any website is built
+- **pattern library**: save interesting component patterns
+- **learning tool**: understand react implementations
+- **competitive analysis**: see how others solve ui challenges
 
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-  <div className="border rounded-lg p-4">
-    <h3 className="font-semibold mb-2">📦 Installation</h3>
-    <p className="text-sm text-muted-foreground mb-3">
-      Detailed setup guides for every framework and environment.
-    </p>
-    <a href="/docs/installation" className="text-primary text-sm hover:underline">
-      Installation guides →
-    </a>
-  </div>
-  
-  <div className="border rounded-lg p-4">
-    <h3 className="font-semibold mb-2">🔑 API Keys</h3>
-    <p className="text-sm text-muted-foreground mb-3">
-      Set up your AI provider credentials securely.
-    </p>
-    <a href="/docs/configuration/api-keys" className="text-primary text-sm hover:underline">
-      API key setup →
-    </a>
-  </div>
-  
-  <div className="border rounded-lg p-4">
-    <h3 className="font-semibold mb-2">⚡ Features</h3>
-    <p className="text-sm text-muted-foreground mb-3">
-      Explore all the powerful features React LLM offers.
-    </p>
-    <a href="/docs/features" className="text-primary text-sm hover:underline">
-      Feature overview →
-    </a>
-  </div>
-  
-  <div className="border rounded-lg p-4">
-    <h3 className="font-semibold mb-2">🔧 API Reference</h3>
-    <p className="text-sm text-muted-foreground mb-3">
-      Complete TypeScript definitions and examples.
-    </p>
-    <a href="/docs/api" className="text-primary text-sm hover:underline">
-      API documentation →
-    </a>
-  </div>
-</div>
+## how it works
+
+1. **component detection**: uses react fiber tree traversal to find all components
+2. **visual selection**: canvas overlay lets you click to select components
+3. **context building**: extracts component code, props, state, and relationships
+4. **ai conversation**: sends context to your chosen llm for intelligent responses
+5. **live updates**: in dev mode, applies changes directly to your files
+
+## supported models
+
+react llm supports all major ai providers through openrouter:
+
+- **anthropic**: claude 3.5 sonnet, claude 3 opus, claude 3 haiku
+- **openai**: gpt-4o, gpt-4 turbo, gpt-3.5 turbo
+- **google**: gemini 2.0 flash, gemini 1.5 pro, gemini 1.5 flash
+- **meta**: llama 3.1 405b, llama 3.1 70b, llama 3.1 8b
+- **and 100+ more models** via openrouter's unified api
+
+## comparison
+
+<table className="comparison-table">
+  <thead>
+    <tr>
+      <th>feature</th>
+      <th>react llm</th>
+      <th>github copilot</th>
+      <th>cursor</th>
+      <th>v0</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>works in browser</td>
+      <td>✓</td>
+      <td>✗</td>
+      <td>✗</td>
+      <td>✓</td>
+    </tr>
+    <tr>
+      <td>visual component selection</td>
+      <td>✓</td>
+      <td>✗</td>
+      <td>✗</td>
+      <td>✗</td>
+    </tr>
+    <tr>
+      <td>live editing</td>
+      <td>✓</td>
+      <td>✓</td>
+      <td>✓</td>
+      <td>✗</td>
+    </tr>
+    <tr>
+      <td>works on any website</td>
+      <td>✓</td>
+      <td>✗</td>
+      <td>✗</td>
+      <td>✗</td>
+    </tr>
+    <tr>
+      <td>no setup required</td>
+      <td>✓</td>
+      <td>✗</td>
+      <td>✗</td>
+      <td>✓</td>
+    </tr>
+    <tr>
+      <td>multi-model support</td>
+      <td>✓</td>
+      <td>✗</td>
+      <td>✓</td>
+      <td>✗</td>
+    </tr>
+  </tbody>
+</table>
+
+## browser compatibility
+
+react llm requires modern browser apis available in:
+
+- chrome/edge 120+
+- firefox 125+
+- safari 18+
+- arc, brave, opera (latest versions)
+
+## philosophy
+
+we believe ai coding assistance should be:
+
+1. **accessible**: works anywhere without complex setup
+2. **visual**: select what you want to change by clicking
+3. **contextual**: ai understands your specific component
+4. **immediate**: see results instantly, not in a separate editor
+5. **flexible**: use any ai model that works best for you
+
+## next steps
+
+<Cards>
+  <Card 
+    title="getting started" 
+    description="detailed setup instructions"
+    href="/docs/getting-started"
+  />
+  <Card 
+    title="features" 
+    description="explore all capabilities"
+    href="/docs/features"
+  />
+  <Card 
+    title="api reference" 
+    description="complete api documentation"
+    href="/docs/api"
+  />
+  <Card 
+    title="examples" 
+    description="real-world usage patterns"
+    href="/docs/examples"
+  />
+</Cards>
+
+## community
+
+- **github**: [github.com/react-llm/react-llm](https://github.com/react-llm/react-llm)
+- **discord**: [discord.gg/react-llm](https://discord.gg/react-llm)
+- **twitter**: [@reactllm](https://twitter.com/reactllm)
+
+---
+
+<p className="text-muted">
+  built with ❤️ by developers who believe ai should enhance, not replace, human creativity
+</p>

@@ -1,163 +1,233 @@
 /** @jsx h */
 import { h } from 'preact';
-import { useSignal, effect } from '@preact/signals';
+import { useEffect, useRef } from 'preact/hooks';
 import { ComponentInspector as BippyInspector, type ComponentInfo } from '../instrumentation/bippy-adapter';
 
 interface Props {
   isActive: boolean;
   onSelect: (component: ComponentInfo) => void;
+  theme?: 'light' | 'dark';
 }
 
-export function ComponentInspector({ isActive, onSelect }: Props) {
-  const canvas = useSignal<HTMLCanvasElement | null>(null);
-  const hoveredComponent = useSignal<ComponentInfo | null>(null);
-  const animationFrame = useSignal<number | null>(null);
-  const inspector = useSignal<BippyInspector | null>(null);
+export function ComponentInspector({ isActive, onSelect, theme = 'dark' }: Props) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const inspectorRef = useRef<BippyInspector | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
   
-  effect(() => {
-    // Initialize bippy inspector
-    if (!inspector.value) {
-      inspector.value = new BippyInspector();
-      inspector.value.onSelection(onSelect);
+  useEffect(() => {
+    // Clean up any existing listeners first
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
     }
     
+    // If not active, ensure everything is cleaned up and return
     if (!isActive) {
-      if (canvas.value) {
-        canvas.value.style.display = 'none';
-      }
-      if (animationFrame.value) {
-        cancelAnimationFrame(animationFrame.value);
+      if (containerRef.current) {
+        containerRef.current.remove();
+        containerRef.current = null;
       }
       return;
     }
     
-    // Create canvas if it doesn't exist
-    if (!canvas.value) {
-      const canvasEl = document.createElement('canvas');
-      canvasEl.style.cssText = `
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        z-index: 2147483647;
-        display: none;
-      `;
-      document.body.appendChild(canvasEl);
-      canvas.value = canvasEl;
-      
-      // Set canvas size
-      const updateCanvasSize = () => {
-        canvasEl.width = window.innerWidth;
-        canvasEl.height = window.innerHeight;
-      };
-      updateCanvasSize();
-      window.addEventListener('resize', updateCanvasSize);
+    // Only proceed if active
+    console.log('[ComponentInspector] Activating component selection mode');
+    
+    // Initialize bippy inspector
+    if (!inspectorRef.current) {
+      inspectorRef.current = (window as any).ReactLLM?.inspector || new BippyInspector();
     }
     
-    const ctx = canvas.value.getContext('2d')!;
+    // Create container for canvas overlay (following react-scan pattern)
+    const container = document.createElement('div');
+    container.setAttribute('data-react-llm-inspector', 'true');
+    container.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2147483646;
+    `;
     
-    const drawOutline = (component: ComponentInfo) => {
-      if (!component.domElement) return;
+    // Create canvas directly (no shadow DOM needed for overlay)
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: block;
+    `;
+    
+    // Set canvas size
+    canvas.width = window.innerWidth * window.devicePixelRatio;
+    canvas.height = window.innerHeight * window.devicePixelRatio;
+    canvas.style.width = `${window.innerWidth}px`;
+    canvas.style.height = `${window.innerHeight}px`;
+    
+    container.appendChild(canvas);
+    document.body.appendChild(container);
+    
+    containerRef.current = container;
+    canvasRef.current = canvas;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.error('[ComponentInspector] Failed to get canvas context');
+      return;
+    }
+    
+    // Scale for device pixel ratio
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    
+    let hoveredComponent: ComponentInfo | null = null;
+    let animationFrameId: number | null = null;
+    
+    const drawHighlight = (component: ComponentInfo) => {
+      if (!component.domElement || !ctx) return;
       
       const rect = component.domElement.getBoundingClientRect();
       
       // Clear canvas
-      ctx.clearRect(0, 0, canvas.value!.width, canvas.value!.height);
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       
-      // Draw outline
-      ctx.strokeStyle = 'rgba(100, 200, 255, 0.8)';
+      // Draw highlight
+      ctx.fillStyle = theme === 'dark' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(37, 99, 235, 0.15)';
+      ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
+      
+      ctx.strokeStyle = theme === 'dark' ? 'rgba(59, 130, 246, 0.8)' : 'rgba(37, 99, 235, 0.8)';
       ctx.lineWidth = 2;
-      ctx.fillStyle = 'rgba(100, 200, 255, 0.1)';
+      ctx.strokeRect(rect.left, rect.top, rect.width, rect.height);
       
-      ctx.beginPath();
-      ctx.rect(rect.left, rect.top, rect.width, rect.height);
-      ctx.fill();
-      ctx.stroke();
+      // Draw label
+      const label = component.name || 'Component';
+      ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillStyle = theme === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)';
+      const labelPadding = 4;
+      const labelHeight = 20;
+      const textMetrics = ctx.measureText(label);
+      const labelWidth = textMetrics.width + labelPadding * 2;
       
-      // Draw component name label
-      if (component.name && component.name !== 'Unknown') {
-        const labelHeight = 20;
-        const labelPadding = 8;
-        const labelWidth = component.name.length * 7 + labelPadding * 2;
-        const labelY = rect.top > labelHeight ? rect.top - labelHeight : rect.bottom;
-        
-        // Background
-        ctx.fillStyle = 'rgba(100, 200, 255, 0.9)';
-        ctx.fillRect(rect.left, labelY, labelWidth, labelHeight);
-        
-        // Text
-        ctx.font = '12px IosevkaTerm, monospace';
-        ctx.fillStyle = 'white';
-        ctx.fillText(component.name, rect.left + labelPadding, labelY + 14);
-        
-        // Show component type if it's not a regular component
-        if (!component.isComponent && component.fiberType) {
-          ctx.font = '10px IosevkaTerm, monospace';
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-          ctx.fillText(`(${component.fiberType})`, rect.left + labelWidth + 4, labelY + 14);
-        }
-      }
+      const labelY = rect.top > labelHeight ? rect.top - labelHeight : rect.bottom;
+      ctx.fillRect(rect.left, labelY, labelWidth, labelHeight);
+      
+      ctx.fillStyle = theme === 'dark' ? '#ffffff' : '#000000';
+      ctx.fillText(label, rect.left + labelPadding, labelY + 14);
     };
     
     const handleMouseMove = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       
-      // Skip if it's part of our UI
-      if (target.closest('.toolbar')) {
-        ctx.clearRect(0, 0, canvas.value!.width, canvas.value!.height);
-        canvas.value!.style.display = 'none';
-        hoveredComponent.value = null;
+      // Skip if hovering over React LLM UI
+      if (target.closest('[data-react-llm-inspector]') || 
+          target.closest('[data-react-llm]') ||
+          target.closest('#react-llm-root')) {
+        if (hoveredComponent) {
+          ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+          hoveredComponent = null;
+        }
         return;
       }
       
-      // Get component at this point using bippy
-      const component = inspector.value!.getComponentAtPoint(e.clientX, e.clientY);
-      if (component) {
-        hoveredComponent.value = component;
-        canvas.value!.style.display = 'block';
-        
-        // Use requestAnimationFrame for smooth rendering
-        if (animationFrame.value) {
-          cancelAnimationFrame(animationFrame.value);
+      const component = inspectorRef.current?.getComponentAtPoint(e.clientX, e.clientY);
+      if (component && component !== hoveredComponent) {
+        hoveredComponent = component;
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
         }
-        animationFrame.value = requestAnimationFrame(() => {
-          drawOutline(component);
+        animationFrameId = requestAnimationFrame(() => {
+          drawHighlight(component);
         });
-      } else {
-        ctx.clearRect(0, 0, canvas.value!.width, canvas.value!.height);
-        canvas.value!.style.display = 'none';
-        hoveredComponent.value = null;
+      } else if (!component && hoveredComponent) {
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        hoveredComponent = null;
       }
     };
     
     const handleClick = (e: MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
       const target = e.target as HTMLElement;
-      if (target.closest('.toolbar')) return;
       
-      // Use bippy to get component info
-      const component = inspector.value!.getComponentAtPoint(e.clientX, e.clientY);
+      // Skip if clicking React LLM UI
+      if (target.closest('[data-react-llm-inspector]') || 
+          target.closest('[data-react-llm]') ||
+          target.closest('#react-llm-root')) {
+        return;
+      }
+      
+      const component = inspectorRef.current?.getComponentAtPoint(e.clientX, e.clientY);
       if (component) {
+        // Prevent default to stop the click from going through
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Select the component and immediately clean up
         onSelect(component);
-        canvas.value!.style.display = 'none';
+        console.log('[ComponentInspector] Component selected:', component.name);
+        
+        // Clean up immediately after selection
+        if (cleanupRef.current) {
+          cleanupRef.current();
+        }
       }
     };
     
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('click', handleClick, true);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        console.log('[ComponentInspector] Escape pressed, canceling selection');
+        // Trigger deactivation by calling onSelect with null
+        onSelect(null as any);
+      }
+    };
     
-    return () => {
+    const handleResize = () => {
+      if (!canvas) return;
+      canvas.width = window.innerWidth * window.devicePixelRatio;
+      canvas.height = window.innerHeight * window.devicePixelRatio;
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      
+      // Redraw if there's a hovered component
+      if (hoveredComponent) {
+        drawHighlight(hoveredComponent);
+      }
+    };
+    
+    // Add event listeners (use capture phase only for click to intercept before page)
+    document.addEventListener('mousemove', handleMouseMove, false);
+    document.addEventListener('click', handleClick, true); // Only click uses capture
+    document.addEventListener('keydown', handleKeyDown, false);
+    window.addEventListener('resize', handleResize, false);
+    
+    // Store cleanup function
+    cleanupRef.current = () => {
+      console.log('[ComponentInspector] Cleaning up event listeners');
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('click', handleClick, true);
-      if (canvas.value) {
-        canvas.value.style.display = 'none';
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', handleResize);
+      
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
       }
-      if (animationFrame.value) {
-        cancelAnimationFrame(animationFrame.value);
+      
+      if (containerRef.current) {
+        containerRef.current.remove();
+        containerRef.current = null;
       }
+      
+      canvasRef.current = null;
     };
-  });
+    
+    // Return cleanup function
+    return cleanupRef.current;
+  }, [isActive, onSelect, theme]);
   
+  // This component doesn't render anything in the React tree
   return null;
 }

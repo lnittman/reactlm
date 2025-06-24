@@ -53,50 +53,225 @@ interface SuggestedQuery {
   query: string;
 }
 
+// Modern browser storage fallback strategy
+interface InMemoryDB {
+  exec(options: { sql: string; bind?: any[]; callback?: (row: any[]) => void }): Promise<void>;
+}
+
+class BrowserStorageDB implements InMemoryDB {
+  private data: Map<string, any[]> = new Map();
+  private schema = {
+    chat_sessions: ['id', 'title', 'created_at', 'project_name', 'project_type', 'project_description', 'is_active'],
+    messages: ['id', 'chat_session_id', 'role', 'content', 'timestamp'],
+    relevant_files: ['id', 'message_id', 'path', 'reason', 'file_type', 'snippet'],
+    documentation_links: ['id', 'message_id', 'url', 'title', 'description'],
+    suggested_queries: ['id', 'message_id', 'query'],
+    project_technologies: ['chat_session_id', 'technology']
+  };
+
+  constructor() {
+    // Initialize tables
+    Object.keys(this.schema).forEach(table => {
+      this.data.set(table, []);
+    });
+    this.loadFromLocalStorage();
+  }
+
+  private loadFromLocalStorage() {
+    try {
+      const stored = localStorage.getItem('react-llm-data');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        Object.entries(parsed).forEach(([table, rows]) => {
+          this.data.set(table, rows as any[]);
+        });
+        console.log('[ReactLLM] Loaded data from localStorage');
+      }
+    } catch (e) {
+      console.warn('[ReactLLM] Failed to load from localStorage:', e);
+    }
+  }
+
+  private saveToLocalStorage() {
+    try {
+      const dataObj: any = {};
+      this.data.forEach((rows, table) => {
+        dataObj[table] = rows;
+      });
+      localStorage.setItem('react-llm-data', JSON.stringify(dataObj));
+    } catch (e) {
+      console.warn('[ReactLLM] Failed to save to localStorage:', e);
+    }
+  }
+
+  async exec(options: { sql: string; bind?: any[]; callback?: (row: any[]) => void }): Promise<void> {
+    const { sql, bind = [], callback } = options;
+    const sqlUpper = sql.trim().toUpperCase();
+
+    if (sqlUpper.includes('CREATE TABLE') || sqlUpper.includes('CREATE INDEX')) {
+      // Ignore schema creation - we handle it in constructor
+      return;
+    }
+
+    if (sqlUpper.startsWith('INSERT INTO')) {
+      this.handleInsert(sql, bind);
+      this.saveToLocalStorage();
+    } else if (sqlUpper.startsWith('SELECT')) {
+      this.handleSelect(sql, bind, callback);
+    } else if (sqlUpper.startsWith('UPDATE')) {
+      this.handleUpdate(sql, bind);
+      this.saveToLocalStorage();
+    }
+  }
+
+  private handleInsert(sql: string, bind: any[]) {
+    const tableMatch = sql.match(/INSERT INTO (\w+)/i);
+    if (!tableMatch) return;
+    
+    const table = tableMatch[1];
+    const rows = this.data.get(table) || [];
+    
+    if (table === 'chat_sessions') {
+      rows.push({
+        id: bind[0],
+        title: bind[1],
+        created_at: bind[2],
+        project_name: bind[3],
+        project_type: bind[4],
+        project_description: bind[5],
+        is_active: 1
+      });
+    } else if (table === 'messages') {
+      rows.push({
+        id: bind[0],
+        chat_session_id: bind[1],
+        role: bind[2],
+        content: bind[3],
+        timestamp: bind[4]
+      });
+    } else if (table === 'project_technologies') {
+      // Handle bulk insert
+      for (let i = 0; i < bind.length; i += 2) {
+        rows.push({
+          chat_session_id: bind[i],
+          technology: bind[i + 1]
+        });
+      }
+    }
+    
+    this.data.set(table, rows);
+  }
+
+  private handleSelect(sql: string, bind: any[], callback?: (row: any[]) => void) {
+    if (!callback) return;
+    
+    if (sql.includes('chat_sessions')) {
+      const sessions = this.data.get('chat_sessions') || [];
+      const technologies = this.data.get('project_technologies') || [];
+      
+      sessions
+        .filter((s: any) => s.is_active)
+        .sort((a: any, b: any) => b.created_at - a.created_at)
+        .forEach((session: any) => {
+          const sessionTechs = technologies
+            .filter((t: any) => t.chat_session_id === session.id)
+            .map((t: any) => t.technology)
+            .join(',');
+          
+          callback([
+            session.id,
+            session.title,
+            session.created_at,
+            session.project_name,
+            session.project_type,
+            session.project_description,
+            session.is_active,
+            sessionTechs
+          ]);
+        });
+    } else if (sql.includes('messages') && bind.length > 0) {
+      const messages = this.data.get('messages') || [];
+      messages
+        .filter((m: any) => m.chat_session_id === bind[0])
+        .sort((a: any, b: any) => a.timestamp - b.timestamp)
+        .forEach((message: any) => {
+          callback([
+            message.id,
+            message.chat_session_id,
+            message.role,
+            message.content,
+            message.timestamp
+          ]);
+        });
+    }
+  }
+
+  private handleUpdate(sql: string, bind: any[]) {
+    if (sql.includes('chat_sessions') && sql.includes('is_active = 0')) {
+      const sessions = this.data.get('chat_sessions') || [];
+      const session = sessions.find((s: any) => s.id === bind[0]);
+      if (session) {
+        session.is_active = 0;
+      }
+    }
+  }
+}
+
 export async function initDB() {
   if (db) return db;
 
   try {
-    // Initialize wa-sqlite with correct WASM path
-    // Load SQLite WASM from CDN to avoid bundling issues
-    const sqliteWasmUrl = 'https://cdn.jsdelivr.net/npm/@sqlite.org/sqlite-wasm@3.46.1-build1/sqlite-wasm/jswasm/sqlite3.js';
-    const { default: sqlite3InitModule } = await import(/* @vite-ignore */ sqliteWasmUrl);
-    const sqlite = await sqlite3InitModule({
-      locateFile: (file: string) => {
-        if (file === 'sqlite3.wasm') {
-          return __PUBLIC_PATH__ + file;
-        }
-        return 'https://cdn.jsdelivr.net/npm/@sqlite.org/sqlite-wasm@3.46.1-build1/sqlite-wasm/jswasm/' + file;
-      }
-    });
-    
-    if (!sqlite?.oo1) {
-      throw new Error('SQLite initialization failed: oo1 not available');
-    }
-
+    // Try SQLite WASM first
     try {
-      // Try OPFS first
-      if (sqlite.oo1.OpfsDb) {
-        console.log('[ReactLLM] Using OPFS for persistence');
-        const dbPath = '/react-llm.sqlite3';
-        db = new sqlite.oo1.OpfsDb(dbPath);
-      } else {
-        // Fall back to in-memory database
-        console.log('[ReactLLM] OPFS not available, using in-memory database');
-        db = new sqlite.oo1.DB('/react-llm.sqlite3', 'ct');
+      // Load SQLite WASM from CDN
+      const sqliteWasmUrl = 'https://cdn.jsdelivr.net/npm/@sqlite.org/sqlite-wasm@3.46.1-build1/sqlite-wasm/jswasm/sqlite3.js';
+      
+      // Create a script tag to load the module properly
+      const script = document.createElement('script');
+      script.src = sqliteWasmUrl;
+      
+      await new Promise((resolve, reject) => {
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+      
+      // Check if sqlite3InitModule is available globally
+      const sqlite3InitModule = (window as any).sqlite3InitModule;
+      if (!sqlite3InitModule) {
+        throw new Error('sqlite3InitModule not found on window');
+      }
+      
+      const sqlite = await sqlite3InitModule({
+        locateFile: (file: string) => {
+          return 'https://cdn.jsdelivr.net/npm/@sqlite.org/sqlite-wasm@3.46.1-build1/sqlite-wasm/jswasm/' + file;
+        }
+      });
+      
+      if (sqlite?.oo1) {
+        if (sqlite.oo1.OpfsDb) {
+          console.log('[ReactLLM] Using OPFS for persistence');
+          db = new sqlite.oo1.OpfsDb('/react-llm.sqlite3');
+        } else {
+          console.log('[ReactLLM] Using SQLite WASM in-memory');
+          db = new sqlite.oo1.DB('/react-llm.sqlite3', 'ct');
+        }
+        
+        await db.exec({ sql: schema });
+        console.log('[ReactLLM] SQLite WASM initialized successfully');
+        return db;
       }
     } catch (e) {
-      console.warn('[ReactLLM] Failed to initialize OPFS, falling back to in-memory database:', e);
-      db = new sqlite.oo1.DB('/react-llm.sqlite3', 'ct');
+      console.warn('[ReactLLM] SQLite WASM failed, using localStorage fallback:', e);
     }
-
-    // Create tables
-    if (!db) throw new Error('Database initialization failed');
-    await db.exec({ sql: schema });
-    console.log('[ReactLLM] Database initialized successfully');
+    
+    // Fallback to localStorage-based implementation
+    console.log('[ReactLLM] Using localStorage for persistence');
+    db = new BrowserStorageDB() as any;
     return db;
+    
   } catch (error) {
-    console.error('Failed to initialize database:', error);
+    console.error('Failed to initialize any database:', error);
     throw error;
   }
 }

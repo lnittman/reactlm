@@ -1,0 +1,69 @@
+# Configuration for auto-labeling PRs based on paths
+
+# Package labels
+'package: react-llm':
+  - packages/react-llm/**/*
+
+'package: next':
+  - packages/next/**/*
+
+'package: vite':
+  - packages/vite/**/*
+
+'package: browser-extension':
+  - packages/browser-extension/**/*
+
+# App labels
+'app: web':
+  - apps/web/**/*
+
+'app: docs':
+  - apps/docs/**/*
+
+# Type labels
+'type: documentation':
+  - '**/*.md'
+  - apps/docs/**/*
+
+'type: test':
+  - '**/*.test.ts'
+  - '**/*.test.tsx'
+  - '**/*.spec.ts'
+  - '**/*.spec.tsx'
+  - '**/test/**/*'
+  - '**/tests/**/*'
+
+'type: build':
+  - '**/tsconfig.json'
+  - '**/tsup.config.ts'
+  - '**/package.json'
+  - '**/turbo.json'
+  - '.github/workflows/*'
+
+'type: dependencies':
+  - '**/package.json'
+  - 'pnpm-lock.yaml'
+
+# Component labels
+'component: llm':
+  - packages/react-llm/src/llm/**/*
+  - packages/react-llm/src/gemini/**/*
+
+'component: ui':
+  - packages/react-llm/src/components/**/*
+  - packages/react-llm/src/styles/**/*
+
+'component: database':
+  - packages/react-llm/src/db/**/*
+
+'component: filesystem':
+  - packages/react-llm/src/filesystem/**/*
+
+'component: monitoring':
+  - packages/react-llm/src/monitoring/**/*
+
+# Priority labels (manual)
+# 'priority: critical'
+# 'priority: high'
+# 'priority: medium'
+# 'priority: low'

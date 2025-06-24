@@ -9,6 +9,7 @@ import { DemoMobile } from './DemoMobile'
 import { DemoMetrics } from './DemoMetrics'
 import { ApiKeyConfig } from './ApiKeyConfig'
 import { DemoTour, useDemoTour } from './DemoTour'
+import { SandboxedApp } from './SandboxedApp'
 import { demoSimulation } from '@/lib/demo-simulation'
 import { reactLLMApi, initializeDemoApi } from '@/lib/demo-api'
 
@@ -63,13 +64,25 @@ export function LiveDemo() {
   useEffect(() => {
     // Initialize demo API
     const initDemo = async () => {
-      await initializeDemoApi()
-      setApiMode(reactLLMApi.isSimulationMode() ? 'simulation' : 'real')
+      // Load React LLM script
+      const script = document.createElement('script')
+      script.src = '/react-llm.js'
+      script.async = true
       
-      // Simulate loading
-      setTimeout(() => {
+      script.onload = async () => {
+        await initializeDemoApi()
+        setApiMode(reactLLMApi.isSimulationMode() ? 'simulation' : 'real')
         setIsLoaded(true)
-      }, 2000)
+      }
+      
+      script.onerror = async () => {
+        console.warn('Failed to load React LLM, using simulation mode')
+        await initializeDemoApi()
+        setApiMode('simulation')
+        setIsLoaded(true)
+      }
+      
+      document.body.appendChild(script)
     }
     
     initDemo()
@@ -178,39 +191,11 @@ export function LiveDemo() {
             <DemoSkeleton />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full p-4">
-              {/* Left: Mock App */}
-              <div className="lg:col-span-2 bg-gray-50 rounded-lg p-6 overflow-y-auto">
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Interactive Components</h3>
-                  <p className="text-sm text-gray-600">Click any component to select it for AI modifications</p>
-                </div>
-                
-                <div className="space-y-6">
-                  {DEMO_COMPONENTS.map((component) => {
-                    const Component = component.component
-                    return (
-                      <motion.div
-                        key={component.id}
-                        onHoverStart={() => handleComponentHover(component.id)}
-                        onHoverEnd={() => handleComponentHover(null)}
-                        className="relative"
-                      >
-                        <div className="mb-2">
-                          <div className="text-sm font-mono text-gray-500">
-                            &lt;{component.name} /&gt;
-                          </div>
-                        </div>
-                        <Component
-                          name={component.name}
-                          type={component.type}
-                          isSelected={demoState.selectedComponent === component.id}
-                          isHighlighted={demoState.highlightedComponent === component.id}
-                          onClick={() => handleComponentSelect(component.id)}
-                          code={component.code}
-                        />
-                      </motion.div>
-                    )
-                  })}
+              {/* Left: Sandboxed React App */}
+              <div className="lg:col-span-2 bg-gray-50 rounded-lg overflow-hidden">
+                <div className="h-full relative">
+                  <SandboxedApp />
+                  {/* React LLM will overlay component selection UI here */}
                 </div>
               </div>
               

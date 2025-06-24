@@ -1,0 +1,89 @@
+name: Release Checklist
+description: Track tasks for a new release
+title: "[Release] v"
+labels: ["release", "checklist"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Release Checklist
+        Use this template to track all tasks for a new release.
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version are you releasing?
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: release-type
+    attributes:
+      label: Release Type
+      description: What type of release is this?
+      options:
+        - Patch (bug fixes)
+        - Minor (new features)
+        - Major (breaking changes)
+        - Pre-release (beta/rc)
+    validations:
+      required: true
+
+  - type: textarea
+    id: changes
+    attributes:
+      label: Key Changes
+      description: List the main changes in this release
+      placeholder: |
+        - Added new feature X
+        - Fixed bug Y
+        - Improved performance of Z
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: pre-release
+    attributes:
+      label: Pre-release Checklist
+      description: Complete these before creating the release
+      options:
+        - label: All PRs for this release are merged
+        - label: Changesets have been added for all changes
+        - label: Tests are passing on main branch
+        - label: Documentation is updated
+        - label: Breaking changes are documented
+        - label: Migration guide written (if applicable)
+
+  - type: checkboxes
+    id: release-tasks
+    attributes:
+      label: Release Tasks
+      description: Track the release process
+      options:
+        - label: Version PR created by Changeset
+        - label: Version PR reviewed and approved
+        - label: Version PR merged
+        - label: NPM packages published successfully
+        - label: GitHub release created
+        - label: CDN distribution verified
+        - label: Documentation deployed
+
+  - type: checkboxes
+    id: post-release
+    attributes:
+      label: Post-release Tasks
+      description: Complete these after the release
+      options:
+        - label: Release announcement posted
+        - label: Discord/Slack notifications sent
+        - label: Twitter/social media updated
+        - label: Demo site updated
+        - label: Partners notified (if applicable)
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Notes
+      description: Any other information about this release

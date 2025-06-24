@@ -8,6 +8,7 @@ import {
   secure,
   type Fiber 
 } from 'bippy';
+import { reactDetector } from '../utils/react-detector';
 
 export interface SourceLocation {
   fileName?: string;
@@ -38,19 +39,43 @@ export class ComponentInspector {
   private selectionCallback?: ComponentSelectionCallback;
   private isInstrumented = false;
   private componentCounter = 0;
+  private instrumentationRetries = 0;
+  private maxRetries = 10;
   
   constructor() {
-    this.setupInstrumentation();
+    this.setupInstrumentationWithRetry();
+  }
+  
+  private setupInstrumentationWithRetry() {
+    // First check if React is already detected
+    const reactResult = reactDetector.getDetectionResult();
+    if (reactResult?.isReact) {
+      this.setupInstrumentation();
+    } else {
+      // Wait for React to be detected
+      reactDetector.onReactReady((result) => {
+        if (result.isReact) {
+          // Add a small delay to ensure React is fully initialized
+          setTimeout(() => this.setupInstrumentation(), 50);
+        }
+      });
+    }
   }
   
   private setupInstrumentation() {
     if (this.isInstrumented) return;
     
     try {
+      console.log('[ReactLLM] Setting up bippy instrumentation...');
+      
       // Use bippy's secure wrapper to prevent crashes
       const handlers = secure({
         onCommitFiberRoot: (rendererID: any, root: any) => {
-          this.processFiberRoot(root);
+          try {
+            this.processFiberRoot(root);
+          } catch (error) {
+            console.error('[ReactLLM] Error in fiber root processing:', error);
+          }
         },
       });
       
@@ -58,9 +83,37 @@ export class ComponentInspector {
       instrument(handlers);
       
       this.isInstrumented = true;
-      console.log('[ReactLLM] Component instrumentation initialized with bippy');
+      console.log('[ReactLLM] Bippy instrumentation initialized successfully');
+      
+      // Process any existing React roots
+      this.processExistingRoots();
+      
     } catch (error) {
       console.error('[ReactLLM] Failed to setup instrumentation:', error);
+      
+      // Retry setup if we haven't exceeded max retries
+      if (this.instrumentationRetries < this.maxRetries) {
+        this.instrumentationRetries++;
+        console.log(`[ReactLLM] Retrying instrumentation setup (${this.instrumentationRetries}/${this.maxRetries})`);
+        setTimeout(() => this.setupInstrumentation(), 100);
+      } else {
+        console.error('[ReactLLM] Max instrumentation retries exceeded, component inspection will be limited');
+      }
+    }
+  }
+  
+  private processExistingRoots() {
+    try {
+      // Look for existing React DevTools hook to find roots
+      const hook = (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__;
+      if (hook && hook.getFiberRoots) {
+        const roots = hook.getFiberRoots(1); // Get roots for renderer ID 1
+        roots.forEach((root: any) => {
+          this.processFiberRoot(root);
+        });
+      }
+    } catch (error) {
+      console.warn('[ReactLLM] Could not process existing roots:', error);
     }
   }
   
@@ -297,18 +350,68 @@ export class ComponentInspector {
     
     // Walk up DOM tree to find React component
     let current: HTMLElement | null = element;
+    let bestMatch: ComponentInfo | null = null;
+    
     while (current) {
+      // Check if this element has a React fiber
       const fiber = this.fiberMap.get(current);
       if (fiber) {
         const id = this.getFiberId(fiber);
         const component = this.componentMap.get(id);
+        if (component) {
+          // Prefer actual React components over host components
+          if (component.isComponent) {
+            return component;
+          } else if (!bestMatch) {
+            bestMatch = component;
+          }
+        }
+      }
+      
+      // Also check for React-LLM data attributes
+      const reactLlmId = current.dataset.reactLlmId;
+      if (reactLlmId) {
+        const component = this.componentMap.get(reactLlmId);
         if (component && component.isComponent) {
           return component;
         }
       }
+      
+      // Check for React fiber keys directly on the element
+      const reactFiberKey = Object.keys(current).find(key => 
+        key.startsWith('__reactInternalInstance') || 
+        key.startsWith('__reactFiber')
+      );
+      
+      if (reactFiberKey) {
+        const fiber = (current as any)[reactFiberKey];
+        if (fiber) {
+          const component = this.findComponentFromFiber(fiber);
+          if (component) {
+            return component;
+          }
+        }
+      }
+      
       current = current.parentElement;
     }
     
+    return bestMatch;
+  }
+  
+  private findComponentFromFiber(fiber: Fiber): ComponentInfo | null {
+    // Walk up the fiber tree to find a component
+    let current = fiber;
+    while (current) {
+      if (this.isComponentFiber(current)) {
+        const id = this.getFiberId(current);
+        const component = this.componentMap.get(id);
+        if (component) {
+          return component;
+        }
+      }
+      current = current.return;
+    }
     return null;
   }
   

@@ -52,6 +52,7 @@
   ],
   "scripts": {
     "build": "tsup",
+    "build:optimized": "tsup --config tsup.config.optimized.ts",
     "dev": "tsup --watch",
     "lint": "biome check .",
     "test": "vitest run",
@@ -60,7 +61,9 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "typecheck": "tsc --noEmit",
-    "format": "biome format . --write"
+    "format": "biome format . --write",
+    "prepublishOnly": "pnpm run build && pnpm run test && pnpm run typecheck",
+    "prepack": "pnpm run build"
   },
   "dependencies": {
     "@preact/signals": "^1.2.2",
