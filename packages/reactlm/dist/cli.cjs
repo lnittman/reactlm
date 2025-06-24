@@ -8,9 +8,9 @@ var fs = require("fs");
 var path = require("path");
 var command = process.argv[2];
 if (!command || !["install", "generate"].includes(command)) {
-  console.log("Usage: react-llm <command>");
+  console.log("Usage: reactlm <command>");
   console.log("\nCommands:");
-  console.log("  install   Add react-llm to your project");
+  console.log("  install   Add reactlm to your project");
   console.log("  generate  Generate codebase context");
   process.exit(1);
 }
@@ -30,11 +30,11 @@ function addScriptToPackageJson() {
   const packageJsonPath = path.join(process.cwd(), "package.json");
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
   if (!packageJson.scripts) packageJson.scripts = {};
-  packageJson.scripts["react-llm"] = "react-llm generate";
+  packageJson.scripts["reactlm"] = "reactlm generate";
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + "\n");
 }
 function addScriptToLayout(framework) {
-  const scriptTag = `<script src="/react-llm.js"></script>`;
+  const scriptTag = `<script src="/reactlm.js"></script>`;
   if (framework === "next") {
     const appLayoutPath = path.join(process.cwd(), "src", "app", "layout.tsx");
     const altAppLayoutPath = path.join(process.cwd(), "app", "layout.tsx");

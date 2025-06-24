@@ -21,17 +21,17 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var index_exports = {};
 __export(index_exports, {
   default: () => index_default,
-  withReactLLM: () => withReactLLM
+  withReactLM: () => withReactLM
 });
 module.exports = __toCommonJS(index_exports);
-var ReactLLMWebpackPlugin = class {
+var ReactLMWebpackPlugin = class {
   constructor(options) {
     this.options = options;
   }
   apply(compiler) {
-    compiler.hooks.compilation.tap("ReactLLMWebpackPlugin", (compilation) => {
+    compiler.hooks.compilation.tap("ReactLMWebpackPlugin", (compilation) => {
       compilation.hooks.htmlWebpackPluginBeforeHtmlProcessing?.tap(
-        "ReactLLMWebpackPlugin",
+        "ReactLMWebpackPlugin",
         (data) => {
           const script = this.generateScript();
           data.html = data.html.replace("</head>", `${script}</head>`);
@@ -47,21 +47,21 @@ var ReactLLMWebpackPlugin = class {
     };
     return `
       <script>
-        window.__REACT_LLM_CONFIG__ = ${JSON.stringify(config)};
+        window.__REACT_LM_CONFIG__ = ${JSON.stringify(config)};
       </script>
-      <script src="https://unpkg.com/react-llm@latest/dist/react-llm.js" defer></script>
+      <script src="https://unpkg.com/reactlm@latest/dist/reactlm.js" defer></script>
       <script>
         window.addEventListener('DOMContentLoaded', () => {
-          if (window.ReactLLM && window.__REACT_LLM_CONFIG__) {
-            window.ReactLLM.init(window.__REACT_LLM_CONFIG__);
+          if (window.ReactLM && window.__REACT_LM_CONFIG__) {
+            window.ReactLM.init(window.__REACT_LM_CONFIG__);
           }
         });
       </script>
     `;
   }
 };
-function withReactLLM(nextConfig = {}, options = {}) {
-  const reactLLMOptions = {
+function withReactLM(nextConfig = {}, options = {}) {
+  const reactLMOptions = {
     enabled: true,
     mode: "development",
     enableFileAccess: true,
@@ -78,10 +78,10 @@ function withReactLLM(nextConfig = {}, options = {}) {
   return {
     ...nextConfig,
     webpack(config, context) {
-      const shouldInject = reactLLMOptions.enabled && (reactLLMOptions.mode === "development" ? context.dev : true);
+      const shouldInject = reactLMOptions.enabled && (reactLMOptions.mode === "development" ? context.dev : true);
       if (shouldInject) {
         config.plugins = config.plugins || [];
-        config.plugins.push(new ReactLLMWebpackPlugin(reactLLMOptions));
+        config.plugins.push(new ReactLMWebpackPlugin(reactLMOptions));
       }
       if (typeof nextConfig.webpack === "function") {
         return nextConfig.webpack(config, context);
@@ -91,23 +91,23 @@ function withReactLLM(nextConfig = {}, options = {}) {
     // Enable experimental features for file system access
     experimental: {
       ...nextConfig.experimental,
-      ...reactLLMOptions.enableFileAccess && {
-        serverComponentsExternalPackages: ["react-llm"]
+      ...reactLMOptions.enableFileAccess && {
+        serverComponentsExternalPackages: ["reactlm"]
       }
     },
-    // Add headers for React LLM
+    // Add headers for ReactLM
     async headers() {
       const headers = await nextConfig.headers?.() || [];
-      if (reactLLMOptions.enabled) {
+      if (reactLMOptions.enabled) {
         headers.push({
           source: "/:path*",
           headers: [
             {
-              key: "X-React-LLM-Enabled",
+              key: "X-ReactLM-Enabled",
               value: "true"
             },
             {
-              key: "X-React-LLM-Version",
+              key: "X-ReactLM-Version",
               value: process.env.npm_package_version || "0.1.0"
             }
           ]
@@ -117,8 +117,8 @@ function withReactLLM(nextConfig = {}, options = {}) {
     }
   };
 }
-var index_default = withReactLLM;
+var index_default = withReactLM;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  withReactLLM
+  withReactLM
 });

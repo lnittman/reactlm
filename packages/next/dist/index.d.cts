@@ -1,6 +1,6 @@
 import { NextConfig } from 'next';
 
-interface ReactLLMOptions {
+interface ReactLMOptions {
     providers?: {
         openrouter?: string;
         openai?: string;
@@ -19,6 +19,6 @@ interface ReactLLMOptions {
         chat?: string;
     };
 }
-declare function withReactLLM(nextConfig?: NextConfig, options?: ReactLLMOptions): NextConfig;
+declare function withReactLM(nextConfig?: NextConfig, options?: ReactLMOptions): NextConfig;
 
-export { type ReactLLMOptions, withReactLLM as default, withReactLLM };
+export { type ReactLMOptions, withReactLM as default, withReactLM };

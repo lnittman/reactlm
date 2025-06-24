@@ -1,6 +1,6 @@
 import { Plugin } from 'vite';
 
-interface ReactLLMViteOptions {
+interface ReactLMViteOptions {
     providers?: {
         openrouter?: string;
         openai?: string;
@@ -19,6 +19,6 @@ interface ReactLLMViteOptions {
         chat?: string;
     };
 }
-declare function reactLLM(options?: ReactLLMViteOptions): Plugin;
+declare function reactLM(options?: ReactLMViteOptions): Plugin;
 
-export { type ReactLLMViteOptions, reactLLM as default, reactLLM };
+export { type ReactLMViteOptions, reactLM as default, reactLM };

@@ -1,4 +1,4 @@
-/* React LLM - Browser-native AI coding assistant - MIT License */
+/* ReactLM - Browser-native AI coding assistant - MIT License */
 "use strict";
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -4277,7 +4277,7 @@ function Toolbar({ hub, monitorManager, shadowRoot }) {
           }
           const newId = String(Date.now());
           await createChatSession(newId, "Welcome");
-          const welcomeMessage = `Welcome to React LLM! I'm ready to help you with your React codebase.
+          const welcomeMessage = `Welcome to ReactLM! I'm ready to help you with your React codebase.
 
 I'm currently using **${hub.getActiveModel()}** - you can change models anytime using the \u{1F916} button.
 
@@ -4853,7 +4853,7 @@ What would you like to explore?`;
         disabled: isInitializing.value || isStreamingResponse.value || !inputValue.value.trim()
       },
       isStreamingResponse.value ? /* @__PURE__ */ (0, import_preact2.h)("span", { className: "loading-dots" }, /* @__PURE__ */ (0, import_preact2.h)("span", { className: "loading-dot" }), /* @__PURE__ */ (0, import_preact2.h)("span", { className: "loading-dot" }), /* @__PURE__ */ (0, import_preact2.h)("span", { className: "loading-dot" })) : "\u2192"
-    )))) : /* @__PURE__ */ (0, import_preact2.h)("div", { className: "empty-state" }, /* @__PURE__ */ (0, import_preact2.h)("div", { className: "empty-state-title" }, "welcome to react llm"), /* @__PURE__ */ (0, import_preact2.h)("div", { className: "empty-state-description" }, "start a new chat to get ai-powered help with your react codebase", isInitializing.value && /* @__PURE__ */ (0, import_preact2.h)("div", { className: "loading-dots" }, /* @__PURE__ */ (0, import_preact2.h)("div", { className: "loading-dot" }), /* @__PURE__ */ (0, import_preact2.h)("div", { className: "loading-dot" }), /* @__PURE__ */ (0, import_preact2.h)("div", { className: "loading-dot" }))), /* @__PURE__ */ (0, import_preact2.h)(
+    )))) : /* @__PURE__ */ (0, import_preact2.h)("div", { className: "empty-state" }, /* @__PURE__ */ (0, import_preact2.h)("div", { className: "empty-state-title" }, "welcome to reactlm"), /* @__PURE__ */ (0, import_preact2.h)("div", { className: "empty-state-description" }, "start a new chat to get ai-powered help with your react codebase", isInitializing.value && /* @__PURE__ */ (0, import_preact2.h)("div", { className: "loading-dots" }, /* @__PURE__ */ (0, import_preact2.h)("div", { className: "loading-dot" }), /* @__PURE__ */ (0, import_preact2.h)("div", { className: "loading-dot" }), /* @__PURE__ */ (0, import_preact2.h)("div", { className: "loading-dot" }))), /* @__PURE__ */ (0, import_preact2.h)(
       "button",
       {
         className: "new-chat-button",
@@ -6543,19 +6543,19 @@ ${this.selectedComponents.map((comp, index) => {
 var isInitialized2 = false;
 var init = async (config) => {
   if (isInitialized2) {
-    console.warn("[ReactLLM] Already initialized, ignoring duplicate init call");
+    console.warn("[ReactLM] Already initialized, ignoring duplicate init call");
     return;
   }
   try {
     isInitialized2 = true;
     const normalizedConfig = typeof config === "string" ? { providers: { openrouter: config } } : config;
     if (normalizedConfig.debug) {
-      window.ReactLLM.debug = true;
+      window.ReactLM.debug = true;
     }
-    console.log("[ReactLLM] Initializing React-LLM...");
+    console.log("[ReactLM] Initializing ReactLM...");
     await initializeReactInstrumentation();
     const container = document.createElement("div");
-    container.id = "react-llm-root";
+    container.id = "reactlm-root";
     container.style.cssText = `
       position: fixed;
       top: 0;
@@ -6568,7 +6568,7 @@ var init = async (config) => {
     document.body.appendChild(container);
     const shadow3 = container.attachShadow({ mode: "open" });
     const root = document.createElement("div");
-    root.id = "react-llm-shadow-root";
+    root.id = "reactlm-shadow-root";
     root.style.cssText = `
       position: fixed;
       top: 0;
@@ -6597,53 +6597,53 @@ var init = async (config) => {
     }
     const monitorManager = new MonitorManager();
     if (normalizedConfig.mode === "development") {
-      console.log("[ReactLLM] Starting monitoring in development mode");
+      console.log("[ReactLM] Starting monitoring in development mode");
       monitorManager.start();
     }
-    if (!window.ReactLLM) {
-      window.ReactLLM = { init };
+    if (!window.ReactLM) {
+      window.ReactLM = { init };
     }
-    window.ReactLLM.hub = hub;
-    window.ReactLLM.monitorManager = monitorManager;
+    window.ReactLM.hub = hub;
+    window.ReactLM.monitorManager = monitorManager;
     (0, import_preact3.render)((0, import_preact3.h)(Toolbar, {
       hub,
       monitorManager,
       shadowRoot: root
       // Pass shadow root so toolbar can render overlays inside it
     }), root);
-    console.log("[ReactLLM] Initialized successfully in", normalizedConfig.apiEndpoint ? "API mode" : "direct mode");
+    console.log("[ReactLM] Initialized successfully in", normalizedConfig.apiEndpoint ? "API mode" : "direct mode");
     if (normalizedConfig.debug) {
       debugCheckBlockingElements();
     }
   } catch (error) {
     isInitialized2 = false;
-    console.error("[ReactLLM] Failed to initialize:", error);
+    console.error("[ReactLM] Failed to initialize:", error);
     throw error;
   }
 };
 async function initializeReactInstrumentation() {
   try {
-    console.log("[ReactLLM] Starting React detection...");
+    console.log("[ReactLM] Starting React detection...");
     const reactResult = await waitForReact(5e3);
     if (!reactResult.isReact) {
-      console.warn("[ReactLLM] React not detected, component inspection will be limited");
+      console.warn("[ReactLM] React not detected, component inspection will be limited");
       return;
     }
-    console.log("[ReactLLM] React detected:", reactResult.version);
+    console.log("[ReactLM] React detected:", reactResult.version);
     const inspector = new ComponentInspector();
-    if (!window.ReactLLM) {
-      window.ReactLLM = { init };
+    if (!window.ReactLM) {
+      window.ReactLM = { init };
     }
-    window.ReactLLM.inspector = inspector;
+    window.ReactLM.inspector = inspector;
     await new Promise((resolve) => setTimeout(resolve, 100));
-    console.log("[ReactLLM] Component instrumentation ready");
+    console.log("[ReactLM] Component instrumentation ready");
   } catch (error) {
-    console.warn("[ReactLLM] React detection failed:", error instanceof Error ? error.message : String(error));
-    console.warn("[ReactLLM] Component inspection will be limited");
+    console.warn("[ReactLM] React detection failed:", error instanceof Error ? error.message : String(error));
+    console.warn("[ReactLM] Component inspection will be limited");
   }
 }
 function debugCheckBlockingElements() {
-  console.log("[ReactLLM Debug] Checking for blocking elements...");
+  console.log("[ReactLM Debug] Checking for blocking elements...");
   const points = [
     { x: 10, y: 10, name: "top-left" },
     { x: window.innerWidth - 10, y: 10, name: "top-right" },
@@ -6655,7 +6655,7 @@ function debugCheckBlockingElements() {
     const element = document.elementFromPoint(point.x, point.y);
     if (element) {
       const styles2 = window.getComputedStyle(element);
-      console.log(`[ReactLLM Debug] Element at ${point.name}:`, {
+      console.log(`[ReactLM Debug] Element at ${point.name}:`, {
         element,
         id: element.id,
         className: element.className,
@@ -6663,8 +6663,8 @@ function debugCheckBlockingElements() {
         position: styles2.position,
         zIndex: styles2.zIndex
       });
-      if (element.id && element.id.includes("react-llm")) {
-        console.warn(`[ReactLLM Debug] Found React LLM element potentially blocking at ${point.name}!`);
+      if (element.id && element.id.includes("reactlm")) {
+        console.warn(`[ReactLM Debug] Found ReactLM element potentially blocking at ${point.name}!`);
       }
     }
   });
