@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 import path from 'path';
 
-export interface ReactLLMOptions {
+export interface ReactLMOptions {
   providers?: {
     openrouter?: string;
     openai?: string;
@@ -21,17 +21,17 @@ export interface ReactLLMOptions {
   };
 }
 
-class ReactLLMWebpackPlugin {
-  private options: ReactLLMOptions;
+class ReactLMWebpackPlugin {
+  private options: ReactLMOptions;
 
-  constructor(options: ReactLLMOptions) {
+  constructor(options: ReactLMOptions) {
     this.options = options;
   }
 
   apply(compiler: any) {
-    compiler.hooks.compilation.tap('ReactLLMWebpackPlugin', (compilation: any) => {
+    compiler.hooks.compilation.tap('ReactLMWebpackPlugin', (compilation: any) => {
       compilation.hooks.htmlWebpackPluginBeforeHtmlProcessing?.tap(
-        'ReactLLMWebpackPlugin',
+        'ReactLMWebpackPlugin',
         (data: any) => {
           const script = this.generateScript();
           data.html = data.html.replace('</head>', `${script}</head>`);
@@ -49,13 +49,13 @@ class ReactLLMWebpackPlugin {
 
     return `
       <script>
-        window.__REACT_LLM_CONFIG__ = ${JSON.stringify(config)};
+        window.__REACT_LM_CONFIG__ = ${JSON.stringify(config)};
       </script>
-      <script src="https://unpkg.com/react-llm@latest/dist/react-llm.js" defer></script>
+      <script src="https://unpkg.com/reactlm@latest/dist/reactlm.js" defer></script>
       <script>
         window.addEventListener('DOMContentLoaded', () => {
-          if (window.ReactLLM && window.__REACT_LLM_CONFIG__) {
-            window.ReactLLM.init(window.__REACT_LLM_CONFIG__);
+          if (window.ReactLM && window.__REACT_LM_CONFIG__) {
+            window.ReactLM.init(window.__REACT_LM_CONFIG__);
           }
         });
       </script>
@@ -63,11 +63,11 @@ class ReactLLMWebpackPlugin {
   }
 }
 
-export function withReactLLM(
+export function withReactLM(
   nextConfig: NextConfig = {},
-  options: ReactLLMOptions = {}
+  options: ReactLMOptions = {}
 ): NextConfig {
-  const reactLLMOptions = {
+  const reactLMOptions = {
     enabled: true,
     mode: 'development' as const,
     enableFileAccess: true,
@@ -86,12 +86,12 @@ export function withReactLLM(
     ...nextConfig,
     
     webpack(config, context) {
-      const shouldInject = reactLLMOptions.enabled && 
-        (reactLLMOptions.mode === 'development' ? context.dev : true);
+      const shouldInject = reactLMOptions.enabled && 
+        (reactLMOptions.mode === 'development' ? context.dev : true);
 
       if (shouldInject) {
         config.plugins = config.plugins || [];
-        config.plugins.push(new ReactLLMWebpackPlugin(reactLLMOptions));
+        config.plugins.push(new ReactLMWebpackPlugin(reactLMOptions));
       }
       
       // Call existing webpack config
@@ -105,25 +105,25 @@ export function withReactLLM(
     // Enable experimental features for file system access
     experimental: {
       ...nextConfig.experimental,
-      ...(reactLLMOptions.enableFileAccess && {
-        serverComponentsExternalPackages: ['react-llm'],
+      ...(reactLMOptions.enableFileAccess && {
+        serverComponentsExternalPackages: ['reactlm'],
       }),
     },
     
-    // Add headers for React LLM
+    // Add headers for ReactLM
     async headers() {
       const headers = await nextConfig.headers?.() || [];
       
-      if (reactLLMOptions.enabled) {
+      if (reactLMOptions.enabled) {
         headers.push({
           source: '/:path*',
           headers: [
             {
-              key: 'X-React-LLM-Enabled',
+              key: 'X-ReactLM-Enabled',
               value: 'true',
             },
             {
-              key: 'X-React-LLM-Version',
+              key: 'X-ReactLM-Version',
               value: process.env.npm_package_version || '0.1.0',
             },
           ],
@@ -135,4 +135,4 @@ export function withReactLLM(
   };
 }
 
-export default withReactLLM;
+export default withReactLM;

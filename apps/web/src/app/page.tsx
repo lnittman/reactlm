@@ -7,19 +7,19 @@ export default function Home() {
     <main className="container">
         <header className="header">
           <div className="header-left">
-            <img src="/logo.png" alt="react llm" className="header-logo" />
-            <h1 className="header-title">react llm</h1>
+            <img src="/logo.png" alt="reactlm" className="header-logo" />
+            <h1 className="header-title">reactlm</h1>
           </div>
           <nav className="header-nav">
             <a href="/docs" className="nav-link">docs</a>
             <a href="/demo" className="nav-link">demo</a>
-            <a href="https://github.com/react-llm/react-llm" className="nav-link" target="_blank">github</a>
+            <a href="https://github.com/reactlm/reactlm" className="nav-link" target="_blank">github</a>
           </nav>
         </header>
         
         <div className="intro">
           <p>
-            react llm is bringing AI-powered development to the browser. we are a group of engineers building tools that let developers chat with their react components, make live code changes, and explore any website's architecture.
+            reactlm is bringing AI-powered development to the browser. we are a group of engineers building tools that let developers chat with their react components, make live code changes, and explore any website's architecture.
           </p>
         </div>
         
@@ -69,9 +69,9 @@ export default function Home() {
           <h3>script tag</h3>
           <CodeBlock language="html">
 {`<!-- Add to any HTML page -->
-<script src="https://unpkg.com/react-llm/dist/react-llm.js"></script>
+<script src="https://unpkg.com/reactlm/dist/reactlm.js"></script>
 <script>
-  ReactLLM.init({
+  ReactLM.init({
     providers: {
       openrouter: 'sk-or-...' // Recommended: access to all models
       // Or use individual providers:
@@ -85,16 +85,16 @@ export default function Home() {
 
           <h3>npm package</h3>
           <CodeBlock language="javascript">
-{`npm install react-llm
+{`npm install reactlm
 # or
-pnpm add react-llm
+pnpm add reactlm
 
 // React component usage
-import { ReactLLMProvider } from 'react-llm';
+import { ReactLMProvider } from 'reactlm';
 
 function App() {
   return (
-    <ReactLLMProvider 
+    <ReactLMProvider 
       config={{ 
         providers: { /* your API keys */ },
         theme: 'dark',
@@ -102,7 +102,7 @@ function App() {
       }}
     >
       {/* Your app */}
-    </ReactLLMProvider>
+    </ReactLMProvider>
   );
 }`}
           </CodeBlock>
@@ -110,11 +110,11 @@ function App() {
           <h3>development server plugin</h3>
           <CodeBlock language="javascript">
 {`// vite.config.js or webpack.config.js
-import { reactLLMPlugin } from 'react-llm/plugin';
+import { reactLMPlugin } from 'reactlm/plugin';
 
 export default {
   plugins: [
-    reactLLMPlugin({
+    reactLMPlugin({
       enableHotReload: true,
       fileAccess: true,
       sourceMaps: true

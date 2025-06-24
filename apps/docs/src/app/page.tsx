@@ -7,16 +7,16 @@ export default function HomePage() {
       <section className="content-section">
         <div className="header">
           <div className="header-left">
-            <h1 className="header-title">react llm docs</h1>
+            <h1 className="header-title">reactlm docs</h1>
           </div>
           <div className="header-nav">
-            <Link href="https://react-llm.dev" className="nav-link">
+            <Link href="https://reactlm.dev" className="nav-link">
               website
             </Link>
-            <Link href="https://github.com/react-llm/react-llm" className="nav-link">
+            <Link href="https://github.com/reactlm/reactlm" className="nav-link">
               github
             </Link>
-            <Link href="https://discord.gg/react-llm" className="nav-link">
+            <Link href="https://discord.gg/reactlm" className="nav-link">
               discord
             </Link>
           </div>
@@ -24,7 +24,7 @@ export default function HomePage() {
         
         <div className="intro">
           <p>
-            complete documentation for react llm - the browser-native ai coding assistant
+            complete documentation for reactlm - the browser-native ai coding assistant
             that lets you chat with your react components and code directly in the browser.
             learn how to integrate, configure, and use every feature.
           </p>
@@ -33,12 +33,12 @@ export default function HomePage() {
         {/* Quick Start */}
         <div className="content-section">
           <h2>quick start</h2>
-          <p>get react llm running in 30 seconds:</p>
+          <p>get reactlm running in 30 seconds:</p>
           
           <pre className="code-block">
-{`<script src="https://unpkg.com/react-llm/dist/react-llm.js"></script>
+{`<script src="https://unpkg.com/reactlm/dist/reactlm.js"></script>
 <script>
-  ReactLLM.init({
+  ReactLM.init({
     providers: {
       openrouter: 'sk-or-...' // get your key at openrouter.ai
     }
@@ -66,7 +66,7 @@ export default function HomePage() {
               <div className="action-list-item-content">
                 <div className="action-list-item-text">getting started</div>
                 <div className="action-list-item-description">
-                  learn the basics and get react llm up and running in your project
+                  learn the basics and get reactlm up and running in your project
                 </div>
               </div>
             </div>
@@ -212,7 +212,7 @@ export default function HomePage() {
 
       <footer>
         <p>
-          react llm is open source. <Link href="https://github.com/react-llm/react-llm">contribute on github</Link>.
+          reactlm is open source. <Link href="https://github.com/reactlm/reactlm">contribute on github</Link>.
         </p>
       </footer>
     </main>

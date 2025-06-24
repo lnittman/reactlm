@@ -9,12 +9,12 @@
     "dev": {
       "cache": false,
       "persistent": true,
-      "dependsOn": ["react-llm#build"]
+      "dependsOn": ["reactlm#build"]
     },
     "web#dev": {
       "cache": false,
       "persistent": true,
-      "dependsOn": ["react-llm#build"]
+      "dependsOn": ["reactlm#build"]
     },
     "lint": {
       "dependsOn": ["^build"]

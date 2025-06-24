@@ -196,7 +196,7 @@ export function Toolbar({ hub, monitorManager, shadowRoot }: Props) {
           await createChatSession(newId, 'Welcome');
           
           // Create initial message
-          const welcomeMessage = `Welcome to React LLM! I'm ready to help you with your React codebase.
+          const welcomeMessage = `Welcome to ReactLM! I'm ready to help you with your React codebase.
 
 I'm currently using **${hub.getActiveModel()}** - you can change models anytime using the 🤖 button.
 
@@ -1086,7 +1086,7 @@ What would you like to explore?`;
             </Fragment>
           ) : (
             <div className="empty-state">
-              <div className="empty-state-title">welcome to react llm</div>
+              <div className="empty-state-title">welcome to reactlm</div>
               <div className="empty-state-description">
                 start a new chat to get ai-powered help with your react codebase
                 {isInitializing.value && (

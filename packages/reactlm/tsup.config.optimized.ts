@@ -4,13 +4,13 @@ export default defineConfig([
   // Main entry without monitoring (for smaller bundle)
   {
     entry: {
-      'react-llm.lite.global': 'src/index.lite.ts'
+      'reactlm.lite.global': 'src/index.lite.ts'
     },
     splitting: false,
     sourcemap: true,
     clean: true,
     format: ['iife'],
-    globalName: 'ReactLLM',
+    globalName: 'ReactLM',
     dts: false,
     minify: true,
     loader: {
@@ -24,7 +24,7 @@ export default defineConfig([
     ],
     esbuildOptions: (options) => {
       options.banner = {
-        js: `/* React LLM Lite - Optimized bundle - MIT License */`,
+        js: `/* ReactLM Lite - Optimized bundle - MIT License */`,
       };
       options.jsxFactory = 'h';
       options.jsxFragment = 'Fragment';
@@ -38,7 +38,7 @@ export default defineConfig([
   // Monitoring module (loaded on demand)
   {
     entry: {
-      'react-llm.monitoring': 'src/monitoring/index.ts'
+      'reactlm.monitoring': 'src/monitoring/index.ts'
     },
     splitting: false,
     sourcemap: true,
@@ -61,7 +61,7 @@ export default defineConfig([
   // Database module (loaded on demand)
   {
     entry: {
-      'react-llm.database': 'src/db/database.ts'
+      'reactlm.database': 'src/db/database.ts'
     },
     splitting: false,
     sourcemap: true,

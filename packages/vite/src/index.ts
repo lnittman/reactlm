@@ -1,7 +1,7 @@
 import type { Plugin, ViteDevServer } from 'vite';
 import type { IncomingMessage, ServerResponse } from 'http';
 
-export interface ReactLLMViteOptions {
+export interface ReactLMViteOptions {
   providers?: {
     openrouter?: string;
     openai?: string;
@@ -21,8 +21,8 @@ export interface ReactLLMViteOptions {
   };
 }
 
-export function reactLLM(options: ReactLLMViteOptions = {}): Plugin {
-  const reactLLMOptions = {
+export function reactLM(options: ReactLMViteOptions = {}): Plugin {
+  const reactLMOptions = {
     enabled: true,
     mode: 'development' as const,
     enableFileAccess: true,
@@ -38,34 +38,34 @@ export function reactLLM(options: ReactLLMViteOptions = {}): Plugin {
   };
 
   return {
-    name: 'react-llm',
+    name: 'reactlm',
     
     config(config, { command }) {
       // Only enable in development mode by default
-      if (!reactLLMOptions.enabled && command === 'serve') {
+      if (!reactLMOptions.enabled && command === 'serve') {
         return;
       }
 
-      // Add React LLM to optimized dependencies
+      // Add ReactLM to optimized dependencies
       config.optimizeDeps = config.optimizeDeps || {};
       config.optimizeDeps.include = config.optimizeDeps.include || [];
-      if (!config.optimizeDeps.include.includes('react-llm')) {
-        config.optimizeDeps.include.push('react-llm');
+      if (!config.optimizeDeps.include.includes('reactlm')) {
+        config.optimizeDeps.include.push('reactlm');
       }
     },
     
     transformIndexHtml: {
       enforce: 'pre',
       transform(html, context) {
-        const shouldInject = reactLLMOptions.enabled && 
-          (reactLLMOptions.mode === 'development' ? context.server : true);
+        const shouldInject = reactLMOptions.enabled && 
+          (reactLMOptions.mode === 'development' ? context.server : true);
 
         if (!shouldInject) {
           return html;
         }
 
         const config = {
-          ...reactLLMOptions,
+          ...reactLMOptions,
           mode: context.server ? 'development' : 'production',
         };
 
@@ -78,14 +78,14 @@ export function reactLLM(options: ReactLLMViteOptions = {}): Plugin {
                 type: 'module',
               },
               children: `
-                window.__REACT_LLM_CONFIG__ = ${JSON.stringify(config)};
+                window.__REACT_LM_CONFIG__ = ${JSON.stringify(config)};
               `,
               injectTo: 'head',
             },
             {
               tag: 'script',
               attrs: {
-                src: 'https://unpkg.com/react-llm@latest/dist/react-llm.js',
+                src: 'https://unpkg.com/reactlm@latest/dist/reactlm.js',
                 defer: true,
               },
               injectTo: 'body',
@@ -96,19 +96,19 @@ export function reactLLM(options: ReactLLMViteOptions = {}): Plugin {
                 type: 'module',
               },
               children: `
-                // Wait for React LLM to load
-                function initReactLLM() {
-                  if (window.ReactLLM && window.__REACT_LLM_CONFIG__) {
-                    window.ReactLLM.init(window.__REACT_LLM_CONFIG__);
+                // Wait for ReactLM to load
+                function initReactLM() {
+                  if (window.ReactLM && window.__REACT_LM_CONFIG__) {
+                    window.ReactLM.init(window.__REACT_LM_CONFIG__);
                   } else {
-                    setTimeout(initReactLLM, 100);
+                    setTimeout(initReactLM, 100);
                   }
                 }
                 
                 if (document.readyState === 'loading') {
-                  document.addEventListener('DOMContentLoaded', initReactLLM);
+                  document.addEventListener('DOMContentLoaded', initReactLM);
                 } else {
-                  initReactLLM();
+                  initReactLM();
                 }
               `,
               injectTo: 'body',
@@ -119,13 +119,13 @@ export function reactLLM(options: ReactLLMViteOptions = {}): Plugin {
     },
     
     configureServer(server: ViteDevServer) {
-      if (!reactLLMOptions.enabled || !reactLLMOptions.enableFileAccess) {
+      if (!reactLMOptions.enabled || !reactLMOptions.enableFileAccess) {
         return;
       }
 
-      // Add middleware for React LLM file operations
-      server.middlewares.use('/__react-llm', async (req: IncomingMessage, res: ServerResponse, next) => {
-        if (!req.url?.startsWith('/__react-llm/')) {
+      // Add middleware for ReactLM file operations
+      server.middlewares.use('/__reactlm', async (req: IncomingMessage, res: ServerResponse, next) => {
+        if (!req.url?.startsWith('/__reactlm/')) {
           return next();
         }
 
@@ -141,7 +141,7 @@ export function reactLLM(options: ReactLLMViteOptions = {}): Plugin {
         }
 
         try {
-          if (req.method === 'POST' && req.url === '/__react-llm/files') {
+          if (req.method === 'POST' && req.url === '/__reactlm/files') {
             // Handle file modification requests
             let body = '';
             req.on('data', chunk => {
@@ -174,15 +174,15 @@ export function reactLLM(options: ReactLLMViteOptions = {}): Plugin {
                 res.end(JSON.stringify({ error: 'Invalid request body' }));
               }
             });
-          } else if (req.method === 'GET' && req.url === '/__react-llm/status') {
+          } else if (req.method === 'GET' && req.url === '/__reactlm/status') {
             // Health check endpoint
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ 
               status: 'active',
               version: '0.1.0',
               features: {
-                fileAccess: reactLLMOptions.enableFileAccess,
-                hmr: reactLLMOptions.enableHMR,
+                fileAccess: reactLMOptions.enableFileAccess,
+                hmr: reactLMOptions.enableHMR,
               }
             }));
           } else {
@@ -198,14 +198,14 @@ export function reactLLM(options: ReactLLMViteOptions = {}): Plugin {
       });
 
       // Hot reload integration
-      if (reactLLMOptions.enableHMR) {
-        server.ws.on('react-llm:update', (data) => {
-          // Handle React LLM specific hot updates
-          server.ws.send('react-llm:reload', data);
+      if (reactLMOptions.enableHMR) {
+        server.ws.on('reactlm:update', (data) => {
+          // Handle ReactLM specific hot updates
+          server.ws.send('reactlm:reload', data);
         });
       }
     },
   };
 }
 
-export default reactLLM;
+export default reactLM;

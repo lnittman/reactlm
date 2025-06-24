@@ -15,7 +15,7 @@ export default defineConfig([
     },
     esbuildOptions: (options) => {
       options.banner = {
-        js: `/* React LLM - Browser-native AI coding assistant - MIT License */`,
+        js: `/* ReactLM - Browser-native AI coding assistant - MIT License */`,
       };
       options.jsxFactory = 'h';
       options.jsxFragment = 'Fragment';
@@ -27,13 +27,13 @@ export default defineConfig([
   // IIFE build for browser script tag usage
   {
     entry: {
-      'react-llm.global': 'src/index.ts'
+      'reactlm.global': 'src/index.ts'
     },
     splitting: false,
     sourcemap: true,
     clean: false,
     format: ['iife'],
-    globalName: 'ReactLLM',
+    globalName: 'ReactLM',
     dts: false,
     minify: process.env.NODE_ENV === 'production',
     loader: {
@@ -41,24 +41,24 @@ export default defineConfig([
     },
     esbuildOptions: (options) => {
       options.banner = {
-        js: `/* React LLM - Browser-native AI coding assistant - MIT License */`,
+        js: `/* ReactLM - Browser-native AI coding assistant - MIT License */`,
       };
       options.footer = {
         js: `
 (function() {
-  console.log('[ReactLLM] Bundle loaded');
+  console.log('[ReactLM] Bundle loaded');
   
   // Set up public path for assets
   var scripts = document.getElementsByTagName('script');
-  var currentScript = Array.from(scripts).find(script => script.src.includes('react-llm.global.js'));
+  var currentScript = Array.from(scripts).find(script => script.src.includes('reactlm.global.js'));
   
   if (currentScript) {
     var scriptUrl = currentScript.src;
     window.__PUBLIC_PATH__ = scriptUrl.substring(0, scriptUrl.lastIndexOf('/') + 1);
-    console.log('[ReactLLM] Public path set to:', window.__PUBLIC_PATH__);
+    console.log('[ReactLM] Public path set to:', window.__PUBLIC_PATH__);
   }
   
-  console.log('[ReactLLM] Ready for initialization. Call ReactLLM.init() with config.');
+  console.log('[ReactLM] Ready for initialization. Call ReactLM.init() with config.');
 })();`,
       };
       options.jsxFactory = 'h';

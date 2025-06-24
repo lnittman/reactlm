@@ -1,5 +1,5 @@
 {
-  "name": "react-llm",
+  "name": "reactlm",
   "version": "0.1.0",
   "description": "Browser-native AI coding assistant for React developers",
   "keywords": [
@@ -18,14 +18,14 @@
     "visual-debugging",
     "multi-model"
   ],
-  "homepage": "https://react-llm.dev",
+  "homepage": "https://reactlm.dev",
   "bugs": {
-    "url": "https://github.com/your-org/react-llm/issues"
+    "url": "https://github.com/your-org/reactlm/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-org/react-llm.git",
-    "directory": "packages/react-llm"
+    "url": "git+https://github.com/your-org/reactlm.git",
+    "directory": "packages/reactlm"
   },
   "license": "MIT",
   "author": "Your Name <email@example.com>",
@@ -43,7 +43,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "react-llm": "./dist/cli.cjs"
+    "reactlm": "./dist/cli.cjs"
   },
   "files": [
     "dist",

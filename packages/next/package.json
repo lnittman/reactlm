@@ -1,21 +1,21 @@
 {
-  "name": "@react-llm/next",
+  "name": "@reactlm/next",
   "version": "0.1.0",
-  "description": "Next.js plugin for React LLM",
+  "description": "Next.js plugin for ReactLM",
   "keywords": [
-    "react-llm",
+    "reactlm",
     "nextjs",
     "plugin",
     "ai",
     "development-tools"
   ],
-  "homepage": "https://react-llm.dev",
+  "homepage": "https://reactlm.dev",
   "bugs": {
-    "url": "https://github.com/your-org/react-llm/issues"
+    "url": "https://github.com/your-org/reactlm/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-org/react-llm.git",
+    "url": "git+https://github.com/your-org/reactlm.git",
     "directory": "packages/next"
   },
   "license": "MIT",
@@ -45,7 +45,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "react-llm": "workspace:*"
+    "reactlm": "workspace:*"
   },
   "devDependencies": {
     "@biomejs/biome": "1.5.3",

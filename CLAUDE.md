@@ -1,15 +1,15 @@
-# React LLM - Browser-Native AI Coding Assistant
+# ReactLM - Browser-Native AI Coding Assistant
 
 ## Project Overview
 
-React LLM is an easy-to-use AI chat interface that seamlessly integrates into any website, enabling developers to chat with components and code directly in the browser. Inspired by react-scan's architecture but focused on AI-powered development assistance, react-llm brings the power of Claude Code, Codex, and other LLMs natively to the browser environment.
+ReactLM is an easy-to-use AI chat interface that seamlessly integrates into any website, enabling developers to chat with components and code directly in the browser. Inspired by react-scan's architecture but focused on AI-powered development assistance, reactlm brings the power of Claude Code, Codex, and other LLMs natively to the browser environment.
 
 ## Current Status
 
 ### ✅ Completed
 - **Monorepo Structure**: Properly organized packages and apps
 - **Marketing Website**: Next.js 15 site at `apps/web` with hero, features, and demo components
-- **Core Package Scaffold**: `packages/react-llm` with TypeScript, tsup build, and basic architecture
+- **Core Package Scaffold**: `packages/reactlm` with TypeScript, tsup build, and basic architecture
 - **Browser Extension**: Manifest v3 scaffold with popup and content scripts
 - **Framework Plugins**: Next.js and Vite plugin scaffolds in `packages/next` and `packages/vite`
 - **Build System**: Turbo monorepo with proper workspaces and scripts
@@ -25,7 +25,7 @@ React LLM is an easy-to-use AI chat interface that seamlessly integrates into an
 - **File System Integration**: OPFS and File System Access API implementations incomplete
 - **Multi-Model Support**: Currently Gemini-only, needs full OpenRouter integration
 - **Testing**: No test suite or quality assurance
-- **Live Demo**: Marketing site demo needs functional React LLM integration
+- **Live Demo**: Marketing site demo needs functional ReactLM integration
 - **Launch Preparation**: Missing npm publishing, CDN setup, and release workflows
 
 ### Vision
@@ -124,7 +124,7 @@ apps/
 └── docs/                   # Documentation site (empty)
 
 scripts/
-├── react-llm.js           # CLI tool for installation
+├── reactlm.js           # CLI tool for installation
 ├── generate-context.js    # Codebase context generation
 └── upload-cdn.js          # CDN upload script
 ```
@@ -135,7 +135,7 @@ scripts/
 - Creates Shadow DOM container for style isolation
 - Initializes Gemini AI client
 - Renders Toolbar component
-- Exposes global `window.ReactLLM.init(apiKey)` method
+- Exposes global `window.ReactLM.init(apiKey)` method
 
 ### 2. Toolbar Component (`src/components/Toolbar.tsx`)
 - **Main UI component** handling all user interactions
@@ -195,18 +195,18 @@ Models are fetched dynamically from OpenRouter's `/api/v1/models` endpoint to en
 - React props/state analysis
 - Relevant documentation linking
 
-### 5. Build System (`packages/react-llm/tsup.config.ts`)
+### 5. Build System (`packages/reactlm/tsup.config.ts`)
 - Multiple format outputs: ESM, CJS, IIFE for browser compatibility
-- Global name: `ReactLLM`
+- Global name: `ReactLM`
 - TypeScript declaration files (`--dts`)
 - Source maps for debugging
 - Custom esbuild plugins and loaders
 - Watch mode with automatic rebuilds
 - SQLite WASM asset copying via `onSuccess` hook
 
-### 6. CLI Tool (`scripts/react-llm.js`)
+### 6. CLI Tool (`scripts/reactlm.js`)
 - Commands:
-  - `install`: Sets up react-llm in a project
+  - `install`: Sets up reactlm in a project
   - `generate`: Creates codebase context using RepoMix
 - Auto-detects framework (Next.js or plain React)
 - Handles script tag injection
@@ -335,11 +335,11 @@ chat_sessions (id, title, created_at, project_name, project_type, project_descri
 ### Development Server Integration
 ```js
 // vite.config.js or webpack.config.js
-import { reactLLMPlugin } from 'react-llm/plugin';
+import { reactLMPlugin } from 'reactlm/plugin';
 
 export default {
   plugins: [
-    reactLLMPlugin({
+    reactLMPlugin({
       enableHotReload: true,
       fileAccess: true,
       sourceMaps: true
@@ -350,18 +350,18 @@ export default {
 
 ### NPM Installation
 ```bash
-npm install react-llm
+npm install reactlm
 # or
-pnpm add react-llm
+pnpm add reactlm
 ```
 
 ### React Component
 ```tsx
-import { ReactLLMProvider } from 'react-llm';
+import { ReactLMProvider } from 'reactlm';
 
 function App() {
   return (
-    <ReactLLMProvider
+    <ReactLMProvider
       config={{
         providers: { /* your API keys */ },
         theme: 'dark',
@@ -369,7 +369,7 @@ function App() {
       }}
     >
       {/* Your app */}
-    </ReactLLMProvider>
+    </ReactLMProvider>
   );
 }
 ```

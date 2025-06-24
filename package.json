@@ -1,10 +1,10 @@
 {
-  "name": "react-llm-monorepo",
+  "name": "reactlm-monorepo",
   "private": true,
   "description": "chat with your react components in the browser",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/react-llm.git"
+    "url": "https://github.com/your-org/reactlm.git"
   },
   "license": "MIT",
   "author": "Your Name <email@example.com>",
@@ -13,16 +13,16 @@
     "apps/*"
   ],
   "scripts": {
-    "postinstall": "turbo run build --filter=react-llm",
+    "postinstall": "turbo run build --filter=reactlm",
     "build": "turbo run build",
-    "build:react-llm": "turbo run build --filter=react-llm",
-    "dev": "turbo run dev --filter=!@react-llm/browser-extension",
+    "build:reactlm": "turbo run build --filter=reactlm",
+    "dev": "turbo run dev --filter=!@reactlm/browser-extension",
     "dev:all": "turbo run dev",
     "dev:web": "turbo run dev --filter=web",
-    "dev:docs": "turbo run dev --filter=@react-llm/docs",
-    "dev:apps": "turbo run dev --filter=web --filter=@react-llm/docs",
-    "dev:react-llm": "turbo run dev --filter=react-llm",
-    "dev:extension": "turbo run dev --filter=@react-llm/browser-extension",
+    "dev:docs": "turbo run dev --filter=@reactlm/docs",
+    "dev:apps": "turbo run dev --filter=web --filter=@reactlm/docs",
+    "dev:reactlm": "turbo run dev --filter=reactlm",
+    "dev:extension": "turbo run dev --filter=@reactlm/browser-extension",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",

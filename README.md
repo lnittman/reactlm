@@ -1,10 +1,12 @@
-# react llm
+<img src="apps/web/public/logo.png" alt="reactlm logo" width="48" height="48" align="left">
+
+# reactlm
 
 browser-native ai coding assistant. chat with your components directly in the browser.
 
 ## what it is
 
-react llm adds ai chat to any website. click components to add them to context. describe changes in plain language. see updates instantly in development or explore components in production.
+reactlm adds ai chat to any website. click components to add them to context. describe changes in plain language. see updates instantly in development or explore components in production.
 
 ## how it works
 
@@ -21,9 +23,9 @@ website → bippy (react fiber access) → component context → LLM → code ch
 ## setup
 
 ```html
-<script src="https://unpkg.com/react-llm"></script>
+<script src="https://unpkg.com/reactlm"></script>
 <script>
-  ReactLLM.init({ 
+  ReactLM.init({ 
     providers: { openrouter: 'sk-or-...' }
   });
 </script>
@@ -32,18 +34,18 @@ website → bippy (react fiber access) → component context → LLM → code ch
 or with npm:
 
 ```bash
-npm install react-llm
+npm install reactlm
 ```
 
 ## constraints
 
-what react llm is:
+what reactlm is:
 - browser-native (no extensions)
 - react-focused (not vue or angular)
 - visual-first (click, don't type)
 - local-first (your data stays yours)
 
-what react llm is not:
+what reactlm is not:
 - a code generator from scratch
 - a full ide replacement
 - a testing framework
@@ -52,8 +54,8 @@ what react llm is not:
 ## development
 
 ```bash
-git clone https://github.com/react-llm/react-llm
-cd react-llm
+git clone https://github.com/lnittman/reactlm
+cd reactlm
 pnpm install
 pnpm dev
 ```
@@ -62,7 +64,11 @@ pnpm dev
 
 ```
 packages/
-├── react-llm/      # core library
+├── reactlm/       # core library
+├── next/          # next.js plugin  
+├── vite/          # vite plugin
+└── browser-extension/  # browser extension
+apps/
 ├── web/           # marketing site
 └── docs/          # documentation
 ```
@@ -76,7 +82,7 @@ packages/
 
 ## philosophy
 
-we believe great tools come from engineering truth, not marketing promises. react llm does one thing: it lets you chat with your react components. we chose specific constraints to do this one thing exceptionally well.
+we believe great tools come from engineering truth, not marketing promises. reactlm does one thing: it lets you chat with your react components. we chose specific constraints to do this one thing exceptionally well.
 
 ## license
 

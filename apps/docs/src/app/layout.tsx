@@ -4,10 +4,10 @@ import { RootProvider } from 'fumadocs-ui/provider';
 
 export const metadata = {
   title: {
-    template: '%s | React LLM',
-    default: 'React LLM Documentation',
+    template: '%s | ReactLM',
+    default: 'ReactLM Documentation',
   },
-  description: 'Complete guide to using React LLM - browser-native AI coding assistant for React developers.',
+  description: 'Complete guide to using ReactLM - browser-native AI coding assistant for React developers.',
   keywords: [
     'react',
     'ai',
@@ -21,20 +21,20 @@ export const metadata = {
     'claude',
     'gemini',
   ],
-  authors: [{ name: 'React LLM Team' }],
-  creator: 'React LLM Team',
+  authors: [{ name: 'ReactLM Team' }],
+  creator: 'ReactLM Team',
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://docs.react-llm.dev',
-    title: 'React LLM Documentation',
-    description: 'Learn to use React LLM for AI-powered development',
-    siteName: 'React LLM Documentation',
+    url: 'https://docs.reactlm.dev',
+    title: 'ReactLM Documentation',
+    description: 'Learn to use ReactLM for AI-powered development',
+    siteName: 'ReactLM Documentation',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'React LLM Documentation',
-    description: 'Learn to use React LLM for AI-powered development',
+    title: 'ReactLM Documentation',
+    description: 'Learn to use ReactLM for AI-powered development',
   },
   robots: {
     index: true,

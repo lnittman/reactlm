@@ -6,15 +6,15 @@ const path = require('path');
 const command = process.argv[2];
 
 if (!command || !['install', 'generate'].includes(command)) {
-  console.log('Usage: react-llm <command>');
+  console.log('Usage: reactlm <command>');
   console.log('\nCommands:');
-  console.log('  install   Add react-llm to your project');
+  console.log('  install   Add reactlm to your project');
   console.log('  generate  Generate codebase context');
   process.exit(1);
 }
 
 // Helper to ensure directory exists
-function ensureDir(dir) {
+function ensureDir(dir: string) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -36,14 +36,14 @@ function addScriptToPackageJson() {
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
   
   if (!packageJson.scripts) packageJson.scripts = {};
-  packageJson.scripts['react-llm'] = 'react-llm generate';
+  packageJson.scripts['reactlm'] = 'reactlm generate';
   
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
 }
 
 // Helper to add script tag to layout
-function addScriptToLayout(framework) {
-  const scriptTag = `<script src="/react-llm.js"></script>`;
+function addScriptToLayout(framework: string | null) {
+  const scriptTag = `<script src="/reactlm.js"></script>`;
   
   if (framework === 'next') {
     // Try app directory first
@@ -123,7 +123,7 @@ function addScriptToLayout(framework) {
 }
 
 // Helper to set up environment variables
-function setupEnvironmentVariables(framework, apiKey) {
+function setupEnvironmentVariables(framework: string | null, apiKey: string) {
   if (framework === 'next') {
     // Check for existing .env.local
     const envPath = path.join(process.cwd(), '.env.local');
@@ -158,7 +158,7 @@ function setupEnvironmentVariables(framework, apiKey) {
 }
 
 // Copy SQLite WASM file
-async function copySqliteWasm(publicDir) {
+async function copySqliteWasm(publicDir: string) {
   const possibleSources = [
     // Try package's own dist directory first
     path.join(__dirname, '..', 'dist', 'sqlite3.wasm'),
@@ -182,7 +182,7 @@ async function copySqliteWasm(publicDir) {
   return false;
 }
 
-async function install(apiKey) {
+async function install(apiKey: string) {
   try {
     const framework = detectFramework();
     
@@ -212,7 +212,7 @@ async function install(apiKey) {
     console.log('2. Visit your app and look for the react-llm chat widget');
     console.log('');
     console.log('For more information, visit: https://github.com/yourusername/react-llm');
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Installation failed:', error.message);
     process.exit(1);
   }
@@ -231,8 +231,8 @@ if (command === 'install') {
       process.exit(1);
     }
     
-    await install(apiKey);
-  } catch (error) {
+    install(apiKey);
+  } catch (error: any) {
     console.error('❌ Failed to install react-llm:', error.message);
     process.exit(1);
   }
@@ -268,8 +268,8 @@ if (command === 'generate') {
     
     console.log('✅ Codebase context generated successfully!');
     console.log('📝 Saved to public/codebase-context.json');
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Failed to generate codebase context:', error.message);
     process.exit(1);
   }
-} 
+}

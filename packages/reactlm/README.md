@@ -1,4 +1,4 @@
-# React LLM
+# ReactLM
 
 > Browser-native AI coding assistant for React developers
 
@@ -7,7 +7,7 @@
 ![AI Models](https://img.shields.io/badge/models-100+-brightgreen.svg)
 ![Bundle Size](https://img.shields.io/badge/bundle-~150KB-blue.svg)
 
-React LLM brings the power of AI coding assistants directly to your browser. Chat with your React components, get instant code suggestions, and make live edits—all without leaving your development environment.
+ReactLM brings the power of AI coding assistants directly to your browser. Chat with your React components, get instant code suggestions, and make live edits—all without leaving your development environment.
 
 **🚀 Current Status: Alpha Release** - Core functionality complete, preparing for beta launch.
 
@@ -35,18 +35,18 @@ React LLM brings the power of AI coding assistants directly to your browser. Cha
 ### 1. Demo Mode (No API Key Required)
 
 ```html
-<script src="https://unpkg.com/react-llm/dist/react-llm.global.js"></script>
+<script src="https://unpkg.com/reactlm/dist/reactlm.global.js"></script>
 <script>
-  ReactLLM.init({ mode: 'demo' });
+  ReactLM.init({ mode: 'demo' });
 </script>
 ```
 
 ### 2. With API Key (Full Features)
 
 ```html
-<script src="https://unpkg.com/react-llm/dist/react-llm.global.js"></script>
+<script src="https://unpkg.com/reactlm/dist/reactlm.global.js"></script>
 <script>
-  ReactLLM.init({
+  ReactLM.init({
     providers: {
       openrouter: 'sk-or-...' // Get your key at openrouter.ai/keys
     }
@@ -57,9 +57,9 @@ React LLM brings the power of AI coding assistants directly to your browser. Cha
 ### 3. Server-Side Proxy (Hide API Keys)
 
 ```html
-<script src="https://unpkg.com/react-llm/dist/react-llm.global.js"></script>
+<script src="https://unpkg.com/reactlm/dist/reactlm.global.js"></script>
 <script>
-  ReactLLM.init({
+  ReactLM.init({
     apiEndpoint: '/api/chat',      // Your proxy endpoint
     modelsEndpoint: '/api/models'  // Optional: for model list
   });
@@ -69,21 +69,21 @@ React LLM brings the power of AI coding assistants directly to your browser. Cha
 ### NPM Installation
 
 ```bash
-npm install react-llm
+npm install reactlm
 ```
 
 ```javascript
-import ReactLLM from 'react-llm';
+import ReactLM from 'reactlm';
 
 // Option 1: Direct initialization
-ReactLLM.init({
+ReactLM.init({
   providers: {
     openrouter: process.env.OPENROUTER_API_KEY
   }
 });
 
 // Option 2: Auto-init with global config
-window.__REACT_LLM_CONFIG__ = {
+window.__REACT_LM_CONFIG__ = {
   providers: {
     openrouter: process.env.OPENROUTER_API_KEY
   }
@@ -100,7 +100,7 @@ window.__REACT_LLM_CONFIG__ = {
 ## Configuration
 
 ```javascript
-ReactLLM.init({
+ReactLM.init({
   // API Configuration (choose one)
   providers: {
     openrouter: 'sk-or-...'      // Recommended: Access to 100+ models
@@ -212,8 +212,8 @@ interface ReactLLMConfig {
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/react-llm.git
-cd react-llm
+git clone https://github.com/your-org/reactlm.git
+cd reactlm
 
 # Install dependencies
 pnpm install
@@ -235,7 +235,7 @@ pnpm typecheck
 
 ```
 packages/
-├── react-llm/         # Core library
+├── reactlm/         # Core library
 ├── browser-extension/ # Chrome extension (planned)
 ├── next/             # Next.js plugin (planned)
 └── vite/             # Vite plugin (planned)

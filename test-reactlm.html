@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>React LLM Test - Component Detection</title>
+    <title>ReactLM Test - Component Detection</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -60,7 +60,7 @@
     <div class="status" id="status">Loading...</div>
     
     <div class="container">
-        <h1>React LLM Component Detection Test</h1>
+        <h1>ReactLM Component Detection Test</h1>
         <p>This page tests the new React component detection and canvas overlay system.</p>
         
         <!-- React app will be mounted here -->
@@ -73,8 +73,8 @@
         </div>
     </div>
 
-    <!-- Load React LLM -->
-    <script src="packages/react-llm/dist/react-llm.global.js"></script>
+    <!-- Load ReactLM -->
+    <script src="packages/reactlm/dist/reactlm.global.js"></script>
     
     <script>
         // Simple React app for testing
@@ -149,24 +149,24 @@
         const root = ReactDOM.createRoot(container);
         root.render(React.createElement(TestApp));
         
-        // Initialize React LLM after React is rendered
+        // Initialize ReactLM after React is rendered
         setTimeout(() => {
-            if (window.ReactLLM) {
-                console.log('Initializing React LLM...');
-                window.ReactLLM.init({
+            if (window.ReactLM) {
+                console.log('Initializing ReactLM...');
+                window.ReactLM.init({
                     mode: 'demo',
                     position: 'bottom-right',
                     theme: 'dark'
                 }).then(() => {
-                    console.log('React LLM initialized successfully');
-                    document.getElementById('status').textContent = 'React LLM Ready';
+                    console.log('ReactLM initialized successfully');
+                    document.getElementById('status').textContent = 'ReactLM Ready';
                 }).catch(error => {
-                    console.error('React LLM initialization failed:', error);
-                    document.getElementById('status').textContent = 'React LLM Failed';
+                    console.error('ReactLM initialization failed:', error);
+                    document.getElementById('status').textContent = 'ReactLM Failed';
                 });
             } else {
-                console.error('ReactLLM not found');
-                document.getElementById('status').textContent = 'ReactLLM not found';
+                console.error('ReactLM not found');
+                document.getElementById('status').textContent = 'ReactLM not found';
             }
         }, 1000);
         

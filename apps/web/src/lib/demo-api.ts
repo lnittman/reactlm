@@ -1,5 +1,5 @@
-// Real API integration for React LLM demo
-// This will replace the simulation when actual React LLM is integrated
+// Real API integration for ReactLM demo
+// This will replace the simulation when actual ReactLM is integrated
 
 import { DemoMockProvider } from './demo-mock-provider'
 
@@ -52,7 +52,7 @@ export interface ApiResponse {
   }
 }
 
-class ReactLLMApi {
+class ReactLMApi {
   private config: ApiConfig
   private isInitialized = false
   private mockProvider: DemoMockProvider
@@ -69,10 +69,10 @@ class ReactLLMApi {
     }
 
     try {
-      // Check if React LLM script is available
-      const reactLLM = (window as unknown as { ReactLLM?: { init: (config: unknown) => Promise<void> } }).ReactLLM
-      if (reactLLM) {
-        await reactLLM.init({
+      // Check if ReactLM script is available
+      const reactLM = (window as unknown as { ReactLM?: { init: (config: unknown) => Promise<void> } }).ReactLLM
+      if (reactLM) {
+        await reactLM.init({
           providers: {
             openrouter: this.config.openRouterKey,
             anthropic: this.config.anthropicKey,
@@ -85,12 +85,12 @@ class ReactLLMApi {
         return true
       }
       
-      // Fallback to simulation if React LLM not available
+      // Fallback to simulation if ReactLM not available
       this.config.simulationMode = true
       this.isInitialized = true
       return true
     } catch (error) {
-      console.warn('React LLM initialization failed, using simulation mode:', error)
+      console.warn('ReactLM initialization failed, using simulation mode:', error)
       this.config.simulationMode = true
       this.isInitialized = true
       return true
@@ -127,10 +127,10 @@ class ReactLLMApi {
     }
 
     try {
-      // Real React LLM component analysis
-      const reactLLM = (window as unknown as { ReactLLM?: { analyzeComponent: (id: string) => Promise<ComponentAnalysis> } }).ReactLLM
-      if (!reactLLM) throw new Error('ReactLLM not available')
-      const analysis = await reactLLM.analyzeComponent(componentId)
+      // Real ReactLM component analysis
+      const reactLM = (window as unknown as { ReactLM?: { analyzeComponent: (id: string) => Promise<ComponentAnalysis> } }).ReactLLM
+      if (!reactLM) throw new Error('ReactLM not available')
+      const analysis = await reactLM.analyzeComponent(componentId)
       return analysis
     } catch (error) {
       throw new Error(`Component analysis failed: ${error}`)
@@ -173,10 +173,10 @@ class ReactLLMApi {
     }
 
     try {
-      // Real React LLM API call
-      const reactLLM = (window as unknown as { ReactLLM?: { chat: (config: unknown) => Promise<unknown> } }).ReactLLM
-      if (!reactLLM) throw new Error('ReactLLM not available')
-      const response = await reactLLM.chat({
+      // Real ReactLM API call
+      const reactLM = (window as unknown as { ReactLM?: { chat: (config: unknown) => Promise<unknown> } }).ReactLLM
+      if (!reactLM) throw new Error('ReactLM not available')
+      const response = await reactLM.chat({
         message: instruction,
         context: {
           componentId,
@@ -223,11 +223,11 @@ class ReactLLMApi {
     }
 
     try {
-      // Real React LLM chat
-      const reactLLM = (window as unknown as { ReactLLM?: { chat: (messages: any[], options: any) => Promise<string> } }).ReactLLM
-      if (!reactLLM) throw new Error('ReactLLM not available')
+      // Real ReactLM chat
+      const reactLM = (window as unknown as { ReactLM?: { chat: (messages: any[], options: any) => Promise<string> } }).ReactLLM
+      if (!reactLM) throw new Error('ReactLM not available')
       
-      const response = await reactLLM.chat(messages, { model })
+      const response = await reactLM.chat(messages, { model })
       
       return {
         message: response,
@@ -257,9 +257,9 @@ class ReactLLMApi {
     }
 
     try {
-      const reactLLM = (window as unknown as { ReactLLM?: { getAvailableModels: () => Promise<string[]> } }).ReactLLM
-      if (!reactLLM) throw new Error('ReactLLM not available')
-      return await reactLLM.getAvailableModels()
+      const reactLM = (window as unknown as { ReactLM?: { getAvailableModels: () => Promise<string[]> } }).ReactLLM
+      if (!reactLM) throw new Error('ReactLM not available')
+      return await reactLM.getAvailableModels()
     } catch (error) {
       console.warn('Failed to get available models:', error)
       return ['gpt-4o'] // Fallback
@@ -276,7 +276,7 @@ class ReactLLMApi {
 }
 
 // Export singleton instance
-export const reactLLMApi = new ReactLLMApi()
+export const reactLMApi = new ReactLMApi()
 
 // Environment variable detection for API keys
 export function detectApiKeys(): Partial<ApiConfig> {
@@ -292,7 +292,7 @@ export function detectApiKeys(): Partial<ApiConfig> {
   
   // Check localStorage for demo keys
   if (typeof window !== 'undefined') {
-    const storedKeys = localStorage.getItem('react-llm-demo-keys')
+    const storedKeys = localStorage.getItem('reactlm-demo-keys')
     if (storedKeys) {
       try {
         const parsed = JSON.parse(storedKeys)
@@ -313,6 +313,6 @@ export function detectApiKeys(): Partial<ApiConfig> {
 // Initialize API with detected configuration
 export function initializeDemoApi(): Promise<boolean> {
   const config = detectApiKeys()
-  reactLLMApi.updateConfig(config)
-  return reactLLMApi.initialize()
+  reactLMApi.updateConfig(config)
+  return reactLMApi.initialize()
 }

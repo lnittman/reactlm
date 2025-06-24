@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import { ReactLLMLoader } from "@/components/ReactLLMLoader";
+import { ReactLMLoader } from "@/components/ReactLMLoader";
 import "./globals.css";
 
 const inter = Inter({
@@ -14,20 +14,20 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://react-llm.dev'),
-  title: 'React LLM - Browser-Native AI Coding Assistant',
+  metadataBase: new URL('https://reactlm.dev'),
+  title: 'ReactLM - Browser-Native AI Coding Assistant',
   description: 'Chat with your React components using GPT-4, Claude, and more. Click to select, chat to modify, see changes instantly.',
   keywords: ['react', 'ai', 'llm', 'gpt-4', 'claude', 'developer tools', 'code assistant', 'browser'],
-  authors: [{ name: 'React LLM Team' }],
+  authors: [{ name: 'ReactLM Team' }],
   openGraph: {
-    title: 'React LLM - Browser-Native AI Coding Assistant',
+    title: 'ReactLM - Browser-Native AI Coding Assistant',
     description: 'Chat with your React components using GPT-4, Claude, and more.',
     images: ['/og-image.png'],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'React LLM - Browser-Native AI Coding Assistant',
+    title: 'ReactLM - Browser-Native AI Coding Assistant',
     description: 'Chat with your React components using GPT-4, Claude, and more.',
     images: ['/twitter-image.png'],
   },
@@ -44,8 +44,8 @@ export default function RootLayout({
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased min-h-screen`}
       >
         {children}
-        {/* Load React LLM for demo purposes */}
-        <ReactLLMLoader />
+        {/* Load ReactLM for demo purposes */}
+        <ReactLMLoader />
       </body>
     </html>
   );

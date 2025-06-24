@@ -6,15 +6,15 @@ const path = require('path');
 const command = process.argv[2];
 
 if (!command || !['install', 'generate'].includes(command)) {
-  console.log('Usage: react-llm <command>');
+  console.log('Usage: reactlm <command>');
   console.log('\nCommands:');
-  console.log('  install   Add react-llm to your project');
+  console.log('  install   Add reactlm to your project');
   console.log('  generate  Generate codebase context');
   process.exit(1);
 }
 
 // Helper to ensure directory exists
-function ensureDir(dir: string) {
+function ensureDir(dir) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -36,14 +36,14 @@ function addScriptToPackageJson() {
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
   
   if (!packageJson.scripts) packageJson.scripts = {};
-  packageJson.scripts['react-llm'] = 'react-llm generate';
+  packageJson.scripts['reactlm'] = 'reactlm generate';
   
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
 }
 
 // Helper to add script tag to layout
-function addScriptToLayout(framework: string | null) {
-  const scriptTag = `<script src="/react-llm.js"></script>`;
+function addScriptToLayout(framework) {
+  const scriptTag = `<script src="/reactlm.js"></script>`;
   
   if (framework === 'next') {
     // Try app directory first
@@ -71,7 +71,7 @@ function addScriptToLayout(framework: string | null) {
     }
     
     if (layoutFile && layoutContent) {
-      if (!layoutContent.includes('react-llm.js')) {
+      if (!layoutContent.includes('reactlm.js')) {
         // For app directory
         if (layoutFile.includes('app/layout')) {
           layoutContent = layoutContent.replace(
@@ -80,7 +80,7 @@ function addScriptToLayout(framework: string | null) {
           );
           layoutContent = layoutContent.replace(
             /<body[^>]*>/,
-            `$&\n        <Script src="/react-llm.js" />`
+            `$&\n        <Script src="/reactlm.js" />`
           );
         }
         // For pages directory
@@ -91,7 +91,7 @@ function addScriptToLayout(framework: string | null) {
           );
           layoutContent = layoutContent.replace(
             /<Component[^>]*>/,
-            `<Script src="/react-llm.js" />\n          $&`
+            `<Script src="/reactlm.js" />\n          $&`
           );
         }
         fs.writeFileSync(layoutFile, layoutContent);
@@ -100,14 +100,14 @@ function addScriptToLayout(framework: string | null) {
     } else {
       console.log('⚠️  Could not find layout file. Please add the following to your layout:');
       console.log('   import Script from "next/script"');
-      console.log(`   <Script src="/react-llm.js" />`);
+      console.log(`   <Script src="/reactlm.js" />`);
     }
   } else {
     // For regular React apps, try to find index.html
     const indexPath = path.join(process.cwd(), 'public', 'index.html');
     if (fs.existsSync(indexPath)) {
       let content = fs.readFileSync(indexPath, 'utf8');
-      if (!content.includes('react-llm.js')) {
+      if (!content.includes('reactlm.js')) {
         content = content.replace(
           /<body[^>]*>/,
           `$&\n    ${scriptTag}`
@@ -123,7 +123,7 @@ function addScriptToLayout(framework: string | null) {
 }
 
 // Helper to set up environment variables
-function setupEnvironmentVariables(framework: string | null, apiKey: string) {
+function setupEnvironmentVariables(framework, apiKey) {
   if (framework === 'next') {
     // Check for existing .env.local
     const envPath = path.join(process.cwd(), '.env.local');
@@ -151,14 +151,14 @@ function setupEnvironmentVariables(framework: string | null, apiKey: string) {
       }
     }
   } else {
-    console.log('\nTo use react-llm, add this to your app:');
+    console.log('\nTo use reactlm, add this to your app:');
     console.log('window.GEMINI_API_KEY = "YOUR_API_KEY";');
-    console.log('\nMake sure to set this before the react-llm.js script loads.');
+    console.log('\nMake sure to set this before the reactlm.js script loads.');
   }
 }
 
 // Copy SQLite WASM file
-async function copySqliteWasm(publicDir: string) {
+async function copySqliteWasm(publicDir) {
   const possibleSources = [
     // Try package's own dist directory first
     path.join(__dirname, '..', 'dist', 'sqlite3.wasm'),
@@ -177,12 +177,12 @@ async function copySqliteWasm(publicDir: string) {
   }
   
   console.error('❌ Could not find sqlite3.wasm in any expected location.');
-  console.error('This is likely a bug in react-llm. Please report it at:');
-  console.error('https://github.com/yourusername/react-llm/issues');
+  console.error('This is likely a bug in reactlm. Please report it at:');
+  console.error('https://github.com/yourusername/reactlm/issues');
   return false;
 }
 
-async function install(apiKey: string) {
+async function install(apiKey) {
   try {
     const framework = detectFramework();
     
@@ -205,14 +205,14 @@ async function install(apiKey: string) {
     // Setup environment variables
     await setupEnvironmentVariables(framework, apiKey);
     
-    console.log('✨ react-llm installation complete!');
+    console.log('✨ reactlm installation complete!');
     console.log('');
     console.log('Next steps:');
     console.log('1. Start your development server');
-    console.log('2. Visit your app and look for the react-llm chat widget');
+    console.log('2. Visit your app and look for the reactlm chat widget');
     console.log('');
-    console.log('For more information, visit: https://github.com/yourusername/react-llm');
-  } catch (error: any) {
+    console.log('For more information, visit: https://github.com/yourusername/reactlm');
+  } catch (error) {
     console.error('❌ Installation failed:', error.message);
     process.exit(1);
   }
@@ -221,19 +221,19 @@ async function install(apiKey: string) {
 // Install command
 if (command === 'install') {
   try {
-    console.log('🔧 Setting up react-llm...');
+    console.log('🔧 Setting up reactlm...');
     
     // Get API key
     const apiKey = process.argv[3];
     if (!apiKey) {
       console.error('❌ Please provide your Gemini API key:');
-      console.error('   pnpm react-llm install YOUR_API_KEY');
+      console.error('   pnpm reactlm install YOUR_API_KEY');
       process.exit(1);
     }
     
-    install(apiKey);
-  } catch (error: any) {
-    console.error('❌ Failed to install react-llm:', error.message);
+    await install(apiKey);
+  } catch (error) {
+    console.error('❌ Failed to install reactlm:', error.message);
     process.exit(1);
   }
 }
@@ -268,8 +268,8 @@ if (command === 'generate') {
     
     console.log('✅ Codebase context generated successfully!');
     console.log('📝 Saved to public/codebase-context.json');
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Failed to generate codebase context:', error.message);
     process.exit(1);
   }
-}
+} 
