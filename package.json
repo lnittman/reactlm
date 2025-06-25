@@ -34,7 +34,7 @@
     "validate-release": "node scripts/validate-release.js"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.26.2",
+    "@changesets/cli": "^2.29.5",
     "@changesets/changelog-github": "^0.4.8",
     "@biomejs/biome": "1.5.3",
     "turbo": "^1.10.16",
