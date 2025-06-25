@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -34,6 +34,7 @@ interface ButtonProps
     VariantProps<typeof buttonVariants> {
   href?: string
   external?: boolean
+  children?: React.ReactNode
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -58,7 +59,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           href={href}
           className={buttonClassName}
         >
-          {children}
+          <>{children}</>
         </Link>
       )
     }
