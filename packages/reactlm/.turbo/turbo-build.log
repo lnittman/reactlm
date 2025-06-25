@@ -1,8 +1,8 @@
 
 > reactlm@0.1.0 build /Users/nit/Developer/apps/react-lm/packages/reactlm
-> tsup
+> tsup && node scripts/post-build.cjs
 
-CLI Building entry: {"reactlm.global":"src/index.ts"}
+CLI Building entry: {"reactlm":"src/index.ts"}
 CLI Using tsconfig: tsconfig.json
 CLI tsup v8.5.0
 CLI Using tsup config: /Users/nit/Developer/apps/react-lm/packages/reactlm/tsup.config.ts
@@ -15,21 +15,22 @@ CLI Using tsconfig: tsconfig.json
 CLI tsup v8.5.0
 CLI Using tsup config: /Users/nit/Developer/apps/react-lm/packages/reactlm/tsup.config.ts
 CLI Target: es2020
-IIFE Build start
 CLI Target: es2020
+IIFE Build start
 CLI Target: es2020
 CJS Build start
 CLI Cleaning output folder
 ESM Build start
 CJS Build start
 CJS dist/cli.cjs 8.26 KB
-CJS ⚡️ Build success in 10ms
+CJS ⚡️ Build success in 8ms
 CJS dist/index.cjs     190.70 KB
 CJS dist/index.cjs.map 338.18 KB
-CJS ⚡️ Build success in 40ms
+CJS ⚡️ Build success in 30ms
 ESM dist/index.js     186.20 KB
 ESM dist/index.js.map 339.01 KB
-ESM ⚡️ Build success in 40ms
-IIFE dist/reactlm.global.global.js     314.24 KB
-IIFE dist/reactlm.global.global.js.map 674.61 KB
-IIFE ⚡️ Build success in 51ms
+ESM ⚡️ Build success in 30ms
+IIFE dist/reactlm.global.js     314.22 KB
+IIFE dist/reactlm.global.js.map 674.61 KB
+IIFE ⚡️ Build success in 38ms
+✅ Copied reactlm.js to web app public directory

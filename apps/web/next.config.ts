@@ -4,7 +4,7 @@ import { join } from "path";
 
 // Helper function to copy reactlm.js
 function copyReactLM() {
-  const reactLMPath = join(__dirname, "../../packages/reactlm/dist/reactlm.global.global.js");
+  const reactLMPath = join(__dirname, "../../packages/reactlm/dist/reactlm.global.js");
   const publicPath = join(__dirname, "public");
   const targetPath = join(publicPath, "reactlm.js");
   

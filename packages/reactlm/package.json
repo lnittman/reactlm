@@ -51,7 +51,8 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && node scripts/post-build.cjs",
+    "postbuild": "node scripts/post-build.cjs",
     "build:optimized": "tsup --config tsup.config.optimized.ts",
     "dev": "tsup --watch",
     "lint": "biome check .",

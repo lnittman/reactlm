@@ -27,7 +27,7 @@ export default defineConfig([
   // IIFE build for browser script tag usage
   {
     entry: {
-      'reactlm.global': 'src/index.ts'
+      'reactlm': 'src/index.ts'
     },
     splitting: false,
     sourcemap: true,
@@ -50,7 +50,7 @@ export default defineConfig([
   
   // Set up public path for assets
   var scripts = document.getElementsByTagName('script');
-  var currentScript = Array.from(scripts).find(script => script.src.includes('reactlm.global.js'));
+  var currentScript = Array.from(scripts).find(script => script.src.includes('reactlm'));
   
   if (currentScript) {
     var scriptUrl = currentScript.src;

@@ -10083,7 +10083,7 @@ bippy/dist/index.js:
   
   // Set up public path for assets
   var scripts = document.getElementsByTagName('script');
-  var currentScript = Array.from(scripts).find(script => script.src.includes('reactlm.global.js'));
+  var currentScript = Array.from(scripts).find(script => script.src.includes('reactlm'));
   
   if (currentScript) {
     var scriptUrl = currentScript.src;
@@ -10093,4 +10093,4 @@ bippy/dist/index.js:
   
   console.log('[ReactLM] Ready for initialization. Call ReactLM.init() with config.');
 })();
-//# sourceMappingURL=reactlm.global.global.js.map
+//# sourceMappingURL=reactlm.global.js.map
