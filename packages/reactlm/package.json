@@ -79,7 +79,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20.11.5",
     "@types/react": "^18.2.48",
-    "@types/react-dom": "^18.2.18",
+    "@types/react-dom": "^19.1.6",
     "happy-dom": "^18.0.1",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3",
