@@ -6,9 +6,10 @@ import { codeToHtml } from 'shiki';
 export interface CodeBlockProps {
   children: string;
   language?: string;
+  copy?: boolean;
 }
 
-export function CodeBlock({ children, language = 'javascript' }: CodeBlockProps) {
+export function CodeBlock({ children, language = 'javascript', copy }: CodeBlockProps) {
   const [html, setHtml] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +29,7 @@ export function CodeBlock({ children, language = 'javascript' }: CodeBlockProps)
           ]
         });
         setHtml(highlighted);
-      } catch (error) {
+      } catch {
         // Fallback to plain text if highlighting fails
         setHtml(`<pre class="code-block"><code>${children}</code></pre>`);
       } finally {
@@ -41,11 +42,33 @@ export function CodeBlock({ children, language = 'javascript' }: CodeBlockProps)
 
   if (loading) {
     return (
-      <pre className="code-block">
-        <code>{children}</code>
-      </pre>
+      <div className="relative">
+        <pre className="code-block">
+          <code>{children}</code>
+        </pre>
+        {copy && (
+          <button
+            onClick={() => navigator.clipboard.writeText(children)}
+            className="absolute right-2 top-2 rounded-md bg-background/80 px-2 py-1 text-xs text-muted-foreground hover:bg-background"
+          >
+            Copy
+          </button>
+        )}
+      </div>
     );
   }
 
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+  return (
+    <div className="relative">
+      <div dangerouslySetInnerHTML={{ __html: html }} />
+      {copy && (
+        <button
+          onClick={() => navigator.clipboard.writeText(children)}
+          className="absolute right-2 top-2 rounded-md bg-background/80 px-2 py-1 text-xs text-muted-foreground hover:bg-background"
+        >
+          Copy
+        </button>
+      )}
+    </div>
+  );
 }

@@ -2,6 +2,23 @@
 
 import Script from 'next/script';
 
+interface ReactLMConfig {
+  mode: string;
+  position: string;
+  theme: string;
+  debug: boolean;
+}
+
+interface ReactLMGlobal {
+  init: (config: ReactLMConfig) => void;
+}
+
+declare global {
+  interface Window {
+    ReactLM?: ReactLMGlobal;
+  }
+}
+
 export function ReactLMLoader() {
   return (
     <Script
@@ -10,10 +27,10 @@ export function ReactLMLoader() {
       onLoad={() => {
         console.log('[ReactLMLoader] Script loaded, initializing...');
         // Initialize ReactLM in demo mode
-        if (typeof window !== 'undefined' && (window as any).ReactLM) {
+        if (typeof window !== 'undefined' && window.ReactLM) {
           console.log('[ReactLMLoader] ReactLM found, calling init...');
           try {
-            (window as any).ReactLM.init({
+            window.ReactLM.init({
               mode: 'demo', // Demo mode with Gemini 2.5 Flash
               position: 'bottom-right',
               theme: 'dark',

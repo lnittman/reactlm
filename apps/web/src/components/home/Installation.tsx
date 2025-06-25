@@ -82,7 +82,7 @@ ReactLLM.init({
   }
 }
 
-function CodeBlock({ code, language }: { code: string, language: string }) {
+function CodeBlock({ code }: { code: string; language?: string }) {
   const [copied, setCopied] = useState(false)
 
   const copyToClipboard = async () => {
@@ -150,7 +150,7 @@ export function Installation() {
               >
                 <MethodIcon className="w-4 h-4" />
                 {method.title}
-                {method.badge && activeMethod !== key && (
+                {'badge' in method && method.badge && activeMethod !== key && (
                   <Badge variant="secondary" className="ml-1 text-xs">
                     {method.badge}
                   </Badge>
@@ -171,9 +171,9 @@ export function Installation() {
                 <div>
                   <CardTitle className="text-2xl flex items-center gap-2">
                     {method.title}
-                    {method.badge && (
+                    {'badge' in method && method.badge && (
                       <Badge variant="success" className="text-xs">
-                        {method.badge}
+                        {'badge' in method ? method.badge : ''}
                       </Badge>
                     )}
                   </CardTitle>
@@ -208,7 +208,7 @@ export function Installation() {
                 API Key Setup
               </CardTitle>
               <CardDescription>
-                You'll need API keys from your preferred AI providers
+                You&apos;ll need API keys from your preferred AI providers
               </CardDescription>
             </CardHeader>
             <CardContent>

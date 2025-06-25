@@ -70,7 +70,7 @@ class ReactLMApi {
 
     try {
       // Check if ReactLM script is available
-      const reactLM = (window as unknown as { ReactLM?: { init: (config: unknown) => Promise<void> } }).ReactLLM
+      const reactLM = (window as unknown as { ReactLM?: { init: (config: unknown) => Promise<void> } }).ReactLM
       if (reactLM) {
         await reactLM.init({
           providers: {
@@ -104,7 +104,7 @@ class ReactLMApi {
 
     if (this.config.simulationMode) {
       // Use mock provider for analysis
-      const analysis = await this.mockProvider.analyzeComponent({ id: componentId, name: componentId })
+      const analysis = await this.mockProvider.analyzeComponent({ name: componentId })
       return {
         id: componentId,
         name: componentId,
@@ -128,7 +128,7 @@ class ReactLMApi {
 
     try {
       // Real ReactLM component analysis
-      const reactLM = (window as unknown as { ReactLM?: { analyzeComponent: (id: string) => Promise<ComponentAnalysis> } }).ReactLLM
+      const reactLM = (window as unknown as { ReactLM?: { analyzeComponent: (id: string) => Promise<ComponentAnalysis> } }).ReactLM
       if (!reactLM) throw new Error('ReactLM not available')
       const analysis = await reactLM.analyzeComponent(componentId)
       return analysis
@@ -151,7 +151,7 @@ class ReactLMApi {
     if (this.config.simulationMode) {
       // Use mock provider for code modifications
       const modification = await this.mockProvider.generateCodeModification(
-        { id: componentId, name: componentId }, 
+        { name: componentId }, 
         instruction
       )
       
@@ -174,7 +174,7 @@ class ReactLMApi {
 
     try {
       // Real ReactLM API call
-      const reactLM = (window as unknown as { ReactLM?: { chat: (config: unknown) => Promise<unknown> } }).ReactLLM
+      const reactLM = (window as unknown as { ReactLM?: { chat: (config: unknown) => Promise<unknown> } }).ReactLM
       if (!reactLM) throw new Error('ReactLM not available')
       const response = await reactLM.chat({
         message: instruction,
@@ -224,7 +224,7 @@ class ReactLMApi {
 
     try {
       // Real ReactLM chat
-      const reactLM = (window as unknown as { ReactLM?: { chat: (messages: any[], options: any) => Promise<string> } }).ReactLLM
+      const reactLM = (window as unknown as { ReactLM?: { chat: (messages: Array<{role: string, content: string}>, options: {model: string}) => Promise<string> } }).ReactLM
       if (!reactLM) throw new Error('ReactLM not available')
       
       const response = await reactLM.chat(messages, { model })
@@ -257,7 +257,7 @@ class ReactLMApi {
     }
 
     try {
-      const reactLM = (window as unknown as { ReactLM?: { getAvailableModels: () => Promise<string[]> } }).ReactLLM
+      const reactLM = (window as unknown as { ReactLM?: { getAvailableModels: () => Promise<string[]> } }).ReactLM
       if (!reactLM) throw new Error('ReactLM not available')
       return await reactLM.getAvailableModels()
     } catch (error) {
@@ -267,7 +267,7 @@ class ReactLMApi {
   }
 
   isSimulationMode(): boolean {
-    return this.config.simulationMode
+    return this.config.simulationMode || false
   }
 
   updateConfig(newConfig: Partial<ApiConfig>): void {
@@ -304,7 +304,9 @@ export function detectApiKeys(): Partial<ApiConfig> {
   }
   
   // Determine if we should use simulation mode
-  const hasAnyKey = Object.values(config).some(key => key && key.length > 0)
+  const hasAnyKey = Object.entries(config)
+    .filter(([key]) => key !== 'simulationMode')
+    .some(([, value]) => typeof value === 'string' && value.length > 0)
   config.simulationMode = !hasAnyKey
   
   return config

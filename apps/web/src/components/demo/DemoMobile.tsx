@@ -9,7 +9,7 @@ interface DemoMobileProps {
   demoState: {
     selectedComponent: string | null
     highlightedComponent: string | null
-    messages: Array<{ id: string; role: string; content: string; timestamp: Date }>
+    messages: Array<{ id: string; role: 'user' | 'assistant'; content: string; timestamp: Date }>
     currentModel: string
     isLoading: boolean
   }
@@ -104,12 +104,9 @@ export function DemoMobile({
                       &lt;{component.name} /&gt;
                     </div>
                     <Component
-                      name={component.name}
-                      type={component.type}
                       isSelected={demoState.selectedComponent === component.id}
                       isHighlighted={demoState.highlightedComponent === component.id}
                       onClick={() => onComponentSelect(component.id)}
-                      code={component.code}
                     />
                   </div>
                 )

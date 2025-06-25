@@ -218,7 +218,7 @@ export class DemoSimulation {
       content: response,
       metadata: {
         model: this.state.currentModel,
-        componentId: this.state.selectedComponent
+        componentId: this.state.selectedComponent || undefined
       }
     })
     

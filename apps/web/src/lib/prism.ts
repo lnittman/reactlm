@@ -13,7 +13,13 @@ export function highlight(code: string, language: string = 'javascript'): string
   let highlighted = escapeHtml(code);
 
   // Basic syntax highlighting patterns
-  const patterns = {
+  interface Pattern {
+    regex: RegExp;
+    className: string;
+    capture?: number;
+  }
+  
+  const patterns: Record<string, Pattern[]> = {
     javascript: [
       { regex: /(\/\/.*$)/gm, className: 'comment' },
       { regex: /(["'`])((?:\\.|(?!\1)[^\\])*?)\1/g, className: 'string' },
@@ -30,7 +36,7 @@ export function highlight(code: string, language: string = 'javascript'): string
     ]
   };
 
-  const langPatterns = patterns[language as keyof typeof patterns] || patterns.javascript;
+  const langPatterns = patterns[language] || patterns.javascript;
 
   langPatterns.forEach(({ regex, className, capture }) => {
     highlighted = highlighted.replace(regex, (match, ...groups) => {

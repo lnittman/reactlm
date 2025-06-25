@@ -1,10 +1,16 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // Sample components for the sandboxed React app
-function TodoItem({ task, onToggle, onDelete }: { task: any; onToggle: () => void; onDelete: () => void }) {
+interface Task {
+  id: number;
+  text: string;
+  completed: boolean;
+}
+
+function TodoItem({ task, onToggle, onDelete }: { task: Task; onToggle: () => void; onDelete: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

@@ -121,7 +121,7 @@ export function Comparison() {
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Both tools are powerful, but they serve different purposes. 
-            Here's how React LLM complements your existing development workflow.
+            Here&apos;s how React LLM complements your existing development workflow.
           </p>
         </div>
 

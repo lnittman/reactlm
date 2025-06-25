@@ -36,23 +36,41 @@ interface ButtonProps
   external?: boolean
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
   ({ className, variant, size, href, external, children, ...props }, ref) => {
-    const Comp = href ? (external ? 'a' : Link) : 'button'
-    
-    const buttonProps = href 
-      ? external
-        ? { href, target: '_blank', rel: 'noopener noreferrer' }
-        : { href }
-      : { ...props, ref }
+    if (href) {
+      if (external) {
+        return (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(buttonVariants({ variant, size, className }))}
+            ref={ref as React.Ref<HTMLAnchorElement>}
+          >
+            {children}
+          </a>
+        )
+      }
+      return (
+        <Link
+          href={href}
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref as React.Ref<HTMLAnchorElement>}
+        >
+          {children}
+        </Link>
+      )
+    }
 
     return (
-      <Comp
+      <button
         className={cn(buttonVariants({ variant, size, className }))}
-        {...buttonProps}
+        ref={ref as React.Ref<HTMLButtonElement>}
+        {...props}
       >
         {children}
-      </Comp>
+      </button>
     )
   }
 )

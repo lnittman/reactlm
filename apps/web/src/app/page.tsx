@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { ActionListItem } from '@/components/ui/ActionListItem'
 import { CodeBlock } from '@/components/ui/CodeBlock'
 
@@ -19,7 +18,7 @@ export default function Home() {
         
         <div className="intro">
           <p>
-            reactlm is bringing AI-powered development to the browser. we are a group of engineers building tools that let developers chat with their react components, make live code changes, and explore any website's architecture.
+            reactlm is bringing AI-powered development to the browser. we are a group of engineers building tools that let developers chat with their react components, make live code changes, and explore any website&apos;s architecture.
           </p>
         </div>
         

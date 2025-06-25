@@ -1,4 +1,17 @@
 // Mock LLM provider for demo without API keys
+
+interface ComponentInfo {
+  name?: string;
+  props?: Record<string, unknown>;
+}
+
+interface CodeModification {
+  before: string;
+  after: string;
+  explanation: string;
+  changes: string[];
+  language: string;
+}
 export class DemoMockProvider {
   private responses = {
     componentAnalysis: [
@@ -40,7 +53,7 @@ export class DemoMockProvider {
     }
   }
   
-  async analyzeComponent(componentInfo: any): Promise<string> {
+  async analyzeComponent(componentInfo: ComponentInfo): Promise<string> {
     // Simulate processing delay
     await this.delay(800 + Math.random() * 400)
     
@@ -52,7 +65,8 @@ export class DemoMockProvider {
       .replace('{propCount}', String(Object.keys(componentInfo.props || {}).length))
   }
   
-  async generateCodeModification(component: any, instruction: string): Promise<any> {
+  async generateCodeModification(component: ComponentInfo, instruction: string): Promise<CodeModification> {
+    void instruction; // Intentionally unused in mock
     await this.delay(1000 + Math.random() * 500)
     
     const modifications = this.responses.codeModifications
@@ -71,7 +85,8 @@ export class DemoMockProvider {
     }
   }
   
-  async processQuickAction(action: string, component: any): Promise<string> {
+  async processQuickAction(action: string, component: ComponentInfo): Promise<string> {
+    void component; // Intentionally unused in mock
     await this.delay(600 + Math.random() * 300)
     
     const actionKey = action.toLowerCase().replace(/\s+/g, '')
@@ -106,10 +121,10 @@ export class DemoMockProvider {
     return "I understand you're asking about: " + lastMessage + "\n\nIn a real implementation, I would provide detailed assistance based on your selected component and specific needs. Try selecting a component and using the quick actions to see how I can help!"
   }
   
-  private generateComponentCode(component: any, modified: boolean): string {
+  private generateComponentCode(component: ComponentInfo, modified: boolean): string {
     const componentName = component?.name || 'Component'
     const props = component?.props || {}
-    const propString = Object.keys(props).map(key => `${key}: ${JSON.stringify(props[key])}`).join(', ')
+    // const propString = Object.keys(props).map(key => `${key}: ${JSON.stringify(props[key])}`).join(', ')
     
     if (modified) {
       return `import React, { memo, useCallback } from 'react'

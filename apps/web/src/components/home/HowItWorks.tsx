@@ -16,7 +16,7 @@ const steps = [
     icon: MessageSquare,
     title: "Chat with AI",
     description: "Choose your preferred AI model (GPT-4, Claude, Gemini) and describe what you want to change or build.",
-    details: "AI understands your component's props, state, and context"
+    details: "AI understands your component&apos;s props, state, and context"
   },
   {
     icon: Zap,
@@ -108,7 +108,7 @@ export function HowItWorks() {
                     <div className="text-muted-foreground mb-1"># Install the package</div>
                     <div>npm install --save-dev react-llm</div>
                     <div className="text-muted-foreground mt-2 mb-1"># Initialize in your app</div>
-                    <div>ReactLLM.init(&#123; apiKey: 'your-key' &#125;)</div>
+                    <div>ReactLLM.init(&#123; apiKey: &apos;your-key&apos; &#125;)</div>
                   </div>
                 </div>
                 <div>
@@ -116,10 +116,10 @@ export function HowItWorks() {
                   <div className="bg-muted rounded-lg p-4 font-mono text-sm">
                     <div className="text-muted-foreground mb-1"># Add to any website</div>
                     <div className="break-all">
-                      &lt;script src="https://unpkg.com/react-llm"&gt;&lt;/script&gt;
+                      &lt;script src=&quot;https://unpkg.com/react-llm&quot;&gt;&lt;/script&gt;
                     </div>
                     <div className="text-muted-foreground mt-2 mb-1"># Initialize</div>
-                    <div>ReactLLM.init(&#123; apiKey: 'your-key' &#125;)</div>
+                    <div>ReactLLM.init(&#123; apiKey: &apos;your-key&apos; &#125;)</div>
                   </div>
                 </div>
               </div>

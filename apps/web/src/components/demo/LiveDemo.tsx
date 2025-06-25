@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { DEMO_COMPONENTS } from './DemoContent'
 import { DemoControls } from './DemoControls'
 import { DemoChat } from './DemoChat'
 import { DemoMobile } from './DemoMobile'
@@ -11,7 +10,7 @@ import { ApiKeyConfig } from './ApiKeyConfig'
 import { DemoTour, useDemoTour } from './DemoTour'
 import { SandboxedApp } from './SandboxedApp'
 import { demoSimulation } from '@/lib/demo-simulation'
-import { reactLLMApi, initializeDemoApi } from '@/lib/demo-api'
+import { reactLMApi, initializeDemoApi } from '@/lib/demo-api'
 
 function DemoSkeleton() {
   return (
@@ -71,7 +70,7 @@ export function LiveDemo() {
       
       script.onload = async () => {
         await initializeDemoApi()
-        setApiMode(reactLLMApi.isSimulationMode() ? 'simulation' : 'real')
+        setApiMode(reactLMApi.isSimulationMode() ? 'simulation' : 'real')
         setIsLoaded(true)
       }
       
@@ -115,7 +114,7 @@ export function LiveDemo() {
 
   const handleApiConfigUpdate = async () => {
     await initializeDemoApi()
-    setApiMode(reactLLMApi.isSimulationMode() ? 'simulation' : 'real')
+    setApiMode(reactLMApi.isSimulationMode() ? 'simulation' : 'real')
   }
 
   // Mobile layout

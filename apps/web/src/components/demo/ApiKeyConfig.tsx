@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { reactLLMApi, detectApiKeys } from '@/lib/demo-api'
+import { reactLMApi, detectApiKeys } from '@/lib/demo-api'
 
 interface ApiKeyConfigProps {
   isOpen: boolean
@@ -52,13 +52,13 @@ export function ApiKeyConfig({ isOpen, onClose, onConfigUpdate }: ApiKeyConfigPr
       localStorage.setItem('react-llm-demo-keys', JSON.stringify(keysToSave))
       
       // Update API configuration
-      reactLLMApi.updateConfig({
+      reactLMApi.updateConfig({
         ...keysToSave,
         simulationMode: Object.keys(keysToSave).length === 0
       })
       
       // Reinitialize API
-      await reactLLMApi.initialize()
+      await reactLMApi.initialize()
       
       onConfigUpdate()
       onClose()
