@@ -189,37 +189,38 @@ export const textColor = {
   },
 };
 
-// Transition utilities with easing functions
+// Transition utilities with easing functions - refined for fade/blur
 export const transition = {
-  all: `transition: all 0.2s ${easings.smooth};`,
+  all: `transition: opacity 0.2s ${easings.smooth}, filter 0.2s ${easings.smooth}, background-color 0.2s ${easings.smooth}, border-color 0.2s ${easings.smooth};`,
   colors: `transition: color 0.15s ${easings.smooth}, background-color 0.15s ${easings.smooth}, border-color 0.15s ${easings.smooth};`,
-  transform: `transition: transform 0.2s ${easings.spring};`,
+  blur: `transition: filter 0.2s ${easings.smooth};`,
   opacity: `transition: opacity 0.2s ${easings.smooth};`,
-  bounce: `transition: all 0.3s ${easings.bounce};`,
-  smooth: `transition: all 0.3s ${easings.smooth};`,
-  snappy: `transition: all 0.15s ${easings.snappy};`,
+  fade: `transition: opacity 0.2s ${easings.smooth}, filter 0.2s ${easings.smooth};`,
+  smooth: `transition: opacity 0.3s ${easings.smooth}, filter 0.3s ${easings.smooth};`,
+  snappy: `transition: opacity 0.15s ${easings.snappy}, filter 0.15s ${easings.snappy};`,
   none: `transition: none;`,
   
-  // Enhanced transitions for specific elements
+  // Enhanced transitions for specific elements - no transform
   button: `
     transition: 
-      transform 0.15s ${easings.spring},
+      opacity 0.15s ${easings.smooth},
       background-color 0.2s ${easings.smooth},
       border-color 0.2s ${easings.smooth},
       box-shadow 0.2s ${easings.smooth},
-      color 0.15s ${easings.smooth};
+      color 0.15s ${easings.smooth},
+      filter 0.15s ${easings.smooth};
   `,
   
   message: `
     transition: 
       opacity 0.3s ${easings.smooth},
-      transform 0.3s ${easings.spring};
+      filter 0.3s ${easings.smooth};
   `,
   
   dropdown: `
     transition: 
       opacity 0.2s ${easings.smooth},
-      transform 0.25s ${easings.spring},
+      filter 0.2s ${easings.smooth},
       visibility 0.2s;
   `,
 };
@@ -279,7 +280,7 @@ export const chat = {
     &:hover:not(:disabled) {
       background: var(--theme-hover);
       border-color: var(--theme-border);
-      transform: translateY(-1px);
+      filter: brightness(1.1);
     }
     
     &:focus {
@@ -287,7 +288,7 @@ export const chat = {
       background: var(--theme-hover);
       border-color: var(--theme-chat-input-focus);
       box-shadow: 0 0 0 3px rgba(69, 137, 255, 0.1);
-      transform: translateY(-1px);
+      filter: brightness(1.15);
     }
     
     &:disabled {
@@ -392,53 +393,51 @@ export const button = {
 
 // Animation keyframes - Professional micro-interactions
 export const animations = `
-  /* Toolbar entrance animation */
+  /* Toolbar entrance animation - refined fade/blur only */
   @keyframes toolbarEntrance {
     from { 
       opacity: 0;
-      transform: translateY(20px) scale(0.95);
-      filter: blur(4px);
+      filter: blur(8px);
     }
     to { 
       opacity: 1;
-      transform: translateY(0) scale(1);
       filter: blur(0);
     }
   }
   
-  /* Smooth fade in with spring */
+  /* Smooth fade in - no movement */
   @keyframes fadeIn {
     from { 
       opacity: 0; 
-      transform: translateY(8px) scale(0.98);
+      filter: blur(4px);
     }
     to { 
       opacity: 1; 
-      transform: translateY(0) scale(1);
+      filter: blur(0);
     }
   }
   
-  /* Message slide in */
+  /* Message fade in */
   @keyframes slideIn {
     from { 
       opacity: 0; 
-      transform: translateX(-12px);
+      filter: blur(2px);
     }
     to { 
       opacity: 1; 
-      transform: translateX(0);
+      filter: blur(0);
     }
   }
   
-  /* View switching animation */
+  /* View switching animation - fade only */
   @keyframes viewSlideIn {
     from {
       opacity: 0;
-      transform: translateX(20px);
+      filter: blur(4px);
     }
     to {
       opacity: 1;
-      transform: translateX(0);
+      filter: blur(0);
     }
   }
   
@@ -547,15 +546,15 @@ export const animations = `
     20%, 40%, 60%, 80% { transform: translateX(2px); }
   }
   
-  /* @ mention dropdown entrance */
+  /* @ mention dropdown entrance - fade only */
   @keyframes dropdownEntrance {
     from {
       opacity: 0;
-      transform: translateY(-8px) scale(0.95);
+      filter: blur(4px);
     }
     to {
       opacity: 1;
-      transform: translateY(0) scale(1);
+      filter: blur(0);
     }
   }
   
@@ -571,15 +570,13 @@ export const animations = `
     }
   }
   
-  /* Model card hover */
+  /* Model card hover - shadow only */
   @keyframes cardLift {
     from {
-      transform: translateY(0);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     to {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     }
   }
   
@@ -740,17 +737,17 @@ export const devtools = {
     ${shadow.xl}
   `,
   
-  // Interactive elements with micro-interactions
+  // Interactive elements with micro-interactions - no movement
   interactive: `
     ${transition.all}
-    will-change: transform, background-color, border-color;
+    will-change: opacity, filter, background-color, border-color;
     
     &:hover {
-      transform: translateY(-1px);
+      filter: brightness(1.1);
     }
     
     &:active {
-      transform: translateY(0);
+      filter: brightness(0.95);
     }
   `,
   

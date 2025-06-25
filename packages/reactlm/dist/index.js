@@ -656,32 +656,33 @@ var textColor = {
   }
 };
 var transition = {
-  all: `transition: all 0.2s ${easings.smooth};`,
+  all: `transition: opacity 0.2s ${easings.smooth}, filter 0.2s ${easings.smooth}, background-color 0.2s ${easings.smooth}, border-color 0.2s ${easings.smooth};`,
   colors: `transition: color 0.15s ${easings.smooth}, background-color 0.15s ${easings.smooth}, border-color 0.15s ${easings.smooth};`,
-  transform: `transition: transform 0.2s ${easings.spring};`,
+  blur: `transition: filter 0.2s ${easings.smooth};`,
   opacity: `transition: opacity 0.2s ${easings.smooth};`,
-  bounce: `transition: all 0.3s ${easings.bounce};`,
-  smooth: `transition: all 0.3s ${easings.smooth};`,
-  snappy: `transition: all 0.15s ${easings.snappy};`,
+  fade: `transition: opacity 0.2s ${easings.smooth}, filter 0.2s ${easings.smooth};`,
+  smooth: `transition: opacity 0.3s ${easings.smooth}, filter 0.3s ${easings.smooth};`,
+  snappy: `transition: opacity 0.15s ${easings.snappy}, filter 0.15s ${easings.snappy};`,
   none: `transition: none;`,
-  // Enhanced transitions for specific elements
+  // Enhanced transitions for specific elements - no transform
   button: `
     transition: 
-      transform 0.15s ${easings.spring},
+      opacity 0.15s ${easings.smooth},
       background-color 0.2s ${easings.smooth},
       border-color 0.2s ${easings.smooth},
       box-shadow 0.2s ${easings.smooth},
-      color 0.15s ${easings.smooth};
+      color 0.15s ${easings.smooth},
+      filter 0.15s ${easings.smooth};
   `,
   message: `
     transition: 
       opacity 0.3s ${easings.smooth},
-      transform 0.3s ${easings.spring};
+      filter 0.3s ${easings.smooth};
   `,
   dropdown: `
     transition: 
       opacity 0.2s ${easings.smooth},
-      transform 0.25s ${easings.spring},
+      filter 0.2s ${easings.smooth},
       visibility 0.2s;
   `
 };
@@ -735,7 +736,7 @@ var chat = {
     &:hover:not(:disabled) {
       background: var(--theme-hover);
       border-color: var(--theme-border);
-      transform: translateY(-1px);
+      filter: brightness(1.1);
     }
     
     &:focus {
@@ -743,7 +744,7 @@ var chat = {
       background: var(--theme-hover);
       border-color: var(--theme-chat-input-focus);
       box-shadow: 0 0 0 3px rgba(69, 137, 255, 0.1);
-      transform: translateY(-1px);
+      filter: brightness(1.15);
     }
     
     &:disabled {
@@ -837,53 +838,51 @@ var button = {
   `
 };
 var animations = `
-  /* Toolbar entrance animation */
+  /* Toolbar entrance animation - refined fade/blur only */
   @keyframes toolbarEntrance {
     from { 
       opacity: 0;
-      transform: translateY(20px) scale(0.95);
-      filter: blur(4px);
+      filter: blur(8px);
     }
     to { 
       opacity: 1;
-      transform: translateY(0) scale(1);
       filter: blur(0);
     }
   }
   
-  /* Smooth fade in with spring */
+  /* Smooth fade in - no movement */
   @keyframes fadeIn {
     from { 
       opacity: 0; 
-      transform: translateY(8px) scale(0.98);
+      filter: blur(4px);
     }
     to { 
       opacity: 1; 
-      transform: translateY(0) scale(1);
+      filter: blur(0);
     }
   }
   
-  /* Message slide in */
+  /* Message fade in */
   @keyframes slideIn {
     from { 
       opacity: 0; 
-      transform: translateX(-12px);
+      filter: blur(2px);
     }
     to { 
       opacity: 1; 
-      transform: translateX(0);
+      filter: blur(0);
     }
   }
   
-  /* View switching animation */
+  /* View switching animation - fade only */
   @keyframes viewSlideIn {
     from {
       opacity: 0;
-      transform: translateX(20px);
+      filter: blur(4px);
     }
     to {
       opacity: 1;
-      transform: translateX(0);
+      filter: blur(0);
     }
   }
   
@@ -992,15 +991,15 @@ var animations = `
     20%, 40%, 60%, 80% { transform: translateX(2px); }
   }
   
-  /* @ mention dropdown entrance */
+  /* @ mention dropdown entrance - fade only */
   @keyframes dropdownEntrance {
     from {
       opacity: 0;
-      transform: translateY(-8px) scale(0.95);
+      filter: blur(4px);
     }
     to {
       opacity: 1;
-      transform: translateY(0) scale(1);
+      filter: blur(0);
     }
   }
   
@@ -1016,15 +1015,13 @@ var animations = `
     }
   }
   
-  /* Model card hover */
+  /* Model card hover - shadow only */
   @keyframes cardLift {
     from {
-      transform: translateY(0);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     to {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     }
   }
   
@@ -1057,19 +1054,6 @@ var responsive = {
   smallScreen: (styles2) => `
     @media (max-width: 480px) {
       ${styles2}
-    }
-  `
-};
-var focus = {
-  ring: `
-    &:focus-visible {
-      outline: 2px solid var(--theme-focus);
-      outline-offset: 2px;
-    }
-  `,
-  within: `
-    &:focus-within {
-      border-color: var(--theme-focus);
     }
   `
 };
@@ -1166,17 +1150,17 @@ var devtools2 = {
     ${rounded.xl}
     ${shadow.xl}
   `,
-  // Interactive elements with micro-interactions
+  // Interactive elements with micro-interactions - no movement
   interactive: `
     ${transition.all}
-    will-change: transform, background-color, border-color;
+    will-change: opacity, filter, background-color, border-color;
     
     &:hover {
-      transform: translateY(-1px);
+      filter: brightness(1.1);
     }
     
     &:active {
-      transform: translateY(0);
+      filter: brightness(0.95);
     }
   `,
   // Professional tooltips
@@ -1389,7 +1373,7 @@ ${animations}
 /* Initial hidden state */
 .toolbar.opacity-0 {
   opacity: 0;
-  transform: translateY(20px) scale(0.95);
+  filter: blur(8px);
 }
 
 .toolbar.minimized {
@@ -1478,7 +1462,7 @@ ${animations}
   &:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
+    filter: brightness(1.1);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
     
     &::after {
@@ -1488,7 +1472,7 @@ ${animations}
   }
   
   &:active:not(:disabled) {
-    transform: translateY(0);
+    filter: brightness(0.95);
     transition-duration: 0.1s;
   }
   
@@ -1517,15 +1501,15 @@ ${animations}
     width: 16px;
     height: 16px;
     display: block;
-    transition: transform 0.2s ${easings.spring};
+    transition: opacity 0.2s ${easings.smooth};
   }
   
   &:hover svg {
-    transform: rotate(5deg) scale(1.1);
+    opacity: 0.8;
   }
   
   &:active svg {
-    transform: scale(0.9);
+    opacity: 0.6;
   }
 }
 
@@ -1546,8 +1530,7 @@ ${animations}
   ${scrollbar.thin}
   
   /* Dropdown entrance animation */
-  animation: dropdownEntrance 0.3s ${easings.spring} forwards;
-  transform-origin: top center;
+  animation: dropdownEntrance 0.3s ${easings.smooth} forwards;
 }
 
 .chat-item {
@@ -1678,10 +1661,10 @@ ${animations}
   animation-delay: 0.05s;
   
   /* Hover effect for messages */
-  transition: transform 0.2s ${easings.smooth}, box-shadow 0.2s ${easings.smooth};
+  transition: filter 0.2s ${easings.smooth}, box-shadow 0.2s ${easings.smooth};
   
   &:hover {
-    transform: translateX(2px);
+    filter: brightness(1.05);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 }
@@ -2010,15 +1993,16 @@ ${animations}
   animation: fadeIn 0.3s ease;
 }
 
-/* Modern LLM Chat Input Area - Next.js DevTools inspired */
+/* Modern LLM Chat Input Area - ChatGPT/Claude inspired */
 .input-area {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid var(--theme-border);
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(10px);
   flex-shrink: 0;
-  ${padding.sm}
+  padding: ${spacing.md} ${spacing.md} ${spacing.sm};
   position: relative;
   
+  /* Subtle gradient border */
   &::before {
     content: '';
     position: absolute;
@@ -2028,76 +2012,120 @@ ${animations}
     height: 1px;
     background: linear-gradient(
       90deg,
-      transparent,
-      rgba(255, 255, 255, 0.1),
-      transparent
+      transparent 10%,
+      var(--theme-border) 50%,
+      transparent 90%
     );
   }
 }
 
 .input-form {
-  margin-bottom: var(--spacing-sm);
+  position: relative;
+  width: 100%;
 }
 
 .input-area .input {
-  ${chat.input}
-  ${focus.ring}
+  width: 100%;
+  background: var(--theme-chat-input-bg);
+  border: 1px solid var(--theme-chat-input-border);
+  ${rounded.xl}
+  padding: ${spacing.sm} ${spacing.xl} ${spacing.sm} ${spacing.md};
+  padding-right: 120px; /* Space for buttons */
+  ${textColor.primary}
+  ${text.sm}
+  ${fontFamily.mono}
+  min-height: 44px;
+  max-height: 140px;
+  resize: none;
+  transition: all 0.2s ${easings.smooth};
+  backdrop-filter: blur(10px);
+  line-height: 1.5;
   
-  /* Smooth focus transition */
-  &:focus {
-    animation: selectionPulse 2s infinite;
+  &:hover:not(:disabled) {
+    background: var(--theme-hover);
+    border-color: var(--theme-border);
+    filter: brightness(1.05);
   }
   
-  /* Placeholder animation */
+  &:focus {
+    outline: none;
+    background: var(--theme-hover);
+    border-color: var(--theme-chat-input-focus);
+    box-shadow: 0 0 0 3px rgba(69, 137, 255, 0.1);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
   &::placeholder {
+    color: var(--theme-muted);
     transition: opacity 0.3s ${easings.smooth};
   }
   
   &:focus::placeholder {
-    opacity: 0.5;
+    opacity: 0.3;
   }
   
   ${responsive.mobile(`
     font-size: 16px; /* Prevents zoom on iOS */
+    padding-right: 100px;
   `)}
 }
 
 .input-controls {
-  ${flex.between}
-  gap: var(--spacing-sm);
+  position: absolute;
+  right: ${spacing.sm};
+  bottom: ${spacing.sm};
+  ${flex.centerY}
+  gap: ${spacing.xs};
 }
 
 .control-icon-button {
   ${button.base}
   ${button.ghost}
-  ${padding.sm}
+  padding: ${spacing.xs};
   ${rounded.md}
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
+  opacity: 0.7;
+  ${transition.all}
+  
+  &:hover {
+    opacity: 1;
+    background: var(--theme-hover);
+  }
   
   &.active {
     background: var(--theme-accent);
     color: var(--theme-background);
+    opacity: 1;
   }
   
   svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 }
 
 .send-button {
   ${button.base}
-  ${button.primary}
-  ${padding.sm}
-  ${rounded.lg}
-  ${text.base}
-  min-width: 44px;
-  height: 36px;
-  margin-left: auto;
+  ${padding.xs}
+  ${rounded.md}
+  min-width: 32px;
+  height: 32px;
   position: relative;
   overflow: hidden;
-  ${transition.button}
+  ${transition.all}
+  background: var(--theme-accent);
+  color: var(--theme-background);
+  border: none;
+  
+  svg {
+    width: 16px;
+    height: 16px;
+  }
   
   /* Ripple effect container */
   &::before {
@@ -2129,41 +2157,22 @@ ${animations}
   }
   
   &:hover:not(:disabled) {
-    background: rgba(69, 137, 255, 0.9);
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 
-      0 8px 20px rgba(69, 137, 255, 0.35),
-      0 4px 8px rgba(0, 0, 0, 0.2);
-      
-    &::after {
-      animation-play-state: running;
-    }
+    filter: brightness(1.2);
+    box-shadow: 0 2px 8px rgba(69, 137, 255, 0.3);
   }
   
   &:active:not(:disabled) {
-    transform: translateY(0) scale(1);
-    transition-duration: 0.1s;
-    
-    &::before {
-      width: 120px;
-      height: 120px;
-    }
+    filter: brightness(0.9);
   }
   
   &:disabled {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.3);
-    transform: none;
-    box-shadow: none;
+    opacity: 0.4;
     cursor: not-allowed;
-    
-    &::after {
-      display: none;
-    }
+    filter: none;
   }
   
   /* Sending state animation */
-  &:disabled:not(.error) {
+  &.streaming {
     &::after {
       content: '';
       display: block;
@@ -2177,6 +2186,47 @@ ${animations}
       );
       animation: shimmer 1s infinite;
     }
+  }
+}
+
+/* Attachment button */
+.attachment-button {
+  ${button.base}
+  ${button.ghost}
+  padding: ${spacing.xs};
+  ${rounded.md}
+  width: 32px;
+  height: 32px;
+  opacity: 0.7;
+  ${transition.all}
+  
+  &:hover {
+    opacity: 1;
+    background: var(--theme-hover);
+  }
+  
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Character counter */
+.char-counter {
+  position: absolute;
+  bottom: ${spacing.xs};
+  right: 140px;
+  ${text.xs}
+  ${textColor.muted}
+  opacity: 0;
+  ${transition.opacity}
+  
+  .input:focus ~ .input-controls & {
+    opacity: 1;
+  }
+  
+  &.over-limit {
+    ${textColor.status.error}
   }
 }
 
@@ -2242,10 +2292,11 @@ ${animations}
 
 .expand-icon {
   font-size: 10px;
-  ${transition.transform}
+  ${transition.opacity}
   
   &.expanded {
-    transform: rotate(180deg);
+    /* Use a different icon or CSS trick instead of rotation */
+    opacity: 0.8;
   }
 }
 
@@ -2418,7 +2469,7 @@ ${animations}
 .model-option:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.1);
-  transform: translateX(2px);
+  filter: brightness(1.05);
   
   &::before {
     opacity: 1;
@@ -2494,16 +2545,17 @@ ${animations}
   text-align: center;
 }
 
-/* Full Page Views */
+/* Full Page Views - Solid panels, not overlays */
 .view-container {
   position: absolute;
   inset: 0;
-  background: var(--theme-background);
+  background: rgba(0, 0, 0, 0.95); /* Solid background instead of semi-transparent */
+  backdrop-filter: blur(20px);
   z-index: var(--z-index-modal);
   ${flex.col}
   ${overflow.hidden}
   opacity: 0;
-  animation: viewSlideIn 0.3s ${easings.spring} forwards;
+  animation: viewSlideIn 0.3s ${easings.smooth} forwards;
 }
 
 .view-header {
@@ -2637,7 +2689,7 @@ ${animations}
 .model-card:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-4px) scale(1.02);
+  filter: brightness(1.1);
   box-shadow: 
     0 12px 24px rgba(0, 0, 0, 0.2),
     0 8px 16px rgba(69, 137, 255, 0.1);
@@ -2802,7 +2854,7 @@ ${animations}
   
   &:hover {
     opacity: 0.9;
-    transform: translateY(-1px);
+    filter: brightness(1.1);
   }
   
   svg {
@@ -2819,7 +2871,7 @@ ${animations}
   gap: var(--spacing-sm);
   
   &:hover:not(:disabled) {
-    transform: translateY(-1px);
+    filter: brightness(1.1);
   }
 }
 
@@ -4802,18 +4854,46 @@ What would you like to explore?`;
     !isMinimized.value && currentView.value === "settings" && renderSettingsView(),
     !isMinimized.value && currentView.value === "components" && renderComponentsView(),
     !isMinimized.value && currentView.value === "chat" && (activeChat() ? /* @__PURE__ */ h2(Fragment, null, /* @__PURE__ */ h2("div", { className: "messages-container" }, activeChat().messages.map((msg, i) => /* @__PURE__ */ h2("div", { key: i, className: "message-wrapper" }, renderMessage(msg))), isStreamingResponse.value && streamingContent.value && /* @__PURE__ */ h2("div", { className: "message-wrapper" }, /* @__PURE__ */ h2("div", { className: "message assistant-message" }, /* @__PURE__ */ h2("div", { dangerouslySetInnerHTML: { __html: marked(streamingContent.value) } })))), /* @__PURE__ */ h2("div", { className: "input-area" }, /* @__PURE__ */ h2("form", { onSubmit: handleSubmit, className: "input-form" }, /* @__PURE__ */ h2(
-      "input",
+      "textarea",
       {
-        ref: (el) => inputRef.value = el,
-        type: "text",
+        ref: (el) => {
+          inputRef.value = el;
+          if (el) {
+            el.style.height = "auto";
+            el.style.height = Math.min(el.scrollHeight, 140) + "px";
+          }
+        },
         className: "input",
         value: inputValue.value,
-        onInput: handleInputChange,
-        onKeyDown: handleInputKeyDown,
-        placeholder: "ask about your react codebase... (type @ for context)",
-        disabled: isInitializing.value || isStreamingResponse.value
+        onInput: (e) => {
+          handleInputChange(e);
+          const textarea = e.target;
+          textarea.style.height = "auto";
+          textarea.style.height = Math.min(textarea.scrollHeight, 140) + "px";
+        },
+        onKeyDown: (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit(e);
+          } else {
+            handleInputKeyDown(e);
+          }
+        },
+        placeholder: "Message ReactLM...",
+        disabled: isInitializing.value || isStreamingResponse.value,
+        rows: 1
       }
-    )), /* @__PURE__ */ h2("div", { className: "input-controls" }, /* @__PURE__ */ h2(
+    ), /* @__PURE__ */ h2("div", { className: "input-controls" }, /* @__PURE__ */ h2(
+      "button",
+      {
+        type: "button",
+        className: "attachment-button",
+        onClick: () => console.log("Attachment feature coming soon"),
+        title: "Attach files (coming soon)",
+        disabled: true
+      },
+      /* @__PURE__ */ h2("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "currentColor", xmlns: "http://www.w3.org/2000/svg" }, /* @__PURE__ */ h2("path", { d: "M8.5 1.5a2.5 2.5 0 0 1 2.5 2.5v5.5a4.5 4.5 0 0 1-9 0V4a1 1 0 0 1 2 0v5.5a2.5 2.5 0 0 0 5 0V4a.5.5 0 0 0-1 0v5.5a1.5 1.5 0 0 1-3 0V4a1 1 0 0 1 2 0v5.5a.5.5 0 0 0 1 0V4a2.5 2.5 0 0 1 2.5-2.5z" }))
+    ), /* @__PURE__ */ h2(
       "button",
       {
         type: "button",
@@ -4833,8 +4913,8 @@ What would you like to explore?`;
         },
         disabled: isInitializing.value || isStreamingResponse.value || !inputValue.value.trim()
       },
-      isStreamingResponse.value ? /* @__PURE__ */ h2("span", { className: "loading-dots" }, /* @__PURE__ */ h2("span", { className: "loading-dot" }), /* @__PURE__ */ h2("span", { className: "loading-dot" }), /* @__PURE__ */ h2("span", { className: "loading-dot" })) : "\u2192"
-    )))) : /* @__PURE__ */ h2("div", { className: "empty-state" }, /* @__PURE__ */ h2("div", { className: "empty-state-title" }, "welcome to reactlm"), /* @__PURE__ */ h2("div", { className: "empty-state-description" }, "start a new chat to get ai-powered help with your react codebase", isInitializing.value && /* @__PURE__ */ h2("div", { className: "loading-dots" }, /* @__PURE__ */ h2("div", { className: "loading-dot" }), /* @__PURE__ */ h2("div", { className: "loading-dot" }), /* @__PURE__ */ h2("div", { className: "loading-dot" }))), /* @__PURE__ */ h2(
+      isStreamingResponse.value ? /* @__PURE__ */ h2("span", { className: "loading-dots" }, /* @__PURE__ */ h2("span", { className: "loading-dot" }), /* @__PURE__ */ h2("span", { className: "loading-dot" }), /* @__PURE__ */ h2("span", { className: "loading-dot" })) : /* @__PURE__ */ h2("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "currentColor", xmlns: "http://www.w3.org/2000/svg" }, /* @__PURE__ */ h2("path", { d: "M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z", transform: "rotate(90 8 8)" }))
+    ))))) : /* @__PURE__ */ h2("div", { className: "empty-state" }, /* @__PURE__ */ h2("div", { className: "empty-state-title" }, "welcome to reactlm"), /* @__PURE__ */ h2("div", { className: "empty-state-description" }, "start a new chat to get ai-powered help with your react codebase", isInitializing.value && /* @__PURE__ */ h2("div", { className: "loading-dots" }, /* @__PURE__ */ h2("div", { className: "loading-dot" }), /* @__PURE__ */ h2("div", { className: "loading-dot" }), /* @__PURE__ */ h2("div", { className: "loading-dot" }))), /* @__PURE__ */ h2(
       "button",
       {
         className: "new-chat-button",

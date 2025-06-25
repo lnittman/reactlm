@@ -26,7 +26,7 @@ import {
   responsive,
   devtools
 } from '../styles/utilities';
-import { easings } from '../styles/tokens';
+import { easings, spacing } from '../styles/tokens';
 
 export const styles = `
 /* Font loading */
@@ -104,7 +104,7 @@ ${animations}
 /* Initial hidden state */
 .toolbar.opacity-0 {
   opacity: 0;
-  transform: translateY(20px) scale(0.95);
+  filter: blur(8px);
 }
 
 .toolbar.minimized {
@@ -193,7 +193,7 @@ ${animations}
   &:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
+    filter: brightness(1.1);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
     
     &::after {
@@ -203,7 +203,7 @@ ${animations}
   }
   
   &:active:not(:disabled) {
-    transform: translateY(0);
+    filter: brightness(0.95);
     transition-duration: 0.1s;
   }
   
@@ -232,15 +232,15 @@ ${animations}
     width: 16px;
     height: 16px;
     display: block;
-    transition: transform 0.2s ${easings.spring};
+    transition: opacity 0.2s ${easings.smooth};
   }
   
   &:hover svg {
-    transform: rotate(5deg) scale(1.1);
+    opacity: 0.8;
   }
   
   &:active svg {
-    transform: scale(0.9);
+    opacity: 0.6;
   }
 }
 
@@ -261,8 +261,7 @@ ${animations}
   ${scrollbar.thin}
   
   /* Dropdown entrance animation */
-  animation: dropdownEntrance 0.3s ${easings.spring} forwards;
-  transform-origin: top center;
+  animation: dropdownEntrance 0.3s ${easings.smooth} forwards;
 }
 
 .chat-item {
@@ -393,10 +392,10 @@ ${animations}
   animation-delay: 0.05s;
   
   /* Hover effect for messages */
-  transition: transform 0.2s ${easings.smooth}, box-shadow 0.2s ${easings.smooth};
+  transition: filter 0.2s ${easings.smooth}, box-shadow 0.2s ${easings.smooth};
   
   &:hover {
-    transform: translateX(2px);
+    filter: brightness(1.05);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 }
@@ -725,15 +724,16 @@ ${animations}
   animation: fadeIn 0.3s ease;
 }
 
-/* Modern LLM Chat Input Area - Next.js DevTools inspired */
+/* Modern LLM Chat Input Area - ChatGPT/Claude inspired */
 .input-area {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid var(--theme-border);
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(10px);
   flex-shrink: 0;
-  ${padding.sm}
+  padding: ${spacing.md} ${spacing.md} ${spacing.sm};
   position: relative;
   
+  /* Subtle gradient border */
   &::before {
     content: '';
     position: absolute;
@@ -743,76 +743,120 @@ ${animations}
     height: 1px;
     background: linear-gradient(
       90deg,
-      transparent,
-      rgba(255, 255, 255, 0.1),
-      transparent
+      transparent 10%,
+      var(--theme-border) 50%,
+      transparent 90%
     );
   }
 }
 
 .input-form {
-  margin-bottom: var(--spacing-sm);
+  position: relative;
+  width: 100%;
 }
 
 .input-area .input {
-  ${chat.input}
-  ${focus.ring}
+  width: 100%;
+  background: var(--theme-chat-input-bg);
+  border: 1px solid var(--theme-chat-input-border);
+  ${rounded.xl}
+  padding: ${spacing.sm} ${spacing.xl} ${spacing.sm} ${spacing.md};
+  padding-right: 120px; /* Space for buttons */
+  ${textColor.primary}
+  ${text.sm}
+  ${fontFamily.mono}
+  min-height: 44px;
+  max-height: 140px;
+  resize: none;
+  transition: all 0.2s ${easings.smooth};
+  backdrop-filter: blur(10px);
+  line-height: 1.5;
   
-  /* Smooth focus transition */
-  &:focus {
-    animation: selectionPulse 2s infinite;
+  &:hover:not(:disabled) {
+    background: var(--theme-hover);
+    border-color: var(--theme-border);
+    filter: brightness(1.05);
   }
   
-  /* Placeholder animation */
+  &:focus {
+    outline: none;
+    background: var(--theme-hover);
+    border-color: var(--theme-chat-input-focus);
+    box-shadow: 0 0 0 3px rgba(69, 137, 255, 0.1);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
   &::placeholder {
+    color: var(--theme-muted);
     transition: opacity 0.3s ${easings.smooth};
   }
   
   &:focus::placeholder {
-    opacity: 0.5;
+    opacity: 0.3;
   }
   
   ${responsive.mobile(`
     font-size: 16px; /* Prevents zoom on iOS */
+    padding-right: 100px;
   `)}
 }
 
 .input-controls {
-  ${flex.between}
-  gap: var(--spacing-sm);
+  position: absolute;
+  right: ${spacing.sm};
+  bottom: ${spacing.sm};
+  ${flex.centerY}
+  gap: ${spacing.xs};
 }
 
 .control-icon-button {
   ${button.base}
   ${button.ghost}
-  ${padding.sm}
+  padding: ${spacing.xs};
   ${rounded.md}
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
+  opacity: 0.7;
+  ${transition.all}
+  
+  &:hover {
+    opacity: 1;
+    background: var(--theme-hover);
+  }
   
   &.active {
     background: var(--theme-accent);
     color: var(--theme-background);
+    opacity: 1;
   }
   
   svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 }
 
 .send-button {
   ${button.base}
-  ${button.primary}
-  ${padding.sm}
-  ${rounded.lg}
-  ${text.base}
-  min-width: 44px;
-  height: 36px;
-  margin-left: auto;
+  ${padding.xs}
+  ${rounded.md}
+  min-width: 32px;
+  height: 32px;
   position: relative;
   overflow: hidden;
-  ${transition.button}
+  ${transition.all}
+  background: var(--theme-accent);
+  color: var(--theme-background);
+  border: none;
+  
+  svg {
+    width: 16px;
+    height: 16px;
+  }
   
   /* Ripple effect container */
   &::before {
@@ -844,41 +888,22 @@ ${animations}
   }
   
   &:hover:not(:disabled) {
-    background: rgba(69, 137, 255, 0.9);
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 
-      0 8px 20px rgba(69, 137, 255, 0.35),
-      0 4px 8px rgba(0, 0, 0, 0.2);
-      
-    &::after {
-      animation-play-state: running;
-    }
+    filter: brightness(1.2);
+    box-shadow: 0 2px 8px rgba(69, 137, 255, 0.3);
   }
   
   &:active:not(:disabled) {
-    transform: translateY(0) scale(1);
-    transition-duration: 0.1s;
-    
-    &::before {
-      width: 120px;
-      height: 120px;
-    }
+    filter: brightness(0.9);
   }
   
   &:disabled {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.3);
-    transform: none;
-    box-shadow: none;
+    opacity: 0.4;
     cursor: not-allowed;
-    
-    &::after {
-      display: none;
-    }
+    filter: none;
   }
   
   /* Sending state animation */
-  &:disabled:not(.error) {
+  &.streaming {
     &::after {
       content: '';
       display: block;
@@ -892,6 +917,47 @@ ${animations}
       );
       animation: shimmer 1s infinite;
     }
+  }
+}
+
+/* Attachment button */
+.attachment-button {
+  ${button.base}
+  ${button.ghost}
+  padding: ${spacing.xs};
+  ${rounded.md}
+  width: 32px;
+  height: 32px;
+  opacity: 0.7;
+  ${transition.all}
+  
+  &:hover {
+    opacity: 1;
+    background: var(--theme-hover);
+  }
+  
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Character counter */
+.char-counter {
+  position: absolute;
+  bottom: ${spacing.xs};
+  right: 140px;
+  ${text.xs}
+  ${textColor.muted}
+  opacity: 0;
+  ${transition.opacity}
+  
+  .input:focus ~ .input-controls & {
+    opacity: 1;
+  }
+  
+  &.over-limit {
+    ${textColor.status.error}
   }
 }
 
@@ -957,10 +1023,11 @@ ${animations}
 
 .expand-icon {
   font-size: 10px;
-  ${transition.transform}
+  ${transition.opacity}
   
   &.expanded {
-    transform: rotate(180deg);
+    /* Use a different icon or CSS trick instead of rotation */
+    opacity: 0.8;
   }
 }
 
@@ -1133,7 +1200,7 @@ ${animations}
 .model-option:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.1);
-  transform: translateX(2px);
+  filter: brightness(1.05);
   
   &::before {
     opacity: 1;
@@ -1209,16 +1276,17 @@ ${animations}
   text-align: center;
 }
 
-/* Full Page Views */
+/* Full Page Views - Solid panels, not overlays */
 .view-container {
   position: absolute;
   inset: 0;
-  background: var(--theme-background);
+  background: rgba(0, 0, 0, 0.95); /* Solid background instead of semi-transparent */
+  backdrop-filter: blur(20px);
   z-index: var(--z-index-modal);
   ${flex.col}
   ${overflow.hidden}
   opacity: 0;
-  animation: viewSlideIn 0.3s ${easings.spring} forwards;
+  animation: viewSlideIn 0.3s ${easings.smooth} forwards;
 }
 
 .view-header {
@@ -1352,7 +1420,7 @@ ${animations}
 .model-card:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-4px) scale(1.02);
+  filter: brightness(1.1);
   box-shadow: 
     0 12px 24px rgba(0, 0, 0, 0.2),
     0 8px 16px rgba(69, 137, 255, 0.1);
@@ -1517,7 +1585,7 @@ ${animations}
   
   &:hover {
     opacity: 0.9;
-    transform: translateY(-1px);
+    filter: brightness(1.1);
   }
   
   svg {
@@ -1534,7 +1602,7 @@ ${animations}
   gap: var(--spacing-sm);
   
   &:hover:not(:disabled) {
-    transform: translateY(-1px);
+    filter: brightness(1.1);
   }
 }
 

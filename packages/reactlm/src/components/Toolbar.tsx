@@ -1040,47 +1040,83 @@ What would you like to explore?`;
               
               <div className="input-area">
                 <form onSubmit={handleSubmit} className="input-form">
-                  <input
-                    ref={(el) => inputRef.value = el}
-                    type="text"
+                  <textarea
+                    ref={(el) => {
+                      inputRef.value = el;
+                      // Auto-resize textarea
+                      if (el) {
+                        el.style.height = 'auto';
+                        el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+                      }
+                    }}
                     className="input"
                     value={inputValue.value}
-                    onInput={handleInputChange}
-                    onKeyDown={handleInputKeyDown}
-                    placeholder="ask about your react codebase... (type @ for context)"
-                    disabled={isInitializing.value || isStreamingResponse.value}
-                  />
-                </form>
-                <div className="input-controls">
-                  <button 
-                    type="button"
-                    className={`control-icon-button ${selectionMode.value === 'selecting' ? 'active' : ''}`}
-                    onClick={() => selectionMode.value = selectionMode.value === 'selecting' ? 'none' : 'selecting'}
-                    title="Select Component"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M2 2h4v2H4v2H2V2zm10 0h4v4h-2V4h-2V2zM2 10h2v2h2v2H2v-4zm12 2h2v-2h-2v2zm0 0v2h-2v2h4v-4h-2z"/>
-                      <circle cx="8" cy="8" r="2" opacity="0.5"/>
-                    </svg>
-                  </button>
-                  <button 
-                    type="button"
-                    className={`send-button ${isStreamingResponse.value ? 'streaming' : ''}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleSubmit(e as any);
+                    onInput={(e) => {
+                      handleInputChange(e);
+                      // Auto-resize on input
+                      const textarea = e.target as HTMLTextAreaElement;
+                      textarea.style.height = 'auto';
+                      textarea.style.height = Math.min(textarea.scrollHeight, 140) + 'px';
                     }}
-                    disabled={isInitializing.value || isStreamingResponse.value || !inputValue.value.trim()}
-                  >
-                    {isStreamingResponse.value ? (
-                      <span className="loading-dots">
-                        <span className="loading-dot"></span>
-                        <span className="loading-dot"></span>
-                        <span className="loading-dot"></span>
-                      </span>
-                    ) : '→'}
-                  </button>
-                </div>
+                    onKeyDown={(e) => {
+                      // Submit on Enter (without Shift)
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit(e as any);
+                      } else {
+                        handleInputKeyDown(e);
+                      }
+                    }}
+                    placeholder="Message ReactLM..."
+                    disabled={isInitializing.value || isStreamingResponse.value}
+                    rows={1}
+                  />
+                  <div className="input-controls">
+                    <button 
+                      type="button"
+                      className="attachment-button"
+                      onClick={() => console.log('Attachment feature coming soon')}
+                      title="Attach files (coming soon)"
+                      disabled
+                    >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8.5 1.5a2.5 2.5 0 0 1 2.5 2.5v5.5a4.5 4.5 0 0 1-9 0V4a1 1 0 0 1 2 0v5.5a2.5 2.5 0 0 0 5 0V4a.5.5 0 0 0-1 0v5.5a1.5 1.5 0 0 1-3 0V4a1 1 0 0 1 2 0v5.5a.5.5 0 0 0 1 0V4a2.5 2.5 0 0 1 2.5-2.5z"/>
+                      </svg>
+                    </button>
+                    <button 
+                      type="button"
+                      className={`control-icon-button ${selectionMode.value === 'selecting' ? 'active' : ''}`}
+                      onClick={() => selectionMode.value = selectionMode.value === 'selecting' ? 'none' : 'selecting'}
+                      title="Select Component"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 2h4v2H4v2H2V2zm10 0h4v4h-2V4h-2V2zM2 10h2v2h2v2H2v-4zm12 2h2v-2h-2v2zm0 0v2h-2v2h4v-4h-2z"/>
+                        <circle cx="8" cy="8" r="2" opacity="0.5"/>
+                      </svg>
+                    </button>
+                    <button 
+                      type="button"
+                      className={`send-button ${isStreamingResponse.value ? 'streaming' : ''}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleSubmit(e as any);
+                      }}
+                      disabled={isInitializing.value || isStreamingResponse.value || !inputValue.value.trim()}
+                    >
+                      {isStreamingResponse.value ? (
+                        <span className="loading-dots">
+                          <span className="loading-dot"></span>
+                          <span className="loading-dot"></span>
+                          <span className="loading-dot"></span>
+                        </span>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z" transform="rotate(90 8 8)"/>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </form>
               </div>
               
             </Fragment>
