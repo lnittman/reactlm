@@ -2,34 +2,34 @@
 > reactlm@0.1.0 build /Users/nit/Developer/apps/react-lm/packages/reactlm
 > tsup
 
-[34mCLI[39m Building entry: {"reactlm.global":"src/index.ts"}
-[34mCLI[39m Using tsconfig: tsconfig.json
-[34mCLI[39m tsup v8.5.0
-[34mCLI[39m Using tsup config: /Users/nit/Developer/apps/react-lm/packages/reactlm/tsup.config.ts
-[34mCLI[39m Building entry: src/index.ts
-[34mCLI[39m Using tsconfig: tsconfig.json
-[34mCLI[39m tsup v8.5.0
-[34mCLI[39m Using tsup config: /Users/nit/Developer/apps/react-lm/packages/reactlm/tsup.config.ts
-[34mCLI[39m Building entry: src/cli.ts
-[34mCLI[39m Using tsconfig: tsconfig.json
-[34mCLI[39m tsup v8.5.0
-[34mCLI[39m Using tsup config: /Users/nit/Developer/apps/react-lm/packages/reactlm/tsup.config.ts
-[34mCLI[39m Target: es2020
-[34mIIFE[39m Build start
-[34mCLI[39m Target: es2020
-[34mCJS[39m Build start
-[34mCLI[39m Target: es2020
-[34mCLI[39m Cleaning output folder
-[34mESM[39m Build start
-[34mCJS[39m Build start
-[32mCJS[39m [1mdist/cli.cjs [22m[32m8.26 KB[39m
-[32mCJS[39m ⚡️ Build success in 10ms
-[32mCJS[39m [1mdist/index.cjs     [22m[32m190.70 KB[39m
-[32mCJS[39m [1mdist/index.cjs.map [22m[32m338.18 KB[39m
-[32mCJS[39m ⚡️ Build success in 30ms
-[32mESM[39m [1mdist/index.js     [22m[32m186.20 KB[39m
-[32mESM[39m [1mdist/index.js.map [22m[32m339.01 KB[39m
-[32mESM[39m ⚡️ Build success in 30ms
-[32mIIFE[39m [1mdist/reactlm.global.global.js     [22m[32m314.24 KB[39m
-[32mIIFE[39m [1mdist/reactlm.global.global.js.map [22m[32m674.61 KB[39m
-[32mIIFE[39m ⚡️ Build success in 41ms
+CLI Building entry: {"reactlm.global":"src/index.ts"}
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.0
+CLI Using tsup config: /Users/nit/Developer/apps/react-lm/packages/reactlm/tsup.config.ts
+CLI Building entry: src/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.0
+CLI Using tsup config: /Users/nit/Developer/apps/react-lm/packages/reactlm/tsup.config.ts
+CLI Building entry: src/cli.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.0
+CLI Using tsup config: /Users/nit/Developer/apps/react-lm/packages/reactlm/tsup.config.ts
+CLI Target: es2020
+IIFE Build start
+CLI Target: es2020
+CLI Target: es2020
+CJS Build start
+CLI Cleaning output folder
+ESM Build start
+CJS Build start
+CJS dist/cli.cjs 8.26 KB
+CJS ⚡️ Build success in 10ms
+CJS dist/index.cjs     190.70 KB
+CJS dist/index.cjs.map 338.18 KB
+CJS ⚡️ Build success in 40ms
+ESM dist/index.js     186.20 KB
+ESM dist/index.js.map 339.01 KB
+ESM ⚡️ Build success in 40ms
+IIFE dist/reactlm.global.global.js     314.24 KB
+IIFE dist/reactlm.global.global.js.map 674.61 KB
+IIFE ⚡️ Build success in 51ms

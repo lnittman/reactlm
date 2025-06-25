@@ -2,33 +2,33 @@ import type { NextConfig } from "next";
 import { copyFileSync, existsSync, mkdirSync } from "fs";
 import { join } from "path";
 
-// Helper function to copy react-llm.js
-function copyReactLLM() {
-  const reactLLMPath = join(__dirname, "../../packages/react-llm/dist/react-llm.global.js");
+// Helper function to copy reactlm.js
+function copyReactLM() {
+  const reactLMPath = join(__dirname, "../../packages/reactlm/dist/reactlm.global.global.js");
   const publicPath = join(__dirname, "public");
-  const targetPath = join(publicPath, "react-llm.js");
+  const targetPath = join(publicPath, "reactlm.js");
   
-  if (existsSync(reactLLMPath)) {
+  if (existsSync(reactLMPath)) {
     if (!existsSync(publicPath)) {
       mkdirSync(publicPath, { recursive: true });
     }
-    copyFileSync(reactLLMPath, targetPath);
-    console.log("✅ Copied react-llm.js to public directory");
+    copyFileSync(reactLMPath, targetPath);
+    console.log("✅ Copied reactlm.js to public directory");
     return true;
   } else {
-    console.warn("⚠️  react-llm.js not found. Building react-llm...");
+    console.warn("⚠️  reactlm.js not found. Building reactlm...");
     return false;
   }
 }
 
 // Copy on startup
-copyReactLLM();
+copyReactLM();
 
 const nextConfig: NextConfig = {
   webpack: (config, { isServer, dev }) => {
     if (!isServer) {
-      // Copy react-llm build to public directory on client build
-      copyReactLLM();
+      // Copy reactlm build to public directory on client build
+      copyReactLM();
     }
     return config;
   },
